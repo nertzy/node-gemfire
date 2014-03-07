@@ -1,0 +1,34 @@
+{
+  "name": "pivotal-gemfire",
+  "version": "0.0.1",
+  "description": "Pivotal Gemfire Node package proof-of-concept",
+  "main": "./index.js",
+  "author": "Grant Hutchins & Michael Schubert",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:pivotal/nodejs-gemfire-poc.git"
+  },
+  "binary": {
+    "module_name": "pivotal-gemfire",
+    "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
+    "host": "https://node-pre-gyp-tests.s3-us-west-1.amazonaws.com"
+  },
+  "dependencies": {
+    "node-pre-gyp": "0.5.x"
+  },
+  "bundledDependencies": [
+    "node-pre-gyp"
+  ],
+  "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
+    "test": "node test.js",
+    "prepublish": "npm ls"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-jasmine-node": "^0.2.1",
+    "grunt-shell": "^0.7.0"
+  }
+}
