@@ -4,13 +4,14 @@ module.exports = function(grunt) {
     shell: {
       rebuild: {
         command: 'npm install --build-from-source'
-      },
-      test: {
-        command: 'node test.js'
       }
     },
+    jasmine_node: {
+      all: ['spec/']
+    }
   });
+  grunt.loadNpmTasks('grunt-jasmine-node');
   grunt.loadNpmTasks('grunt-shell');
-  grunt.registerTask('default', ['shell:rebuild', 'shell:test']);
+  grunt.registerTask('default', ['shell:rebuild', 'jasmine_node:all']);
 };
 
