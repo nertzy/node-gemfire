@@ -12,6 +12,10 @@ module.exports = function(grunt) {
   });
   grunt.loadNpmTasks('grunt-jasmine-node');
   grunt.loadNpmTasks('grunt-shell');
-  grunt.registerTask('default', ['shell:rebuild', 'jasmine_node:all']);
+
+  grunt.registerTask('build', ['shell:rebuild']);
+  grunt.registerTask('test', ['jasmine_node:all']);
+
+  grunt.registerTask('default', ['build', 'test']);
 };
 
