@@ -17,6 +17,14 @@ Install from source:
 
     npm install --build-from-source
 
+## Run the build
+
+```
+npm install -g grunt-cli
+grunt
+```
+
+
 ## Developing
 
 The [node-pre-gyp](https://github.com/mapbox/node-pre-gyp#usage) tool is used to handle building from source and packaging.
