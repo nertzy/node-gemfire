@@ -1,15 +1,15 @@
 {
-    "name" : "node-addon-example",
-    "version" : "0.1.3",
-    "description" :"Hello world app packaged with node-pre-gyp",
+    "name" : "pivotal-gemfire",
+    "version" : "0.0.1",
+    "description" :"Pivotal Gemfire Node package proof-of-concept",
     "main" : "./index.js",
-    "author" : "Dane Springmeyer <springmeyer>",
+    "author" : "Grant Hutchins & Michael Schubert",
     "repository"   :  {
        "type" : "git",
-       "url"  : "git://github.com/springmeyer/node-addon-example.git"
+       "url"  : "git@github.com:pivotal/nodejs-gemfire-poc.git"
     },
     "binary": {
-        "module_name" : "node_addon_example",
+        "module_name" : "pivotal-gemfire",
         "module_path" : "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
         "remote_path" : "./{module_name}/v{version}/{configuration}/",
         "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",

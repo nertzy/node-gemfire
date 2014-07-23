@@ -1,11 +1,7 @@
-node-addon-example
-==================
+pivotal-gemfire
+===============
 
-Sample application of a Node C++ addon packaged with [node-pre-gyp](https://github.com/mapbox/node-pre-gyp).
-
-If you are interested in learning how to write C++ addons see the [official guide](http://nodejs.org/api/addons.html#addons_hello_world).
-
-This repo is intended as starter code for your own C++ module - feel free to copy and modify. The docs below are meant to be a template for how you might document your module once packaged with `node-pre-gyp`.
+Proof-of-concept node module connecting to Pivotal Gemfire
 
 ## Depends
 

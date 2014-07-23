@@ -34,5 +34,5 @@ extern "C" {
     }
 }
 
-NODE_MODULE(node_addon_example, start)
+NODE_MODULE(pivotal_gemfire, start)
 
