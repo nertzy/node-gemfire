@@ -21,7 +21,7 @@
     "bundledDependencies":["node-pre-gyp"],
     "scripts": {
         "install" : "node-pre-gyp install --fallback-to-build",
-        "test": "node index.js",
+        "test": "node test.js",
         "prepublish": "npm ls"
     }
 }
