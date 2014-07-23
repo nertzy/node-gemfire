@@ -15,3 +15,5 @@ lib/binding
 npm-debug.log
 node_modules
 build
+
+.vagrant/*
