@@ -16,4 +16,10 @@ describe("pivotal-gemfire", function() {
       expect(pivotalGemfire.hello()).toEqual("hello");
     });
   });
+
+  describe(".version", function() {
+    it("returns the version string", function() {
+      expect(pivotalGemfire.version()).toEqual("7.0.2.0");
+    });
+  });
 });
