@@ -4,7 +4,7 @@
   "targets": [
     {
       "target_name": "<(module_name)",
-      "sources": [ "binding.cpp" ],
+      "sources": [ "src/binding.cpp" ],
     },
     {
       "target_name": "action_after_build",
