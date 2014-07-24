@@ -8,15 +8,15 @@
     "include_dirs": [ "include" ],
     "sources": [ "src/binding.cpp" ],
     'conditions': [
-      ['OS=="mac"', { 
-        'xcode_settings': { 
+      ['OS=="mac"', {
+        'xcode_settings': {
           'GCC_ENABLE_CPP_RTTI': 'YES',
           'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-        } 
+        }
       }],
       ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
         'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
-        'cflags_cc+': ['-frtti'],
+        'cflags_cc+': ['-frtti', '-D_REENTRANT'],
         "libraries": [ "<(module_root_dir)/lib/libgfcppcache.so" ]
       }]
     ]
