@@ -1,1 +1,2 @@
 -I/usr/local/Cellar/node/0.10.28/include/node
+-Inode_modules/nan
