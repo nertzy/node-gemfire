@@ -2,27 +2,26 @@
 #include <node.h>
 #include <node_version.h>
 #include <gfcpp/CacheFactory.hpp>
+#include <nan.h>
 
-static v8::Handle<v8::Value> get_hello(const v8::Arguments& args)
-{
-    v8::HandleScope scope;
-    return scope.Close(v8::String::New("hello"));
+using namespace v8;
+
+NAN_METHOD(get_hello) {
+  NanScope();
+  NanReturnValue(NanNew<String>("hello"));
 }
 
-static v8::Handle<v8::Value> get_version(const v8::Arguments& args)
-{
-    const char* version = gemfire::CacheFactory::getVersion();
-
-    v8::HandleScope scope;
-    return scope.Close(v8::String::New(version));
+NAN_METHOD(get_version) {
+  NanScope();
+  NanReturnValue(NanNew<String>(gemfire::CacheFactory::getVersion()));
 }
 
 extern "C" {
-    static void start(v8::Handle<v8::Object> target) {
-        v8::HandleScope scope;
-        NODE_SET_METHOD(target, "hello", get_hello);
-        NODE_SET_METHOD(target, "version", get_version);
-    }
+  static void start(Handle<Object> target) {
+    NanScope();
+    NODE_SET_METHOD(target, "hello", get_hello);
+    NODE_SET_METHOD(target, "version", get_version);
+  }
 }
 
 NODE_MODULE(pivotal_gemfire, start)

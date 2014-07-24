@@ -5,9 +5,12 @@
   "targets": [
   {
     "target_name": "<(module_name)",
-    "include_dirs": [ "include" ],
-    "sources": [ "src/binding.cpp" ],
-    'conditions': [
+      "include_dirs" : [
+        "include",
+        "<!(node -e \"require('nan')\")"
+      ],
+      "sources": [ "src/binding.cpp" ],
+      'conditions': [
       ['OS=="mac"', {
         'xcode_settings': {
           'GCC_ENABLE_CPP_RTTI': 'YES',
