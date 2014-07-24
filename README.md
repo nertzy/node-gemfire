@@ -12,7 +12,7 @@ On your Mac
 On the vagrant box
 
 	$ cd /vagrant
-	$ ./setup_vagrant.sh
+	$ ./setup_ubuntu.sh
 
 ##Rebuild and run tests
 ```
