@@ -5,6 +5,7 @@
 #include <nan.h>
 
 using namespace v8;
+using namespace gemfire;
 
 NAN_METHOD(get_hello) {
   NanScope();
@@ -13,7 +14,7 @@ NAN_METHOD(get_hello) {
 
 NAN_METHOD(get_version) {
   NanScope();
-  NanReturnValue(NanNew<String>(gemfire::CacheFactory::getVersion()));
+  NanReturnValue(NanNew<String>(CacheFactory::getVersion()));
 }
 
 extern "C" {
