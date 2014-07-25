@@ -9,18 +9,16 @@ Proof-of-concept node module connecting to Pivotal Gemfire
 * vagrant 1.6.x http://www.vagrantup.com/
 
 ## Setup
-On your Mac
+Build out the virtualbox and install nodejs, Gemfire, etc.
 
     $ vagrant up
-    $ vagrant ssh
 
-On the vagrant box
+## Developer workflow
 
-    $ cd /vagrant
-    $ ./setup_ubuntu.sh
+This directory is mounted on the VM as `/project`. You can make edits here or on the VM. Then to run the tests, SSH into the VM and run grunt.
 
-## Rebuild and run tests
-
+	$ vagrant ssh
+	$ cd /project
     $ grunt
 
 ## License
