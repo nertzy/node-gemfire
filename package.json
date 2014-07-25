@@ -3,7 +3,11 @@
   "version": "0.0.1",
   "description": "Pivotal Gemfire Node package proof-of-concept",
   "main": "./index.js",
-  "author": "Grant Hutchins & Michael Schubert",
+  "author": "Pivotal Software, Inc.",
+  "contributors": [
+    {"name": "Grant Hutchins", "url": "https://github.com/nertzy"},
+    {"name": "Michael Schubert", "url": "http://github.com/schubert"}
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:pivotal/nodejs-gemfire-poc.git"
