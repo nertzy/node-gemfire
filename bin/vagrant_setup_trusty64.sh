@@ -25,4 +25,9 @@ echo "=== Installed node.js ==="
 test -e /usr/local/bin/grunt || sudo npm install -g grunt-cli
 echo "=== Installed node grunt ==="
 
+cd /tmp && wget -nc --progress=dot http://download.pivotal.com.s3.amazonaws.com/gemfire/7.0.2/pivotal-gemfire_7.0.2-1_all.deb
+test -e /usr/bin/gemfire || sudo dpkg --install /tmp/pivotal-gemfire_7.0.2-1_all.deb
+
+echo "=== Installed Gemfire ==="
+
 echo "=== Host setup complete ==="
