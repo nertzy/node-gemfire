@@ -1,6 +1,5 @@
 #include <v8.h>
 #include <node.h>
-#include <node_version.h>
 #include <gfcpp/CacheFactory.hpp>
 #include <nan.h>
 
