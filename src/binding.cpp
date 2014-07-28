@@ -49,7 +49,9 @@ static void Initialize(v8::Handle<v8::Object> target) {
   NanScope();
 
   gemfire::CacheFactoryPtr cacheFactory = gemfire::CacheFactory::createCacheFactory();
-  cachePtr = cacheFactory->create();
+  cachePtr = cacheFactory
+    ->set("log-level", "info")
+    ->create();
   gemfire::RegionFactoryPtr regionFactory = cachePtr->createRegionFactory(gemfire::LOCAL);
   regionPtr = regionFactory->create("exampleRegion");
 
