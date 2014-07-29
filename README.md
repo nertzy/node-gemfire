@@ -15,11 +15,22 @@ Build out the virtualbox and install nodejs, Gemfire, etc.
 
 ## Developer workflow
 
-This directory is mounted on the VM as `/project`. You can make edits here or on the VM. Then to run the tests, SSH into the VM and run grunt.
+This directory is mounted on the VM as `/project`. You can make edits here or on the VM.
 
     $ vagrant ssh
     $ cd /project
+
+## Running the node.js benchmarks
+
+    $ vagrant ssh
     $ grunt
+    $ cd /project/benchmark/node
+    $ node benchmark.js
+
+## Running the java benchmarks
+
+    $ vagrant ssh
+    $ /project/benchmark/java/gradlew clean run
 
 ## License
 
