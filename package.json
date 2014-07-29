@@ -5,8 +5,14 @@
   "main": "./index.js",
   "author": "Pivotal Software, Inc.",
   "contributors": [
-    {"name": "Grant Hutchins", "url": "https://github.com/nertzy"},
-    {"name": "Michael Schubert", "url": "http://github.com/schubert"}
+    {
+      "name": "Grant Hutchins",
+      "url": "https://github.com/nertzy"
+    },
+    {
+      "name": "Michael Schubert",
+      "url": "http://github.com/schubert"
+    }
   ],
   "repository": {
     "type": "git",
@@ -32,6 +38,9 @@
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-jasmine-node": "^0.2.1",
-    "grunt-shell": "^0.7.0"
+    "grunt-shell": "^0.7.0",
+    "lodash": "^2.4.1",
+    "microtime": "^0.6.0",
+    "random-string": "^0.1.1"
   }
 }

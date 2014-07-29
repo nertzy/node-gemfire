@@ -4,6 +4,9 @@ module.exports = function(grunt) {
     shell: {
       rebuild: {
         command: 'npm install --build-from-source'
+      },
+      benchmark: {
+        command: 'node benchmark/benchmark.js'
       }
     },
     jasmine_node: {
@@ -15,7 +18,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', ['shell:rebuild']);
   grunt.registerTask('test', ['jasmine_node:all']);
+  grunt.registerTask('benchmark', ['shell:benchmark']);
 
-  grunt.registerTask('default', ['build', 'test']);
+  grunt.registerTask('default', ['build', 'test', 'benchmark']);
 };
 
