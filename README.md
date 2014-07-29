@@ -17,8 +17,8 @@ Build out the virtualbox and install nodejs, Gemfire, etc.
 
 This directory is mounted on the VM as `/project`. You can make edits here or on the VM. Then to run the tests, SSH into the VM and run grunt.
 
-	$ vagrant ssh
-	$ cd /project
+    $ vagrant ssh
+    $ cd /project
     $ grunt
 
 ## License
