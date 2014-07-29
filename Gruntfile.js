@@ -6,7 +6,7 @@ module.exports = function(grunt) {
         command: 'npm install --build-from-source'
       },
       benchmark: {
-        command: 'node benchmark/benchmark.js'
+        command: 'node benchmark/node/benchmark.js'
       }
     },
     jasmine_node: {
