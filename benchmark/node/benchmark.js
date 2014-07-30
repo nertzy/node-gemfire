@@ -59,7 +59,7 @@ function benchmark(numberOfPuts){
 
 putNValues(1000);
 
-_.each([1, 10, 100, 1000, 10000, 100000], function(numberOfPuts){
+_.each([1, 10, 100, 1000, 10000], function(numberOfPuts){
   benchmark(numberOfPuts);
 });
 

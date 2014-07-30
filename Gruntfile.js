@@ -6,14 +6,18 @@ module.exports = function(grunt) {
         command: 'npm install --build-from-source'
       },
       benchmarkNode: {
-        command: 'node benchmark/node/benchmark.js'
+        command: 'node /project/benchmark/node/benchmark.js'
+      },
+      startServer: {
+        command: 'gfsh start server --dir=/project/exampleServer --cache-xml-file=/project/benchmark/xml/BenchmarkServer.xml --name=exampleServer'
+      },
+      stopServer: {
+        command: 'gfsh stop server --dir=/project/exampleServer',
       },
       benchmarkJava: {
         command: [
           'cd /project/benchmark/java',
-          'gfsh start server --cache-xml-file=xml/BenchmarkServer.xml --name=exampleServer',
-          './gradlew clean run',
-          'gfsh stop server --dir=/project/benchmark/java/exampleServer',
+          './gradlew clean run'
         ].join(" && ")
       },
       benchmarkCpp: {
@@ -30,8 +34,8 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['shell:rebuild']);
   grunt.registerTask('test', ['jasmine_node:all']);
 
-  grunt.registerTask('benchmark:node', ['build', 'shell:benchmarkNode']);
-  grunt.registerTask('benchmark:java', ['shell:benchmarkJava']);
+  grunt.registerTask('benchmark:node', ['build', 'shell:stopServer', 'shell:startServer', 'shell:benchmarkNode', 'shell:stopServer']);
+  grunt.registerTask('benchmark:java', ['shell:stopServer', 'shell:startServer', 'shell:benchmarkJava', 'shell:stopServer']);
   grunt.registerTask('benchmark:cpp', ['shell:benchmarkCpp']);
   grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java', 'benchmark:cpp']);
 
