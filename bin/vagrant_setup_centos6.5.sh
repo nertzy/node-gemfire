@@ -13,3 +13,7 @@ sudo yum -y install nodejs npm --enablerepo=epel
 
 test -e /usr/bin/grunt || npm install -g grunt-cli
 
+sudo sh -c "cat > /etc/profile.d/gfcpp.sh" <<'EOF'
+export GFCPP=/project/vendor/NativeClient_Linux_64bit_7020_b6036
+EOF
+
