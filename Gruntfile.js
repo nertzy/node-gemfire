@@ -32,7 +32,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('build', ['shell:rebuild']);
-  grunt.registerTask('test', ['jasmine_node:all']);
+  grunt.registerTask('test', ['shell:stopServer', 'shell:startServer', 'jasmine_node:all', 'shell:stopServer']);
 
   grunt.registerTask('benchmark:node', ['build', 'shell:stopServer', 'shell:startServer', 'shell:benchmarkNode', 'shell:stopServer']);
   grunt.registerTask('benchmark:java', ['shell:stopServer', 'shell:startServer', 'shell:benchmarkJava', 'shell:stopServer']);
