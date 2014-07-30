@@ -20,20 +20,25 @@ This directory is mounted on the VM as `/project`. You can make edits here or on
     $ vagrant ssh
     $ cd /project
 
-## Running the node.js benchmarks
+## Rebuild the node module and run Jasmine tests
 
     $ vagrant ssh
+    $ cd /project
     $ grunt
-    $ cd /project/benchmark/node
-    $ node benchmark.js
 
-## Running the java benchmarks
+## Run every benchmark
 
     $ vagrant ssh
-    $ cd /project/benchmark/java
-    $ gfsh start server --cache-xml-file=xml/BenchmarkServer.xml --name=exampleServer
-    $ ./gradlew clean run
-    $ gfsh stop server --dir=/project/benchmark/java/exampleServer
+    $ cd /project
+    $ grunt benchmark
+
+## Run benchmarks individually
+
+    $ vagrant ssh
+    $ cd /project
+    $ grunt benchmark:node
+    $ grunt benchmark:java
+
 
 ## License
 

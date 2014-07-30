@@ -5,8 +5,16 @@ module.exports = function(grunt) {
       rebuild: {
         command: 'npm install --build-from-source'
       },
-      benchmark: {
+      benchmarkNode: {
         command: 'node benchmark/node/benchmark.js'
+      },
+      benchmarkJava: {
+        command: [
+          'cd /project/benchmark/java',
+          'gfsh start server --cache-xml-file=xml/BenchmarkServer.xml --name=exampleServer',
+          './gradlew clean run',
+          'gfsh stop server --dir=/project/benchmark/java/exampleServer',
+        ].join(" && ")
       }
     },
     jasmine_node: {
@@ -18,8 +26,11 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', ['shell:rebuild']);
   grunt.registerTask('test', ['jasmine_node:all']);
-  grunt.registerTask('benchmark', ['shell:benchmark']);
 
-  grunt.registerTask('default', ['build', 'test', 'benchmark']);
+  grunt.registerTask('benchmark:node', ['build', 'shell:benchmarkNode']);
+  grunt.registerTask('benchmark:java', ['shell:benchmarkJava']);
+  grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
+
+  grunt.registerTask('default', ['build', 'test']);
 };
 
