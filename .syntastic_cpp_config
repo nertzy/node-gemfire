@@ -1,2 +1,9 @@
+-Ivendor/NativeClient_Linux_64bit_7020_b6036/include
 -I/usr/local/Cellar/node/0.10.28/include/node
 -Inode_modules/nan
+-std=c++0x
+-D_REENTRANT
+-m64
+-Wl,-rpath,${GFCPP}/lib
+-Wl,-L${GFCPP}/lib
+-lgfcppcache
