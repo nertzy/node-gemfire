@@ -26,3 +26,5 @@ tmp/*
 vf.gf.*
 
 benchmark/cpp/benchmark
+
+exampleServer/
