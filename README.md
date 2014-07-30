@@ -30,7 +30,10 @@ This directory is mounted on the VM as `/project`. You can make edits here or on
 ## Running the java benchmarks
 
     $ vagrant ssh
-    $ /project/benchmark/java/gradlew clean run
+    $ cd /project/benchmark/java
+    $ gfsh start server --cache-xml-file=xml/BenchmarkServer.xml --name=exampleServer
+    $ ./gradlew clean run
+    $ gfsh stop server --dir=/project/benchmark/java/exampleServer
 
 ## License
 

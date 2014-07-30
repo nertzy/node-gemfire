@@ -1,6 +1,8 @@
 package benchmark;
 
 import com.gemstone.gemfire.cache.*;
+import com.gemstone.gemfire.cache.client.ClientCache;
+import com.gemstone.gemfire.cache.client.ClientCacheFactory;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -15,13 +17,13 @@ public class Benchmark {
 
     public static void main(String[] args){
 
-        Cache cache = new CacheFactory()
+        ClientCache cache = new ClientCacheFactory()
                 .set("log-level", "error")
+                .set("name", "BenchmarkClient")
+                .set("cache-xml-file", "xml/BenchmarkClient.xml")
                 .create();
 
-        Region region = cache
-                .createRegionFactory(RegionShortcut.LOCAL)
-                .create("exampleRegion");
+        Region region = cache.getRegion("exampleRegion");
 
         region.put("smoke", "test");
         if(!region.get("smoke").equals("test")) {
@@ -35,6 +37,8 @@ public class Benchmark {
 
         writeData("Put", putResults);
         writeData("Get", getResults);
+
+        cache.close();
     }
 
     private static HashMap<String, String> generateData() {
@@ -84,10 +88,15 @@ public class Benchmark {
         }
 
         DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics(unboxedResults);
+
+        double mean = descriptiveStatistics.getMean() / NANOSECONDS_IN_A_MILLISECOND;
+        double standardDeviation = descriptiveStatistics.getStandardDeviation() / NANOSECONDS_IN_A_MILLISECOND;
+        double ninetyFifthPercentile = descriptiveStatistics.getPercentile(95) / NANOSECONDS_IN_A_MILLISECOND;
+
         System.out.println("\nResults for " + description + ": ");
-        System.out.format("Mean: %fms\n", descriptiveStatistics.getMean() / NANOSECONDS_IN_A_MILLISECOND);
-        System.out.format("Std dev: %fms\n", descriptiveStatistics.getStandardDeviation() / NANOSECONDS_IN_A_MILLISECOND);
-        System.out.format("95th percentile: %fms\n", descriptiveStatistics.getPercentile(95) / NANOSECONDS_IN_A_MILLISECOND);
-        System.out.format("99th percentile: %fms\n", descriptiveStatistics.getPercentile(99) / NANOSECONDS_IN_A_MILLISECOND);
+        System.out.format("%f operations per second\n", 1000 / mean);
+        System.out.format("Mean duration: %fms\n", mean);
+        System.out.format("Std dev: %fms\n", standardDeviation);
+        System.out.format("95th percentile: %fms\n", ninetyFifthPercentile);
     }
 }
