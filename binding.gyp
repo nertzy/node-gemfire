@@ -6,12 +6,12 @@
     {
       "target_name": "<(module_name)",
       "include_dirs" : [
-        "include",
+        "$(GFCPP)/include",
         "<!(node -e \"require('nan')\")"
       ],
       'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
       'cflags_cc+': ['-frtti', '-D_REENTRANT'],
-      "libraries": [ "<(module_root_dir)/lib/libgfcppcache.so" ],
+      "libraries": [ "$(GFCPP)/lib/libgfcppcache.so" ],
       "sources": [ "src/binding.cpp" ]
     },
     {
