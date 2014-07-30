@@ -31,5 +31,7 @@ sudo sh -c "cat > /etc/profile.d/gfcpp.sh" <<'EOF'
 export GFCPP=/project/vendor/NativeClient_Linux_64bit_7020_b6036
 export GEMFIRE=/opt/pivotal/gemfire/Pivotal_GemFire_702
 export JAVA_HOME=/usr/java/default
+export PATH=$GFCPP/bin:$PATH
+export LD_LIBRARY_PATH=$GFCPP/lib:$LD_LIBRARY_PATH
 EOF
 

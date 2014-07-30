@@ -15,6 +15,9 @@ module.exports = function(grunt) {
           './gradlew clean run',
           'gfsh stop server --dir=/project/benchmark/java/exampleServer',
         ].join(" && ")
+      },
+      benchmarkCpp: {
+        command: 'cd /project/benchmark/cpp && make test'
       }
     },
     jasmine_node: {
@@ -29,7 +32,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark:node', ['build', 'shell:benchmarkNode']);
   grunt.registerTask('benchmark:java', ['shell:benchmarkJava']);
-  grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
+  grunt.registerTask('benchmark:cpp', ['shell:benchmarkCpp']);
+  grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java', 'benchmark:cpp']);
 
   grunt.registerTask('default', ['build', 'test']);
 };
