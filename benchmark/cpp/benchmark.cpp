@@ -8,18 +8,27 @@
 using namespace gemfire;
 using namespace std::chrono;
 
-char * value(int length) {
-  char * returnValue = new char[length];
-  memset(returnValue, 'A', length - 1);
-  returnValue[length - 1] = '\0';
-  return returnValue;
+char * value(const int len) {
+  char * s = new char[len];
+
+  static const char alphanum[] =
+    "0123456789"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz";
+
+  for (int i = 0; i < len; ++i) {
+    s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+  }
+
+  s[len] = 0;
+  return s;
 }
 
-int item = 0;
+long long int item = 0;
 void putValues(int numberOfPuts, RegionPtr regionPtr, char * testValue){
   for (int n = 0; n < numberOfPuts; n++)
   {
-    regionPtr->put(item, testValue);
+    regionPtr->put(std::to_string(item).c_str(), (testValue + std::to_string(item)).c_str());
     item++;
   }
 }
