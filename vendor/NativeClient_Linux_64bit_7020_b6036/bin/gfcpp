@@ -1,0 +1,11 @@
+#!/bin/bash
+# Set GFCPP to the product toplevel directory
+GFCPP=`/usr/bin/dirname $0`
+OLDPWD=$PWD
+cd $GFCPP
+export GFCPP=`/usr/bin/dirname $PWD`
+cd $OLDPWD
+
+export LD_LIBRARY_PATH=$GFCPP/lib:$LD_LIBRARY_PATH
+
+$GFCPP/lib/gfcpp $@
