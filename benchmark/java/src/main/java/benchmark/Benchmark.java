@@ -13,14 +13,14 @@ public class Benchmark {
     public static final int NANOSECONDS_IN_A_MILLISECOND = 1000 * 1000;
     static int KEY_SIZE = 8;
     static int VALUE_SIZE = 15 * 1024;
-    static int NUMBER_OF_ITEMS = 2000;
+    static int NUMBER_OF_ITEMS = 10000;
 
     public static void main(String[] args){
 
         ClientCache cache = new ClientCacheFactory()
                 .set("log-level", "error")
                 .set("name", "BenchmarkClient")
-                .set("cache-xml-file", "xml/BenchmarkClient.xml")
+                .set("cache-xml-file", "../xml/BenchmarkClient.xml")
                 .create();
 
         Region region = cache.getRegion("exampleRegion");
@@ -31,6 +31,10 @@ public class Benchmark {
         }
 
         HashMap<String,String> data = generateData();
+
+        //warm up the JVM
+        benchmarkPut(region, data);
+        benchmarkGet(region, data);
 
         ArrayList<Double> putResults = benchmarkPut(region, data);
         ArrayList<Double> getResults = benchmarkGet(region, data);
