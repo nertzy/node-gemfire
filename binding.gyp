@@ -23,6 +23,7 @@
       "libraries": [ "$(GFCPP)/lib/libgfcppcache.so" ],
       "sources": [
         "src/binding.cpp",
+        "src/NodeCacheListener.cpp",
         "src/v8_object_formatter.cpp"
       ]
     },
