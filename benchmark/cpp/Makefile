@@ -10,5 +10,5 @@ benchmark: benchmark.cpp
 	-o benchmark \
 	-lgfcppcache
 
-test:
-	make benchmark && ./benchmark
+test: benchmark
+	./benchmark
