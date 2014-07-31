@@ -6,22 +6,22 @@ module.exports = function(grunt) {
         command: 'npm install --build-from-source'
       },
       benchmarkNode: {
-        command: 'node /project/benchmark/node/benchmark.js'
+        command: 'node benchmark/node/benchmark.js'
       },
       startServer: {
-        command: 'gfsh start server --dir=/project/exampleServer --cache-xml-file=/project/benchmark/xml/BenchmarkServer.xml --name=exampleServer'
+        command: 'gfsh start server --dir=exampleServer --cache-xml-file=benchmark/xml/BenchmarkServer.xml --name=exampleServer'
       },
       stopServer: {
-        command: 'gfsh stop server --dir=/project/exampleServer',
+        command: 'gfsh stop server --dir=exampleServer',
       },
       benchmarkJava: {
         command: [
-          'cd /project/benchmark/java',
+          'cd benchmark/java',
           './gradlew clean run -q'
         ].join(" && ")
       },
       benchmarkCpp: {
-        command: 'cd /project/benchmark/cpp && make test'
+        command: 'cd benchmark/cpp && make test'
       }
     },
     jasmine_node: {
