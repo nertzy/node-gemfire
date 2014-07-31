@@ -62,19 +62,13 @@ int main(int argc, char ** argv)
     CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();
     cachePtr = cacheFactory
       ->set("log-level", "info")
+      ->set("cache-xml-file", "../xml/BenchmarkClient.xml")
       ->create();
-    LOGINFO("Created the GemFire Cache");
-
-    RegionFactoryPtr regionFactory = cachePtr->createRegionFactory(LOCAL);
-    LOGINFO("Created the RegionFactory");
-
-    RegionPtr regionPtr = regionFactory->create("exampleRegion");
-    LOGINFO("Created the Region Programmatically.");
+    RegionPtr regionPtr = cachePtr->getRegion("exampleRegion");
 
     regionPtr->put("smoke", "test");
     CacheableStringPtr smokeTestOutput = regionPtr->get("smoke");
     assert(!strcmp(smokeTestOutput->asChar(), "test"));
-    LOGINFO("Passed the smoke test");
 
     putValues(1000, regionPtr, value(VALUE_SIZE));
 
@@ -83,7 +77,6 @@ int main(int argc, char ** argv)
     benchmark(100, regionPtr);
     benchmark(1000, regionPtr);
     benchmark(10000, regionPtr);
-    benchmark(100000, regionPtr);
   }
   // An exception should not occur
   catch(const Exception & gemfireExcp)
@@ -93,6 +86,5 @@ int main(int argc, char ** argv)
 
   // Close the GemFire Cache.
   cachePtr->close();
-  LOGINFO("Closed the GemFire Cache");
 }
 
