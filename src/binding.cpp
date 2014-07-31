@@ -50,7 +50,7 @@ static void Initialize(v8::Handle<v8::Object> target) {
 
   gemfire::CacheFactoryPtr cacheFactory = gemfire::CacheFactory::createCacheFactory();
   cachePtr = cacheFactory
-    ->set("log-level", "info")
+    ->set("log-level", "warning")
     ->set("cache-xml-file", "benchmark/xml/BenchmarkClient.xml")
     ->create();
   regionPtr = cachePtr->getRegion("exampleRegion");
