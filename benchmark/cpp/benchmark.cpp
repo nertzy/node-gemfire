@@ -50,7 +50,7 @@ void benchmark(int numberOfPuts, RegionPtr regionPtr) {
   std::stringstream stream;
   stream << numberOfPuts << " puts: " << usecPerPut << " usec/put " << \
     putsPerSecond << " puts/sec";
-  LOGINFO(stream.str().c_str());
+  puts(stream.str().c_str());
 }
 
 int main(int argc, char ** argv)
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
   {
     CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();
     cachePtr = cacheFactory
-      ->set("log-level", "info")
+      ->set("log-level", "warning")
       ->set("cache-xml-file", "../xml/BenchmarkClient.xml")
       ->create();
     RegionPtr regionPtr = cachePtr->getRegion("exampleRegion");

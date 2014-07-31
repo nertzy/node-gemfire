@@ -18,7 +18,7 @@ public class Benchmark {
     public static void main(String[] args){
 
         ClientCache cache = new ClientCacheFactory()
-                .set("log-level", "error")
+                .set("log-level", "warning")
                 .set("name", "BenchmarkClient")
                 .set("cache-xml-file", "../xml/BenchmarkClient.xml")
                 .create();
