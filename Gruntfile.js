@@ -17,7 +17,7 @@ module.exports = function(grunt) {
       benchmarkJava: {
         command: [
           'cd /project/benchmark/java',
-          './gradlew clean run'
+          './gradlew clean run -q'
         ].join(" && ")
       },
       benchmarkCpp: {
