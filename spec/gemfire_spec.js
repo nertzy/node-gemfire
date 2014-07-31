@@ -34,6 +34,23 @@ describe("pivotal-gemfire", function() {
     });
   });
 
+  describe(".onPut", function() {
+    it("fires the callback function when a put occurs", function() {
+      var key = Date.now().toString();
+
+      var callback = jasmine.createSpy();
+
+      pivotalGemfire.onPut(callback);
+      expect(callback).not.toHaveBeenCalled();
+
+      pivotalGemfire.put(key, "bar");
+      expect(callback).toHaveBeenCalledWith(key, "bar");
+
+      pivotalGemfire.put(key, "baz");
+      expect(callback).toHaveBeenCalledWith(key, "baz");
+    });
+  });
+
   describe("cleanup", function(){
     it("is not actually a test", function(){
       gemfire.close();

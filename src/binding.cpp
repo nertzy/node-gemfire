@@ -4,10 +4,13 @@
 #include <gfcpp/PdxInstanceFactory.hpp>
 #include <gfcpp/CacheFactory.hpp>
 #include "v8_object_formatter.hpp"
+#include "NodeCacheListener.hpp"
 #include <sstream>
 
 gemfire::CachePtr cachePtr;
 gemfire::RegionPtr regionPtr;
+
+v8::Persistent<v8::Object> callbacks;
 
 NAN_METHOD(version) {
   NanScope();
@@ -85,6 +88,19 @@ NAN_METHOD(clear) {
   NanReturnValue(NanTrue());
 }
 
+NAN_METHOD(onPut) {
+  NanScope();
+
+  v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(args[0]);
+
+  v8::Local<v8::Array> putCallbacks =
+    v8::Local<v8::Array>::Cast(callbacks->Get(NanNew<v8::String>("put")));
+
+  putCallbacks->Set(putCallbacks->Length(), callback);
+
+  NanReturnValue(NanNew<v8::Boolean>(true));
+}
+
 NAN_METHOD(close) {
   NanScope();
 
@@ -96,6 +112,10 @@ NAN_METHOD(close) {
 static void Initialize(v8::Handle<v8::Object> target) {
   NanScope();
 
+  v8::Local<v8::Object> callbacksObj = NanNew<v8::Object>();
+  callbacksObj->Set(NanNew<v8::String>("put"), NanNew<v8::Array>());
+  NanAssignPersistent(callbacks, callbacksObj);
+
   gemfire::CacheFactoryPtr cacheFactory = gemfire::CacheFactory::createCacheFactory();
   cachePtr = cacheFactory
     ->setPdxReadSerialized(true)
@@ -105,9 +125,15 @@ static void Initialize(v8::Handle<v8::Object> target) {
 
   regionPtr = cachePtr->getRegion("exampleRegion");
 
+  NodeCacheListener * nodeCacheListener = new NodeCacheListener(callbacks);
+
+  AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
+  attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));
+
   NODE_SET_METHOD(target, "version", version);
   NODE_SET_METHOD(target, "put", put);
   NODE_SET_METHOD(target, "get", get);
+  NODE_SET_METHOD(target, "onPut", onPut);
   NODE_SET_METHOD(target, "close", close);
   NODE_SET_METHOD(target, "clear", clear);
 }
