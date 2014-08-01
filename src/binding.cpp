@@ -37,12 +37,20 @@ NAN_METHOD(get) {
   NanReturnValue(NanNew<v8::String>(value));
 }
 
+NAN_METHOD(clear) {
+  NanScope();
+
+  regionPtr->clear();
+
+  NanReturnValue(NanTrue());
+}
+
 NAN_METHOD(close) {
   NanScope();
 
   cachePtr->close();
 
-  NanReturnValue(NanNew<v8::Boolean>(true));
+  NanReturnValue(NanTrue());
 }
 
 static void Initialize(v8::Handle<v8::Object> target) {
@@ -59,6 +67,7 @@ static void Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_METHOD(target, "put", put);
   NODE_SET_METHOD(target, "get", get);
   NODE_SET_METHOD(target, "close", close);
+  NODE_SET_METHOD(target, "clear", clear);
 }
 
 NODE_MODULE(pivotal_gemfire, Initialize)

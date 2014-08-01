@@ -9,6 +9,7 @@ describe("pivotal-gemfire", function() {
 
   beforeEach(function() {
     pivotalGemfire = require(pivotalGemfirePath);
+    pivotalGemfire.clear();
   });
 
   describe(".version", function() {
