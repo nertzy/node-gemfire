@@ -130,6 +130,8 @@ static void Initialize(v8::Handle<v8::Object> exports) {
   AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
   attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));
 
+  regionPtr->registerAllKeys();
+
   NODE_SET_METHOD(exports, "version", version);
   NODE_SET_METHOD(exports, "put", put);
   NODE_SET_METHOD(exports, "get", get);
