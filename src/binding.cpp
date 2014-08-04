@@ -109,7 +109,7 @@ NAN_METHOD(close) {
   NanReturnValue(NanTrue());
 }
 
-static void Initialize(v8::Handle<v8::Object> target) {
+static void Initialize(v8::Handle<v8::Object> exports) {
   NanScope();
 
   v8::Local<v8::Object> callbacksObj = NanNew<v8::Object>();
@@ -130,12 +130,12 @@ static void Initialize(v8::Handle<v8::Object> target) {
   AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
   attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));
 
-  NODE_SET_METHOD(target, "version", version);
-  NODE_SET_METHOD(target, "put", put);
-  NODE_SET_METHOD(target, "get", get);
-  NODE_SET_METHOD(target, "onPut", onPut);
-  NODE_SET_METHOD(target, "close", close);
-  NODE_SET_METHOD(target, "clear", clear);
+  NODE_SET_METHOD(exports, "version", version);
+  NODE_SET_METHOD(exports, "put", put);
+  NODE_SET_METHOD(exports, "get", get);
+  NODE_SET_METHOD(exports, "onPut", onPut);
+  NODE_SET_METHOD(exports, "close", close);
+  NODE_SET_METHOD(exports, "clear", clear);
 }
 
 NODE_MODULE(pivotal_gemfire, Initialize)
