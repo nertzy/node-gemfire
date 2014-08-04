@@ -6,11 +6,14 @@
 #include "v8_object_formatter.hpp"
 #include "NodeCacheListener.hpp"
 #include <sstream>
+#include "event.hpp"
 
 gemfire::CachePtr cachePtr;
 gemfire::RegionPtr regionPtr;
 
 v8::Persistent<v8::Object> callbacks;
+
+uv_mutex_t * eventMutex;
 
 NAN_METHOD(version) {
   NanScope();
@@ -109,7 +112,48 @@ NAN_METHOD(close) {
   NanReturnValue(NanTrue());
 }
 
+static void callPutCallbacks(event * incomingEvent) {
+  pthread_t thread_id = pthread_self();
+
+  const char * key = incomingEvent->key;
+  const char * newValue = incomingEvent->value;
+
+  NanScope();
+
+  v8::Local<v8::Value> putCallbacksValue = callbacks->Get(NanNew<v8::String>("put"));
+
+  v8::Local<v8::Array> putCallbacks =
+    v8::Local<v8::Array>::Cast(putCallbacksValue);
+
+  for (unsigned int i = 0; i < putCallbacks->Length(); i++) {
+    v8::Local<v8::Value> functionValue = putCallbacks->Get(i);
+    v8::Local<v8::Function> putCallback = v8::Local<v8::Function>::Cast(functionValue);
+
+    static const int argc = 2;
+    v8::Local<v8::Value> argv[] = { NanNew<v8::String>(key), NanNew<v8::String>(newValue) };
+    v8::Local<v8::Context> ctx = NanGetCurrentContext();
+    NanMakeCallback(ctx->Global(), putCallback, argc, argv);
+  }
+}
+
+static void doWork(uv_async_t * async, int status) {
+  uv_mutex_lock(eventMutex);
+  event * incomingEvent = (event *) async->data;
+
+  callPutCallbacks(incomingEvent);
+  uv_mutex_unlock(eventMutex);
+}
+
 static void Initialize(v8::Handle<v8::Object> exports) {
+  pthread_t thread_id = pthread_self();
+
+  uv_async_t * async = new uv_async_t();
+  async->data = new event;
+  uv_async_init(uv_default_loop(), async, doWork);
+
+  eventMutex = new uv_mutex_t();
+  uv_mutex_init(eventMutex);
+
   NanScope();
 
   v8::Local<v8::Object> callbacksObj = NanNew<v8::Object>();
@@ -125,7 +169,7 @@ static void Initialize(v8::Handle<v8::Object> exports) {
 
   regionPtr = cachePtr->getRegion("exampleRegion");
 
-  NodeCacheListener * nodeCacheListener = new NodeCacheListener(callbacks);
+  NodeCacheListener * nodeCacheListener = new NodeCacheListener(async, eventMutex);
 
   AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
   attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));

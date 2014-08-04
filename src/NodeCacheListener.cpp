@@ -1,7 +1,9 @@
 #include "NodeCacheListener.hpp"
+#include <cstring>
 
-NodeCacheListener::NodeCacheListener(v8::Persistent<v8::Object> callbacks) {
-  this->callbacks = callbacks;
+NodeCacheListener::NodeCacheListener(uv_async_t * async, uv_mutex_t * eventMutex) {
+  this->async = async;
+  this->eventMutex = eventMutex;
 }
 
 void NodeCacheListener::afterCreate(const EntryEvent& event)
@@ -12,7 +14,7 @@ void NodeCacheListener::afterCreate(const EntryEvent& event)
   const char * key = keyPtr->toString();
   const char * newValue = newValuePtr->toString();
 
-  this->callPutCallbacks(key, newValue);
+  this->queuePutCallbacks(key, newValue);
 }
 
 void NodeCacheListener::afterUpdate(const EntryEvent& event)
@@ -23,25 +25,20 @@ void NodeCacheListener::afterUpdate(const EntryEvent& event)
   const char * key = keyPtr->toString();
   const char * newValue = newValuePtr->toString();
 
-  this->callPutCallbacks(key, newValue);
+  this->queuePutCallbacks(key, newValue);
 }
 
-void NodeCacheListener::callPutCallbacks(const char * key, const char * newValue) {
-  NanScope();
+void NodeCacheListener::queuePutCallbacks(const char * key, const char * newValue) {
+  uv_mutex_lock(eventMutex);
 
-  v8::Local<v8::Value> putCallbacksValue = callbacks->Get(NanNew<v8::String>("put"));
+  event * outgoingEvent = (event *) async->data;
+  outgoingEvent->key = (char *) malloc(sizeof(char) * strlen(key));
+  outgoingEvent->value = (char *) malloc(sizeof(char) * strlen(newValue));
+  strcpy(outgoingEvent->key, key);
+  strcpy(outgoingEvent->value, newValue);
 
-  v8::Local<v8::Array> putCallbacks =
-    v8::Local<v8::Array>::Cast(putCallbacksValue);
+  uv_mutex_unlock(eventMutex);
 
-  for (int i = 0; i < putCallbacks->Length(); i++) {
-    v8::Local<v8::Value> functionValue = putCallbacks->Get(i);
-    v8::Local<v8::Function> putCallback = v8::Local<v8::Function>::Cast(functionValue);
-
-    static const int argc = 2;
-    v8::Local<v8::Value> argv[] = { NanNew<v8::String>(key), NanNew<v8::String>(newValue) };
-    v8::Local<v8::Context> ctx = NanGetCurrentContext();
-    NanMakeCallback(ctx->Global(), putCallback, argc, argv);
-  }
+  uv_async_send(async);
 }
 
