@@ -41,7 +41,7 @@ void NodeCacheListener::callPutCallbacks(const char * key, const char * newValue
     static const int argc = 2;
     v8::Local<v8::Value> argv[] = { NanNew<v8::String>(key), NanNew<v8::String>(newValue) };
     v8::Local<v8::Context> ctx = NanGetCurrentContext();
-    putCallback->Call(ctx->Global(), argc, argv);
+    NanMakeCallback(ctx->Global(), putCallback, argc, argv);
   }
 }
 
