@@ -3,6 +3,8 @@ package benchmark;
 import com.gemstone.gemfire.cache.*;
 import com.gemstone.gemfire.cache.client.ClientCache;
 import com.gemstone.gemfire.cache.client.ClientCacheFactory;
+import com.gemstone.gemfire.pdx.JSONFormatter;
+import com.gemstone.gemfire.pdx.PdxInstance;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -35,6 +37,7 @@ public class Benchmark {
         //warm up the JVM
         benchmarkPut(region, data);
         benchmarkGet(region, data);
+        region.clear();
 
         ArrayList<Double> putResults = benchmarkPut(region, data);
         ArrayList<Double> getResults = benchmarkGet(region, data);
@@ -49,9 +52,11 @@ public class Benchmark {
         HashMap<String,String> data = new HashMap<String,String>();
 
         for(int i = 0; i < NUMBER_OF_ITEMS; i++) {
+            String gemfireKey = RandomStringUtils.randomAlphanumeric(KEY_SIZE);
             String key = RandomStringUtils.randomAlphanumeric(KEY_SIZE);
-            String value = RandomStringUtils.randomAscii(VALUE_SIZE);
-            data.put(key, value);
+            String value = RandomStringUtils.randomAlphanumeric(VALUE_SIZE);
+            String json = "{ \"" + key + "\": \"" + value + "\" }";
+            data.put(gemfireKey, json);
         }
 
         return data;
@@ -64,7 +69,12 @@ public class Benchmark {
 
         for(Object key : keys) {
             lastNanoTime = System.nanoTime();
-            region.put(key, data.get(key));
+
+            String json = data.get(key);
+            PdxInstance pdxInstance = JSONFormatter.fromJSON(json);
+
+            region.put(key, pdxInstance);
+
             results.add((double)(System.nanoTime() - lastNanoTime));
         }
 
@@ -78,7 +88,7 @@ public class Benchmark {
 
         for(Object key : keys) {
             lastNanoTime = System.nanoTime();
-            region.get(key);
+            JSONFormatter.toJSON((PdxInstance) region.get(key));
             results.add((double)(System.nanoTime() - lastNanoTime));
         }
 
