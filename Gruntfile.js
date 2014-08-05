@@ -19,9 +19,6 @@ module.exports = function(grunt) {
           'cd benchmark/java',
           './gradlew clean run -q'
         ].join(" && ")
-      },
-      benchmarkCpp: {
-        command: 'cd benchmark/cpp && make test'
       }
     },
     jasmine_node: {
@@ -38,8 +35,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark:node', ['build', 'server:restart', 'shell:benchmarkNode', 'shell:stopServer']);
   grunt.registerTask('benchmark:java', ['server:restart', 'shell:benchmarkJava', 'shell:stopServer']);
-  grunt.registerTask('benchmark:cpp', ['server:restart', 'shell:benchmarkCpp', 'shell:stopServer']);
-  grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java', 'benchmark:cpp']);
+  grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
 
   grunt.registerTask('default', ['build', 'test']);
 };
