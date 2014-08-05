@@ -21,7 +21,10 @@
         "_REENTRANT"
       ],
       "libraries": [ "$(GFCPP)/lib/libgfcppcache.so" ],
-      "sources": [ "src/binding.cpp" ]
+      "sources": [
+        "src/binding.cpp",
+        "src/v8_object_formatter.cpp"
+      ]
     },
     {
       "target_name": "action_after_build",
