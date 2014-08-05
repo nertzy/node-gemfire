@@ -1,21 +1,25 @@
 #include "v8_object_formatter.hpp"
 
-gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache, v8::Local<v8::Object> v8Object) {
-  NanScope();
-
-  int len = 32;
-  char s[32] = {0};
+void randomString(char * string, const unsigned int length) {
   static const char alphanum[] =
     "0123456789"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz";
 
-  for (int i = 0; i < len; ++i) {
-    s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+  for (unsigned int i = 0; i < length; ++i) {
+    string[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
   }
-  s[len] = 0;
 
-  gemfire::PdxInstanceFactoryPtr pdxInstanceFactory = cache->createPdxInstanceFactory(s);
+  string[length] = 0;
+};
+
+gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache, v8::Local<v8::Object> v8Object) {
+  NanScope();
+
+  char * pdxClassName = new char[32];
+  randomString(pdxClassName, 32);
+
+  gemfire::PdxInstanceFactoryPtr pdxInstanceFactory = cache->createPdxInstanceFactory(pdxClassName);
 
   v8::Local<v8::Array> v8Keys = v8Object->GetOwnPropertyNames();
   for(unsigned int i = 0; i < v8Keys->Length(); i++) {
