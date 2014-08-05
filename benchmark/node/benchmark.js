@@ -10,10 +10,9 @@ var pivotalGemfire = require(pivotalGemfirePath);
 
 console.log("Gemfire version " + pivotalGemfire.version());
 
-pivotalGemfire.put('smoke', 'test');
-if(pivotalGemfire.get('smoke') !== 'test') {
-  console.log("Smoke test failed.");
-  exit(-1);
+pivotalGemfire.put('smoke', { test: 'value' });
+if(JSON.stringify(pivotalGemfire.get('smoke')) !== JSON.stringify({ test: 'value' })) {
+  throw "Smoke test failed.";
 }
 
 var keyOptions = {
@@ -30,14 +29,23 @@ var valueOptions = {
   special: true
 };
 
-var key = randomString(keyOptions);
-var value = randomString(valueOptions);
+var gemfireKey = randomString(keyOptions);
+var str = randomString(valueOptions);
+
+function objectForSuffix(suffix) {
+  var JSKey = "foo" + suffix;
+  var JSValue = str + suffix;
+
+  var object = new Object;
+  object[JSKey] = JSValue;
+  return object;
+};
 
 var suffix = 0;
 function putNValues(n){
   _.times(n, function(pair) {
     suffix++;
-    pivotalGemfire.put(key + suffix, value + suffix);
+    pivotalGemfire.put(gemfireKey + suffix, objectForSuffix(suffix));
   });
 }
 
