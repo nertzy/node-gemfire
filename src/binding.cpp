@@ -1,7 +1,9 @@
 #include <v8.h>
 #include <node.h>
-#include <gfcpp/CacheFactory.hpp>
 #include <nan.h>
+#include <gfcpp/PdxInstanceFactory.hpp>
+#include <gfcpp/CacheFactory.hpp>
+#include "v8_object_formatter.hpp"
 
 gemfire::CachePtr cachePtr;
 gemfire::RegionPtr regionPtr;
@@ -14,27 +16,33 @@ NAN_METHOD(version) {
 NAN_METHOD(put) {
   NanScope();
 
+  if(args.Length() != 2) {
+    NanThrowError("put must be called with a key and a value");
+    NanReturnUndefined();
+  }
+
   v8::String::AsciiValue key(args[0]->ToString());
-  v8::String::AsciiValue value(args[1]->ToString());
-
   gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
-  gemfire::CacheablePtr valuePtr = gemfire::CacheableString::create(*value);
 
-  regionPtr->put(keyPtr, valuePtr);
+  v8::Local<v8::Object> value = args[1]->ToObject();
+  gemfire::PdxInstancePtr pdxInstance = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), value);
 
-  NanReturnValue(NanNew<v8::String>(*value));
+  regionPtr->put(keyPtr, pdxInstance);
+
+  NanReturnValue(value);
 }
 
 NAN_METHOD(get) {
   NanScope();
 
   v8::String::AsciiValue key(args[0]->ToString());
+
   gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
-  gemfire::CacheableStringPtr valuePtr = regionPtr->get(keyPtr);
 
-  const char* value = valuePtr->asChar();
+  gemfire::PdxInstancePtr pdxInstance = regionPtr->get(keyPtr);
+  v8::Local<v8::Object> value = V8ObjectFormatter::fromPdxInstance(pdxInstance);
 
-  NanReturnValue(NanNew<v8::String>(value));
+  NanReturnValue(value);
 }
 
 NAN_METHOD(clear) {
@@ -58,9 +66,11 @@ static void Initialize(v8::Handle<v8::Object> target) {
 
   gemfire::CacheFactoryPtr cacheFactory = gemfire::CacheFactory::createCacheFactory();
   cachePtr = cacheFactory
+    ->setPdxReadSerialized(true)
     ->set("log-level", "warning")
     ->set("cache-xml-file", "benchmark/xml/BenchmarkClient.xml")
     ->create();
+
   regionPtr = cachePtr->getRegion("exampleRegion");
 
   NODE_SET_METHOD(target, "version", version);
