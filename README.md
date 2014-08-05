@@ -15,6 +15,11 @@ Build out the virtualbox and install nodejs, Gemfire, etc.
 
 ## Developer workflow
 
+You will need the Gemfire server running while you run tests and develop.
+
+    $ vagrant ssh
+    $ grunt server:start # or server:stop or server:restart
+
 This directory is mounted on the VM as `/project`. You can make edits here or on the VM.
 
     $ vagrant ssh
@@ -38,7 +43,6 @@ This directory is mounted on the VM as `/project`. You can make edits here or on
     $ cd /project
     $ grunt benchmark:node
     $ grunt benchmark:java
-
 
 ## License
 
