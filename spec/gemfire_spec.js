@@ -13,6 +13,12 @@ describe("pivotal-gemfire", function() {
   });
 
   describe(".put/.get", function() {
+    describe("for a key that is not present", function () {
+      it("returns undefined", function() {
+        expect(gemfire.get('foo')).toBeUndefined();
+      });
+    });
+
     describe("with objects", function() {
       it("returns the value and stores the object in the cache", function() {
         expect(gemfire.put("foo", { foo: "bar" })).toEqual({ foo: "bar" });
