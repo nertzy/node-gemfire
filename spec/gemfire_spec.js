@@ -42,12 +42,17 @@ describe("pivotal-gemfire", function() {
 
   describe(".onPut", function() {
     describe("for puts triggered locally", function() {
+      afterEach(function() {
+        gemfire.unregisterAllKeys();
+      });
+
       var key = Date.now().toString();
 
       var callback1 = jasmine.createSpy();
       var callback2 = jasmine.createSpy();
 
       beforeEach(function(done) {
+        gemfire.registerAllKeys();
         gemfire.onPut(callback1);
         gemfire.onPut(callback2);
         setTimeout(done, 0);
@@ -80,18 +85,9 @@ describe("pivotal-gemfire", function() {
     });
 
     describe("for puts triggered externally", function() {
-      var firedCallback;
+      var callback;
 
-      beforeEach(function(done) {
-        firedCallback = false;
-
-        gemfire.onPut(function(key, value){
-          expect([key, value]).toEqual(["async", "test"]);
-          firedCallback = true;
-
-          done();
-        });
-
+      function triggerExternalPut(done){
         childProcess.execFile("node", ["spec/support/external_put.js"], function(error, stdout, stderr) {
           if(error) {
             console.error(stderr);
@@ -99,10 +95,40 @@ describe("pivotal-gemfire", function() {
             done();
           }
         });
+
+        setTimeout(done, 500);
+      }
+
+      function setUpCallback(done){
+        callback = jasmine.createSpy("callback").andCallFake(function(key, value){
+          done();
+        });
+
+        gemfire.onPut(callback);
+      }
+
+      describe("when interest in the key has been registered", function() {
+        beforeEach(function(done) {
+          gemfire.registerAllKeys();
+          setUpCallback(done);
+          triggerExternalPut(done);
+        });
+
+        it("fires the callback function", function() {
+          expect(callback).toHaveBeenCalledWith("async", "test");
+        });
       });
 
-      it("fires the callback function", function() {
-        expect(firedCallback).toBeTruthy();
+      describe("when interest in the key has not been registered", function() {
+        beforeEach(function(done) {
+          gemfire.unregisterAllKeys();
+          setUpCallback(done);
+          triggerExternalPut(done);
+        });
+
+        it("does not call the callback function", function() {
+          expect(callback).not.toHaveBeenCalled();
+        });
       });
     });
   });

@@ -12,8 +12,56 @@ gemfire::CachePtr cachePtr;
 gemfire::RegionPtr regionPtr;
 
 v8::Persistent<v8::Object> callbacks;
-
 uv_mutex_t * eventMutex;
+bool cacheListenerSet = false;
+
+static void callPutCallbacks(event * incomingEvent) {
+  const char * key = incomingEvent->key;
+  const char * newValue = incomingEvent->value;
+
+  NanScope();
+
+  v8::Local<v8::Value> putCallbacksValue = callbacks->Get(NanNew<v8::String>("put"));
+
+  v8::Local<v8::Array> putCallbacks =
+    v8::Local<v8::Array>::Cast(putCallbacksValue);
+
+  for (unsigned int i = 0; i < putCallbacks->Length(); i++) {
+    v8::Local<v8::Value> functionValue = putCallbacks->Get(i);
+    v8::Local<v8::Function> putCallback = v8::Local<v8::Function>::Cast(functionValue);
+
+    static const int argc = 2;
+    v8::Local<v8::Value> argv[] = { NanNew<v8::String>(key), NanNew<v8::String>(newValue) };
+    v8::Local<v8::Context> ctx = NanGetCurrentContext();
+    NanMakeCallback(ctx->Global(), putCallback, argc, argv);
+  }
+}
+
+static void doWork(uv_async_t * async, int status) {
+  uv_mutex_lock(eventMutex);
+  event * incomingEvent = (event *) async->data;
+
+  callPutCallbacks(incomingEvent);
+  uv_mutex_unlock(eventMutex);
+}
+
+static void setCacheListener() {
+  if(!cacheListenerSet) {
+    uv_async_t * async = new uv_async_t();
+    async->data = new event;
+    uv_async_init(uv_default_loop(), async, doWork);
+
+    eventMutex = new uv_mutex_t();
+    uv_mutex_init(eventMutex);
+
+    NodeCacheListener * nodeCacheListener = new NodeCacheListener(async, eventMutex);
+
+    AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
+    attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));
+
+    cacheListenerSet = true;
+  }
+}
 
 NAN_METHOD(version) {
   NanScope();
@@ -92,6 +140,8 @@ NAN_METHOD(clear) {
 }
 
 NAN_METHOD(onPut) {
+  setCacheListener();
+
   NanScope();
 
   v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(args[0]);
@@ -112,48 +162,23 @@ NAN_METHOD(close) {
   NanReturnValue(NanTrue());
 }
 
-static void callPutCallbacks(event * incomingEvent) {
-  pthread_t thread_id = pthread_self();
-
-  const char * key = incomingEvent->key;
-  const char * newValue = incomingEvent->value;
-
+NAN_METHOD(registerAllKeys) {
   NanScope();
 
-  v8::Local<v8::Value> putCallbacksValue = callbacks->Get(NanNew<v8::String>("put"));
+  regionPtr->registerAllKeys();
 
-  v8::Local<v8::Array> putCallbacks =
-    v8::Local<v8::Array>::Cast(putCallbacksValue);
-
-  for (unsigned int i = 0; i < putCallbacks->Length(); i++) {
-    v8::Local<v8::Value> functionValue = putCallbacks->Get(i);
-    v8::Local<v8::Function> putCallback = v8::Local<v8::Function>::Cast(functionValue);
-
-    static const int argc = 2;
-    v8::Local<v8::Value> argv[] = { NanNew<v8::String>(key), NanNew<v8::String>(newValue) };
-    v8::Local<v8::Context> ctx = NanGetCurrentContext();
-    NanMakeCallback(ctx->Global(), putCallback, argc, argv);
-  }
+  NanReturnValue(NanTrue());
 }
 
-static void doWork(uv_async_t * async, int status) {
-  uv_mutex_lock(eventMutex);
-  event * incomingEvent = (event *) async->data;
+NAN_METHOD(unregisterAllKeys) {
+  NanScope();
 
-  callPutCallbacks(incomingEvent);
-  uv_mutex_unlock(eventMutex);
+  regionPtr->unregisterAllKeys();
+
+  NanReturnValue(NanTrue());
 }
 
 static void Initialize(v8::Handle<v8::Object> exports) {
-  pthread_t thread_id = pthread_self();
-
-  uv_async_t * async = new uv_async_t();
-  async->data = new event;
-  uv_async_init(uv_default_loop(), async, doWork);
-
-  eventMutex = new uv_mutex_t();
-  uv_mutex_init(eventMutex);
-
   NanScope();
 
   v8::Local<v8::Object> callbacksObj = NanNew<v8::Object>();
@@ -169,19 +194,14 @@ static void Initialize(v8::Handle<v8::Object> exports) {
 
   regionPtr = cachePtr->getRegion("exampleRegion");
 
-  NodeCacheListener * nodeCacheListener = new NodeCacheListener(async, eventMutex);
-
-  AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
-  attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));
-
-  regionPtr->registerAllKeys();
-
   NODE_SET_METHOD(exports, "version", version);
   NODE_SET_METHOD(exports, "put", put);
   NODE_SET_METHOD(exports, "get", get);
   NODE_SET_METHOD(exports, "onPut", onPut);
   NODE_SET_METHOD(exports, "close", close);
   NODE_SET_METHOD(exports, "clear", clear);
+  NODE_SET_METHOD(exports, "registerAllKeys", registerAllKeys);
+  NODE_SET_METHOD(exports, "unregisterAllKeys", unregisterAllKeys);
 }
 
 NODE_MODULE(pivotal_gemfire, Initialize)

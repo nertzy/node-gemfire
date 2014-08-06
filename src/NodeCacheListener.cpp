@@ -8,11 +8,11 @@ NodeCacheListener::NodeCacheListener(uv_async_t * async, uv_mutex_t * eventMutex
 
 void NodeCacheListener::afterCreate(const EntryEvent& event)
 {
-  CacheableStringPtr keyPtr = dynCast<CacheableStringPtr>(event.getKey());
   CacheablePtr newValuePtr = event.getNewValue();
 
   // TODO: call the callback for non-string values
   if(newValuePtr->typeId() == gemfire::GemfireTypeIds::CacheableASCIIString) {
+    CacheableStringPtr keyPtr = dynCast<CacheableStringPtr>(event.getKey());
     const char * key = keyPtr->toString();
     const char * newValue = dynCast<CacheableStringPtr>(newValuePtr)->toString();
 
@@ -22,11 +22,12 @@ void NodeCacheListener::afterCreate(const EntryEvent& event)
 
 void NodeCacheListener::afterUpdate(const EntryEvent& event)
 {
-  CacheableStringPtr keyPtr = dynCast<CacheableStringPtr>(event.getKey());
-  CacheableStringPtr newValuePtr = dynCast<CacheableStringPtr>(event.getNewValue());
+  CacheablePtr newValuePtr = event.getNewValue();
 
   // TODO: call the callback for non-string values
   if(newValuePtr->typeId() == gemfire::GemfireTypeIds::CacheableASCIIString) {
+    CacheableStringPtr keyPtr = dynCast<CacheableStringPtr>(event.getKey());
+
     const char * key = keyPtr->toString();
     const char * newValue = dynCast<CacheableStringPtr>(newValuePtr)->toString();
 
