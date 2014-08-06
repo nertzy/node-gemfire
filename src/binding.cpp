@@ -4,6 +4,7 @@
 #include <gfcpp/PdxInstanceFactory.hpp>
 #include <gfcpp/CacheFactory.hpp>
 #include "v8_object_formatter.hpp"
+#include <sstream>
 
 gemfire::CachePtr cachePtr;
 gemfire::RegionPtr regionPtr;
@@ -21,28 +22,55 @@ NAN_METHOD(put) {
     NanReturnUndefined();
   }
 
-  v8::String::AsciiValue key(args[0]->ToString());
+  v8::String::Utf8Value key(args[0]->ToString());
   gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
 
-  v8::Local<v8::Object> value = args[1]->ToObject();
-  gemfire::PdxInstancePtr pdxInstance = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), value);
+  if(args[1]->IsString()) {
+    v8::Local<v8::String> v8Value = args[1]->ToString();
+    v8::String::Utf8Value value(v8Value);
 
-  regionPtr->put(keyPtr, pdxInstance);
+    gemfire::CacheableStringPtr valuePtr = gemfire::CacheableString::create(*value);
 
-  NanReturnValue(value);
+    regionPtr->put(keyPtr, valuePtr);
+    NanReturnValue(v8Value);
+  }
+  else if(args[1]->IsObject()) {
+    v8::Local<v8::Object> value = args[1]->ToObject();
+    gemfire::PdxInstancePtr pdxInstance = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), value);
+
+    regionPtr->put(keyPtr, pdxInstance);
+    NanReturnValue(value);
+  }
+  else {
+    std::stringstream errorMessageStream;
+    errorMessageStream << "Unable to put javascript entities of type " << *v8::String::Utf8Value(args[1]);
+    NanThrowError(errorMessageStream.str().c_str());
+    NanReturnUndefined();
+  }
 }
 
 NAN_METHOD(get) {
   NanScope();
 
-  v8::String::AsciiValue key(args[0]->ToString());
-
+  v8::String::Utf8Value key(args[0]->ToString());
   gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
 
-  gemfire::PdxInstancePtr pdxInstance = regionPtr->get(keyPtr);
-  v8::Local<v8::Object> value = V8ObjectFormatter::fromPdxInstance(pdxInstance);
+  gemfire::CacheablePtr valuePtr = regionPtr->get(keyPtr);
 
-  NanReturnValue(value);
+  int typeId = valuePtr->typeId();
+  if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
+    NanReturnValue(NanNew<v8::String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
+  }
+  else if(typeId > gemfire::GemfireTypeIds::CacheableStringHuge) {
+    //We are assuming these are Pdx
+    NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
+  }
+  else {
+    std::stringstream errorMessageStream;
+    errorMessageStream << "Unknown typeId: " << typeId;
+    NanThrowError(errorMessageStream.str().c_str());
+    NanReturnUndefined();
+  }
 }
 
 NAN_METHOD(clear) {

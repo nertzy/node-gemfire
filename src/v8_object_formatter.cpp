@@ -26,8 +26,8 @@ gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache
     v8::Local<v8::String> v8Key = v8Keys->Get(i)->ToString();
     v8::Local<v8::Value> v8Value = v8Object->Get(v8Key)->ToString();
 
-    v8::String::AsciiValue key(v8Key);
-    v8::String::AsciiValue value(v8Value);
+    v8::String::Utf8Value key(v8Key);
+    v8::String::Utf8Value value(v8Value);
 
     pdxInstanceFactory->writeString(*key, *value);
   }

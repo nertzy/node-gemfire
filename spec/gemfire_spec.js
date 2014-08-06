@@ -12,22 +12,18 @@ describe("pivotal-gemfire", function() {
     });
   });
 
-  describe(".put", function() {
+  describe(".put/.get", function() {
     describe("with objects", function() {
       it("returns the value and stores the object in the cache", function() {
         expect(pivotalGemfire.put("foo", { foo: "bar" })).toEqual({ foo: "bar" });
         expect(pivotalGemfire.get("foo")).toEqual({ foo: "bar" });
       });
     });
-  });
 
-  describe(".get", function() {
-    describe("with objects", function() {
-      describe("one level deep, made of strings", function() {
-        it("returns the object from the cache", function() {
-          pivotalGemfire.put("key", { foo: "bar" });
-          expect(pivotalGemfire.get("key")).toEqual({ foo: "bar" });
-        });
+    describe("with strings", function () {
+      it("returns the value and stores the object in the cache", function() {
+        expect(pivotalGemfire.put("foo", "bar")).toEqual("bar");
+        expect(pivotalGemfire.get("foo")).toEqual("bar");
       });
     });
   });
