@@ -11,7 +11,7 @@ module.exports = function(grunt) {
           command: 'node benchmark/node/benchmark.js'
         },
         startServer: {
-          command: 'cd tmp/gemfire && gfsh start server --dir=server --cache-xml-file=../../benchmark/xml/BenchmarkServer.xml --name=server'
+          command: 'cd tmp/gemfire && gfsh start server --dir=server --log-level=warning --cache-xml-file=../../benchmark/xml/BenchmarkServer.xml --name=server'
         },
         stopServer: {
           command: 'cd tmp/gemfire && gfsh stop server --dir=server',
