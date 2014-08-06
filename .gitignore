@@ -6,6 +6,7 @@ lib-cov
 *.out
 *.pid
 *.gz
+*.core.*
 
 pids
 logs
@@ -26,5 +27,3 @@ tmp/*
 vf.gf.*
 
 benchmark/cpp/benchmark
-
-exampleServer/
