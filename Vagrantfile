@@ -22,9 +22,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # View the documentation for the provider you're using for more
   # information on available options.
   config.vm.provider "virtualbox" do |vb|
-    #vb.gui = true
     vb.name = "node-gemfire-dev"
-    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.memory = 8192
+    vb.cpus = 2
   end
 
   config.vm.provision "shell", path: "bin/vagrant_setup_centos6.5.sh"
