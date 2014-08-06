@@ -57,6 +57,10 @@ NAN_METHOD(get) {
 
   gemfire::CacheablePtr valuePtr = regionPtr->get(keyPtr);
 
+  if(valuePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
   int typeId = valuePtr->typeId();
   if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
     NanReturnValue(NanNew<v8::String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
