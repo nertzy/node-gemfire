@@ -8,25 +8,26 @@
 #include "event.hpp"
 
 using namespace v8;
+using namespace gemfire;
 
-gemfire::CachePtr cachePtr;
-gemfire::RegionPtr regionPtr;
+CachePtr cachePtr;
+RegionPtr regionPtr;
 
 Persistent<Object> callbacks;
 uv_mutex_t * eventMutex;
 bool cacheListenerSet = false;
 
-gemfire::CacheablePtr gemfireValueFromV8(Handle<Value> v8Value) {
-  gemfire::CacheablePtr gemfireValuePtr;
+CacheablePtr gemfireValueFromV8(Handle<Value> v8Value) {
+  CacheablePtr gemfireValuePtr;
 
   if(v8Value->IsString()) {
-    gemfireValuePtr = gemfire::CacheableString::create(*String::Utf8Value(v8Value));
+    gemfireValuePtr = CacheableString::create(*String::Utf8Value(v8Value));
   }
   else if(v8Value->IsBoolean()) {
-    gemfireValuePtr = gemfire::CacheableBoolean::create(v8Value->ToBoolean()->Value());
+    gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
   }
   else if(v8Value->IsNumber()) {
-    gemfireValuePtr = gemfire::CacheableDouble::create(v8Value->ToNumber()->Value());
+    gemfireValuePtr = CacheableDouble::create(v8Value->ToNumber()->Value());
   }
   else if(v8Value->IsDate()) {
     long millisecondsSinceEpoch = Date::Cast(*v8Value)->NumberValue();
@@ -35,13 +36,13 @@ gemfire::CacheablePtr gemfireValueFromV8(Handle<Value> v8Value) {
     timeSinceEpoch.tv_sec = millisecondsSinceEpoch / 1000;
     timeSinceEpoch.tv_usec = (millisecondsSinceEpoch % 1000) * 1000;
 
-    gemfireValuePtr = gemfire::CacheableDate::create(timeSinceEpoch);
+    gemfireValuePtr = CacheableDate::create(timeSinceEpoch);
   }
   else if(v8Value->IsObject()) {
     gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
   }
   else if(v8Value->IsNull()) {
-    gemfireValuePtr = gemfire::CacheableUndefined::create();
+    gemfireValuePtr = CacheableUndefined::create();
   }
   else {
     gemfireValuePtr = NULLPTR;
@@ -50,7 +51,7 @@ gemfire::CacheablePtr gemfireValueFromV8(Handle<Value> v8Value) {
   return gemfireValuePtr;
 };
 
-Handle<Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
+Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
   NanScope();
 
   if(valuePtr == NULLPTR) {
@@ -58,22 +59,22 @@ Handle<Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
   }
 
   int typeId = valuePtr->typeId();
-  if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
-    NanReturnValue(NanNew<String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
+  if(typeId == GemfireTypeIds::CacheableASCIIString) {
+    NanReturnValue(NanNew<String>(((CacheableStringPtr) valuePtr)->asChar()));
   }
-  if(typeId == gemfire::GemfireTypeIds::CacheableBoolean) {
-    NanReturnValue(NanNew<Boolean>(((gemfire::CacheableBooleanPtr) valuePtr)->value()));
+  if(typeId == GemfireTypeIds::CacheableBoolean) {
+    NanReturnValue(NanNew<Boolean>(((CacheableBooleanPtr) valuePtr)->value()));
   }
-  if(typeId == gemfire::GemfireTypeIds::CacheableDouble) {
-    NanReturnValue(NanNew<Number>(((gemfire::CacheableDoublePtr) valuePtr)->value()));
+  if(typeId == GemfireTypeIds::CacheableDouble) {
+    NanReturnValue(NanNew<Number>(((CacheableDoublePtr) valuePtr)->value()));
   }
-  if(typeId == gemfire::GemfireTypeIds::CacheableDate) {
-    NanReturnValue(NanNew<Date>((double) ((gemfire::CacheableDatePtr) valuePtr)->milliseconds()));
+  if(typeId == GemfireTypeIds::CacheableDate) {
+    NanReturnValue(NanNew<Date>((double) ((CacheableDatePtr) valuePtr)->milliseconds()));
   }
-  if(typeId == gemfire::GemfireTypeIds::CacheableUndefined) {
+  if(typeId == GemfireTypeIds::CacheableUndefined) {
     NanReturnNull();
   }
-  else if(typeId > gemfire::GemfireTypeIds::CacheableStringHuge) {
+  else if(typeId > GemfireTypeIds::CacheableStringHuge) {
     //We are assuming these are Pdx
     NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
   }
@@ -135,7 +136,7 @@ static void setCacheListener() {
 
 NAN_METHOD(version) {
   NanScope();
-  NanReturnValue(NanNew<String>(gemfire::CacheFactory::getVersion()));
+  NanReturnValue(NanNew<String>(CacheFactory::getVersion()));
 }
 
 NAN_METHOD(put) {
@@ -147,9 +148,9 @@ NAN_METHOD(put) {
   }
 
   String::Utf8Value key(args[0]->ToString());
-  gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
+  CacheableKeyPtr keyPtr = CacheableString::create(*key);
 
-  gemfire::CacheablePtr valuePtr = gemfireValueFromV8(args[1]);
+  CacheablePtr valuePtr = gemfireValueFromV8(args[1]);
 
   if(valuePtr == NULLPTR) {
     std::stringstream errorMessageStream;
@@ -166,9 +167,9 @@ NAN_METHOD(get) {
   NanScope();
 
   String::Utf8Value key(args[0]->ToString());
-  gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
+  CacheableKeyPtr keyPtr = CacheableString::create(*key);
 
-  gemfire::CacheablePtr valuePtr = regionPtr->get(keyPtr);
+  CacheablePtr valuePtr = regionPtr->get(keyPtr);
 
   NanReturnValue(v8ValueFromGemfire(valuePtr));
 }
@@ -201,24 +202,24 @@ NAN_METHOD(executeQuery) {
 
   String::Utf8Value queryString(args[0]);
 
-  gemfire::QueryServicePtr queryServicePtr = cachePtr->getQueryService();
-  gemfire::QueryPtr queryPtr = queryServicePtr->newQuery(*queryString);
-  gemfire::SelectResultsPtr resultsPtr;
+  QueryServicePtr queryServicePtr = cachePtr->getQueryService();
+  QueryPtr queryPtr = queryServicePtr->newQuery(*queryString);
+  SelectResultsPtr resultsPtr;
   try {
     resultsPtr = queryPtr->execute();
   }
-  catch(const gemfire::QueryException & exception) {
+  catch(const QueryException & exception) {
     NanThrowError(exception.getMessage());
     NanReturnUndefined();
   }
 
   Local<Array> array = NanNew<Array>();
 
-  gemfire::SelectResultsIterator iterator = resultsPtr->getIterator();
+  SelectResultsIterator iterator = resultsPtr->getIterator();
 
   while (iterator.hasNext())
   {
-    const gemfire::SerializablePtr result = iterator.next();
+    const SerializablePtr result = iterator.next();
     Handle<Value> v8Value = v8ValueFromGemfire(result);
     array->Set(array->Length(), v8Value);
   }
@@ -257,7 +258,7 @@ static void Initialize(Handle<Object> exports) {
   callbacksObj->Set(NanNew<String>("put"), NanNew<Array>());
   NanAssignPersistent(callbacks, callbacksObj);
 
-  gemfire::CacheFactoryPtr cacheFactory = gemfire::CacheFactory::createCacheFactory();
+  CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();
   cachePtr = cacheFactory
     ->setPdxReadSerialized(true)
     ->set("log-level", "warning")

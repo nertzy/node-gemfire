@@ -1,6 +1,7 @@
 #include "v8_object_formatter.hpp"
 
 using namespace v8;
+using namespace gemfire;
 
 void randomString(char * string, const unsigned int length) {
   static const char alphanum[] =
@@ -15,13 +16,13 @@ void randomString(char * string, const unsigned int length) {
   string[length] = 0;
 };
 
-gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache, Local<Object> v8Object) {
+PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cache, Local<Object> v8Object) {
   NanScope();
 
   char * pdxClassName = new char[32];
   randomString(pdxClassName, 32);
 
-  gemfire::PdxInstanceFactoryPtr pdxInstanceFactory = cache->createPdxInstanceFactory(pdxClassName);
+  PdxInstanceFactoryPtr pdxInstanceFactory = cache->createPdxInstanceFactory(pdxClassName);
 
   Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
   for(unsigned int i = 0; i < v8Keys->Length(); i++) {
@@ -37,12 +38,12 @@ gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache
   return pdxInstanceFactory->create();
 }
 
-Local<Object> V8ObjectFormatter::fromPdxInstance(gemfire::PdxInstancePtr pdxInstance) {
+Local<Object> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
   NanScope();
 
   Local<Object> v8Object = NanNew<Object>();
 
-  gemfire::CacheableStringArrayPtr gemfireKeys = pdxInstance->getFieldNames();
+  CacheableStringArrayPtr gemfireKeys = pdxInstance->getFieldNames();
   for(int i = 0; i < gemfireKeys->length(); i++) {
     const char* key = gemfireKeys[i]->asChar();
     char* value;
