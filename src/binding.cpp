@@ -67,6 +67,26 @@ NAN_METHOD(version) {
   NanReturnValue(NanNew<v8::String>(gemfire::CacheFactory::getVersion()));
 }
 
+gemfire::CacheablePtr gemfireValueFromV8(v8::Handle<v8::Value> v8Value) {
+  gemfire::CacheablePtr gemfireValuePtr;
+
+  if(v8Value->IsString()) {
+    gemfireValuePtr = gemfire::CacheableString::create(*v8::String::Utf8Value(v8Value));
+  }
+  else if(v8Value->IsObject()) {
+    gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
+  }
+  else if(v8Value->IsNull()) {
+    gemfireValuePtr = gemfire::CacheableUndefined::create();
+  }
+  else {
+    gemfireValuePtr = NULLPTR;
+  }
+
+  return gemfireValuePtr;
+};
+
+
 NAN_METHOD(put) {
   NanScope();
 
@@ -78,28 +98,17 @@ NAN_METHOD(put) {
   v8::String::Utf8Value key(args[0]->ToString());
   gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
 
-  if(args[1]->IsString()) {
-    v8::Local<v8::String> v8Value = args[1]->ToString();
-    v8::String::Utf8Value value(v8Value);
+  gemfire::CacheablePtr valuePtr = gemfireValueFromV8(args[1]);
 
-    gemfire::CacheableStringPtr valuePtr = gemfire::CacheableString::create(*value);
-
-    regionPtr->put(keyPtr, valuePtr);
-    NanReturnValue(v8Value);
-  }
-  else if(args[1]->IsObject()) {
-    v8::Local<v8::Object> value = args[1]->ToObject();
-    gemfire::PdxInstancePtr pdxInstance = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), value);
-
-    regionPtr->put(keyPtr, pdxInstance);
-    NanReturnValue(value);
-  }
-  else {
+  if(valuePtr == NULLPTR) {
     std::stringstream errorMessageStream;
-    errorMessageStream << "Unable to put javascript entities of type " << *v8::String::Utf8Value(args[1]);
+    errorMessageStream << "Unable to put value " << *v8::String::Utf8Value(args[1]->ToDetailString());
     NanThrowError(errorMessageStream.str().c_str());
     NanReturnUndefined();
   }
+
+  regionPtr->put(keyPtr, valuePtr);
+  NanReturnValue(args[1]);
 }
 
 v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
@@ -112,6 +121,9 @@ v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
   int typeId = valuePtr->typeId();
   if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
     NanReturnValue(NanNew<v8::String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
+  }
+  if(typeId == gemfire::GemfireTypeIds::CacheableUndefined) {
+    NanReturnNull();
   }
   else if(typeId > gemfire::GemfireTypeIds::CacheableStringHuge) {
     //We are assuming these are Pdx

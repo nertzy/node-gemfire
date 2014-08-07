@@ -19,24 +19,23 @@ describe("pivotal-gemfire", function() {
   });
 
   describe(".put/.get", function() {
-    describe("for a key that is not present", function () {
-      it("returns undefined", function() {
-        expect(gemfire.get('foo')).toBeUndefined();
-      });
+    it("returns undefined for unknown keys", function() {
+      expect(gemfire.get('foo')).toBeUndefined();
     });
 
-    describe("with objects", function() {
-      it("returns the value and stores the object in the cache", function() {
-        expect(gemfire.put("foo", { foo: "bar" })).toEqual({ foo: "bar" });
-        expect(gemfire.get("foo")).toEqual({ foo: "bar" });
-      });
+    it("stores and retrieves objects", function() {
+      expect(gemfire.put("foo", { foo: "bar" })).toEqual({ foo: "bar" });
+      expect(gemfire.get("foo")).toEqual({ foo: "bar" });
     });
 
-    describe("with strings", function () {
-      it("returns the value and stores the object in the cache", function() {
-        expect(gemfire.put("foo", "bar")).toEqual("bar");
-        expect(gemfire.get("foo")).toEqual("bar");
-      });
+    it("stores and retrieves strings", function() {
+      expect(gemfire.put("foo", "bar")).toEqual("bar");
+      expect(gemfire.get("foo")).toEqual("bar");
+    });
+
+    it("stores and retrieves null", function() {
+      expect(gemfire.put("foo", null)).toBeNull();
+      expect(gemfire.get("foo")).toBeNull();
     });
   });
 
