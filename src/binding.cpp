@@ -14,6 +14,57 @@ v8::Persistent<v8::Object> callbacks;
 uv_mutex_t * eventMutex;
 bool cacheListenerSet = false;
 
+gemfire::CacheablePtr gemfireValueFromV8(v8::Handle<v8::Value> v8Value) {
+  gemfire::CacheablePtr gemfireValuePtr;
+
+  if(v8Value->IsString()) {
+    gemfireValuePtr = gemfire::CacheableString::create(*v8::String::Utf8Value(v8Value));
+  }
+  else if(v8Value->IsNumber()) {
+    gemfireValuePtr = gemfire::CacheableDouble::create(v8Value->ToNumber()->Value());
+  }
+  else if(v8Value->IsObject()) {
+    gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
+  }
+  else if(v8Value->IsNull()) {
+    gemfireValuePtr = gemfire::CacheableUndefined::create();
+  }
+  else {
+    gemfireValuePtr = NULLPTR;
+  }
+
+  return gemfireValuePtr;
+};
+
+v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
+  NanScope();
+
+  if(valuePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  int typeId = valuePtr->typeId();
+  if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
+    NanReturnValue(NanNew<v8::String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
+  }
+  if(typeId == gemfire::GemfireTypeIds::CacheableDouble) {
+    NanReturnValue(NanNew<v8::Number>(((gemfire::CacheableDoublePtr) valuePtr)->value()));
+  }
+  if(typeId == gemfire::GemfireTypeIds::CacheableUndefined) {
+    NanReturnNull();
+  }
+  else if(typeId > gemfire::GemfireTypeIds::CacheableStringHuge) {
+    //We are assuming these are Pdx
+    NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
+  }
+  else {
+    std::stringstream errorMessageStream;
+    errorMessageStream << "Unknown typeId: " << typeId;
+    NanThrowError(errorMessageStream.str().c_str());
+    NanReturnUndefined();
+  }
+}
+
 static void callPutCallbacks(event * incomingEvent) {
   const char * key = incomingEvent->key;
   const char * newValue = incomingEvent->value;
@@ -67,26 +118,6 @@ NAN_METHOD(version) {
   NanReturnValue(NanNew<v8::String>(gemfire::CacheFactory::getVersion()));
 }
 
-gemfire::CacheablePtr gemfireValueFromV8(v8::Handle<v8::Value> v8Value) {
-  gemfire::CacheablePtr gemfireValuePtr;
-
-  if(v8Value->IsString()) {
-    gemfireValuePtr = gemfire::CacheableString::create(*v8::String::Utf8Value(v8Value));
-  }
-  else if(v8Value->IsObject()) {
-    gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
-  }
-  else if(v8Value->IsNull()) {
-    gemfireValuePtr = gemfire::CacheableUndefined::create();
-  }
-  else {
-    gemfireValuePtr = NULLPTR;
-  }
-
-  return gemfireValuePtr;
-};
-
-
 NAN_METHOD(put) {
   NanScope();
 
@@ -109,32 +140,6 @@ NAN_METHOD(put) {
 
   regionPtr->put(keyPtr, valuePtr);
   NanReturnValue(args[1]);
-}
-
-v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
-  NanScope();
-
-  if(valuePtr == NULLPTR) {
-    NanReturnUndefined();
-  }
-
-  int typeId = valuePtr->typeId();
-  if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
-    NanReturnValue(NanNew<v8::String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
-  }
-  if(typeId == gemfire::GemfireTypeIds::CacheableUndefined) {
-    NanReturnNull();
-  }
-  else if(typeId > gemfire::GemfireTypeIds::CacheableStringHuge) {
-    //We are assuming these are Pdx
-    NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
-  }
-  else {
-    std::stringstream errorMessageStream;
-    errorMessageStream << "Unknown typeId: " << typeId;
-    NanThrowError(errorMessageStream.str().c_str());
-    NanReturnUndefined();
-  }
 }
 
 NAN_METHOD(get) {
