@@ -37,6 +37,9 @@ describe("pivotal-gemfire", function() {
       expect(gemfire.put("foo", 1.23)).toEqual(1.23);
       expect(gemfire.get("foo")).toEqual(1.23);
 
+      expect(gemfire.put("one", 1)).toEqual(1);
+      expect(gemfire.get("one")).toEqual(1);
+
       expect(gemfire.put("zero", 0.0)).toEqual(0.0);
       expect(gemfire.get("zero")).toEqual(0.0);
 
