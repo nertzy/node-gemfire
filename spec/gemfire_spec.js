@@ -33,6 +33,32 @@ describe("pivotal-gemfire", function() {
       expect(gemfire.get("foo")).toEqual("bar");
     });
 
+    it("stores and retrieves numbers", function() {
+      expect(gemfire.put("foo", 1.23)).toEqual(1.23);
+      expect(gemfire.get("foo")).toEqual(1.23);
+
+      expect(gemfire.put("zero", 0.0)).toEqual(0.0);
+      expect(gemfire.get("zero")).toEqual(0.0);
+
+      expect(gemfire.put("MAX_VALUE", Number.MAX_VALUE)).toEqual(Number.MAX_VALUE);
+      expect(gemfire.get("MAX_VALUE")).toEqual(Number.MAX_VALUE);
+
+      expect(gemfire.put("MIN_VALUE", Number.MIN_VALUE)).toEqual(Number.MIN_VALUE);
+      expect(gemfire.get("MIN_VALUE")).toEqual(Number.MIN_VALUE);
+
+      expect(gemfire.put("NaN", Number.NaN)).toBeNaN();
+      expect(gemfire.get("NaN")).toBeNaN();
+
+      expect(gemfire.put("NaN", NaN)).toBeNaN();
+      expect(gemfire.get("NaN")).toBeNaN();
+
+      expect(gemfire.put("NEGATIVE_INFINITY", Number.NEGATIVE_INFINITY)).toEqual(Number.NEGATIVE_INFINITY);
+      expect(gemfire.get("NEGATIVE_INFINITY")).toEqual(Number.NEGATIVE_INFINITY);
+
+      expect(gemfire.put("POSITIVE_INFINITY", Number.POSITIVE_INFINITY)).toEqual(Number.POSITIVE_INFINITY);
+      expect(gemfire.get("POSITIVE_INFINITY")).toEqual(Number.POSITIVE_INFINITY);
+    });
+
     it("stores and retrieves null", function() {
       expect(gemfire.put("foo", null)).toBeNull();
       expect(gemfire.get("foo")).toBeNull();
