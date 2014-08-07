@@ -1,8 +1,7 @@
 #include <v8.h>
 #include <node.h>
 #include <nan.h>
-#include <gfcpp/PdxInstanceFactory.hpp>
-#include <gfcpp/CacheFactory.hpp>
+#include <gfcpp/GemfireCppCache.hpp>
 #include "v8_object_formatter.hpp"
 #include "NodeCacheListener.hpp"
 #include <sstream>
@@ -103,13 +102,8 @@ NAN_METHOD(put) {
   }
 }
 
-NAN_METHOD(get) {
+v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
   NanScope();
-
-  v8::String::Utf8Value key(args[0]->ToString());
-  gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
-
-  gemfire::CacheablePtr valuePtr = regionPtr->get(keyPtr);
 
   if(valuePtr == NULLPTR) {
     NanReturnUndefined();
@@ -129,6 +123,17 @@ NAN_METHOD(get) {
     NanThrowError(errorMessageStream.str().c_str());
     NanReturnUndefined();
   }
+}
+
+NAN_METHOD(get) {
+  NanScope();
+
+  v8::String::Utf8Value key(args[0]->ToString());
+  gemfire::CacheableKeyPtr keyPtr = gemfire::CacheableString::create(*key);
+
+  gemfire::CacheablePtr valuePtr = regionPtr->get(keyPtr);
+
+  NanReturnValue(v8ValueFromGemfire(valuePtr));
 }
 
 NAN_METHOD(clear) {
@@ -152,6 +157,36 @@ NAN_METHOD(onPut) {
   putCallbacks->Set(putCallbacks->Length(), callback);
 
   NanReturnValue(NanNew<v8::Boolean>(true));
+}
+
+NAN_METHOD(executeQuery) {
+  NanScope();
+
+  v8::String::Utf8Value queryString(args[0]);
+
+  gemfire::QueryServicePtr queryServicePtr = cachePtr->getQueryService();
+  gemfire::QueryPtr queryPtr = queryServicePtr->newQuery(*queryString);
+  gemfire::SelectResultsPtr resultsPtr;
+  try {
+    resultsPtr = queryPtr->execute();
+  }
+  catch(const gemfire::QueryException & exception) {
+    NanThrowError(exception.getMessage());
+    NanReturnUndefined();
+  }
+
+  v8::Local<v8::Array> array = NanNew<v8::Array>();
+
+  gemfire::SelectResultsIterator iterator = resultsPtr->getIterator();
+
+  while (iterator.hasNext())
+  {
+    const gemfire::SerializablePtr result = iterator.next();
+    v8::Handle<v8::Value> v8Value = v8ValueFromGemfire(result);
+    array->Set(array->Length(), v8Value);
+  }
+
+  NanReturnValue(array);
 }
 
 NAN_METHOD(close) {
@@ -202,6 +237,7 @@ static void Initialize(v8::Handle<v8::Object> exports) {
   NODE_SET_METHOD(exports, "clear", clear);
   NODE_SET_METHOD(exports, "registerAllKeys", registerAllKeys);
   NODE_SET_METHOD(exports, "unregisterAllKeys", unregisterAllKeys);
+  NODE_SET_METHOD(exports, "executeQuery", executeQuery);
 }
 
 NODE_MODULE(pivotal_gemfire, Initialize)

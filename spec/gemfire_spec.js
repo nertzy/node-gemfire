@@ -133,6 +133,50 @@ describe("pivotal-gemfire", function() {
     });
   });
 
+  describe("executeQuery", function () {
+    it("executes a query that can retrieve string results", function() {
+      gemfire.put("string1", "a string");
+      gemfire.put("string2", "another string");
+      gemfire.put("string3", "a string");
+
+      var query = "SELECT DISTINCT * FROM /exampleRegion";
+
+      var results = gemfire.executeQuery(query);
+
+      expect(results.length).toEqual(2);
+
+      expect(results).toContain("a string");
+      expect(results).toContain("another string");
+    });
+
+    it("executes a query with an OQL predicate", function() {
+      gemfire.put("string1", "a string");
+      gemfire.put("string2", "another string");
+
+      var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
+
+      var results = gemfire.executeQuery(query);
+
+      expect(results.length).toEqual(1);
+
+      expect(results).toContain("another string");
+    });
+
+    xit("executes a query that can retrieve results of all types", function() {
+      gemfire.put("a string", "a string");
+      gemfire.put("an object", {"an": "object"});
+
+      var query = "SELECT DISTINCT * FROM /exampleRegion";
+
+      var results = gemfire.executeQuery(query);
+
+      expect(results.length).toEqual(2);
+
+      expect(results).toContain({"an": "object"});
+      expect(results).toContain("a string");
+    });
+  });
+
   describe("cleanup", function(){
     it("is not actually a test", function(){
       gemfire.close();
