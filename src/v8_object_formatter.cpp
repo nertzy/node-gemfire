@@ -1,5 +1,7 @@
 #include "v8_object_formatter.hpp"
 
+using namespace v8;
+
 void randomString(char * string, const unsigned int length) {
   static const char alphanum[] =
     "0123456789"
@@ -13,7 +15,7 @@ void randomString(char * string, const unsigned int length) {
   string[length] = 0;
 };
 
-gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache, v8::Local<v8::Object> v8Object) {
+gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache, Local<Object> v8Object) {
   NanScope();
 
   char * pdxClassName = new char[32];
@@ -21,13 +23,13 @@ gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache
 
   gemfire::PdxInstanceFactoryPtr pdxInstanceFactory = cache->createPdxInstanceFactory(pdxClassName);
 
-  v8::Local<v8::Array> v8Keys = v8Object->GetOwnPropertyNames();
+  Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
   for(unsigned int i = 0; i < v8Keys->Length(); i++) {
-    v8::Local<v8::String> v8Key = v8Keys->Get(i)->ToString();
-    v8::Local<v8::Value> v8Value = v8Object->Get(v8Key)->ToString();
+    Local<String> v8Key = v8Keys->Get(i)->ToString();
+    Local<Value> v8Value = v8Object->Get(v8Key)->ToString();
 
-    v8::String::Utf8Value key(v8Key);
-    v8::String::Utf8Value value(v8Value);
+    String::Utf8Value key(v8Key);
+    String::Utf8Value value(v8Value);
 
     pdxInstanceFactory->writeString(*key, *value);
   }
@@ -35,10 +37,10 @@ gemfire::PdxInstancePtr V8ObjectFormatter::toPdxInstance(gemfire::CachePtr cache
   return pdxInstanceFactory->create();
 }
 
-v8::Local<v8::Object> V8ObjectFormatter::fromPdxInstance(gemfire::PdxInstancePtr pdxInstance) {
+Local<Object> V8ObjectFormatter::fromPdxInstance(gemfire::PdxInstancePtr pdxInstance) {
   NanScope();
 
-  v8::Local<v8::Object> v8Object = NanNew<v8::Object>();
+  Local<Object> v8Object = NanNew<Object>();
 
   gemfire::CacheableStringArrayPtr gemfireKeys = pdxInstance->getFieldNames();
   for(int i = 0; i < gemfireKeys->length(); i++) {
@@ -47,8 +49,8 @@ v8::Local<v8::Object> V8ObjectFormatter::fromPdxInstance(gemfire::PdxInstancePtr
 
     pdxInstance->getField(key, &value);
 
-    v8::Local<v8::String> v8Key = NanNew<v8::String>(key);
-    v8::Local<v8::String> v8Value = NanNew<v8::String>(value);
+    Local<String> v8Key = NanNew<String>(key);
+    Local<String> v8Value = NanNew<String>(value);
 
     v8Object->Set(v8Key, v8Value);
   }
