@@ -26,6 +26,15 @@ gemfire::CacheablePtr gemfireValueFromV8(v8::Handle<v8::Value> v8Value) {
   else if(v8Value->IsNumber()) {
     gemfireValuePtr = gemfire::CacheableDouble::create(v8Value->ToNumber()->Value());
   }
+  else if(v8Value->IsDate()) {
+    long millisecondsSinceEpoch = v8::Date::Cast(*v8Value)->NumberValue();
+
+    timeval timeSinceEpoch;
+    timeSinceEpoch.tv_sec = millisecondsSinceEpoch / 1000;
+    timeSinceEpoch.tv_usec = (millisecondsSinceEpoch % 1000) * 1000;
+
+    gemfireValuePtr = gemfire::CacheableDate::create(timeSinceEpoch);
+  }
   else if(v8Value->IsObject()) {
     gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
   }
@@ -55,6 +64,9 @@ v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
   }
   if(typeId == gemfire::GemfireTypeIds::CacheableDouble) {
     NanReturnValue(NanNew<v8::Number>(((gemfire::CacheableDoublePtr) valuePtr)->value()));
+  }
+  if(typeId == gemfire::GemfireTypeIds::CacheableDate) {
+    NanReturnValue(NanNew<v8::Date>((double) ((gemfire::CacheableDatePtr) valuePtr)->milliseconds()));
   }
   if(typeId == gemfire::GemfireTypeIds::CacheableUndefined) {
     NanReturnNull();

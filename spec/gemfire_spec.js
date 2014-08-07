@@ -41,6 +41,12 @@ describe("pivotal-gemfire", function() {
       expect(gemfire.get("false")).toEqual(false);
     });
 
+    it("stores and retrieves dates", function() {
+      var now = new Date();
+      expect(gemfire.put('now', now)).toEqual(now);
+      expect(gemfire.get('now')).toEqual(now);
+    });
+
     it("stores and retrieves numbers", function() {
       expect(gemfire.put("foo", 1.23)).toEqual(1.23);
       expect(gemfire.get("foo")).toEqual(1.23);
