@@ -20,6 +20,9 @@ gemfire::CacheablePtr gemfireValueFromV8(v8::Handle<v8::Value> v8Value) {
   if(v8Value->IsString()) {
     gemfireValuePtr = gemfire::CacheableString::create(*v8::String::Utf8Value(v8Value));
   }
+  else if(v8Value->IsBoolean()) {
+    gemfireValuePtr = gemfire::CacheableBoolean::create(v8Value->ToBoolean()->Value());
+  }
   else if(v8Value->IsNumber()) {
     gemfireValuePtr = gemfire::CacheableDouble::create(v8Value->ToNumber()->Value());
   }
@@ -46,6 +49,9 @@ v8::Handle<v8::Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr) {
   int typeId = valuePtr->typeId();
   if(typeId == gemfire::GemfireTypeIds::CacheableASCIIString) {
     NanReturnValue(NanNew<v8::String>(((gemfire::CacheableStringPtr) valuePtr)->asChar()));
+  }
+  if(typeId == gemfire::GemfireTypeIds::CacheableBoolean) {
+    NanReturnValue(NanNew<v8::Boolean>(((gemfire::CacheableBooleanPtr) valuePtr)->value()));
   }
   if(typeId == gemfire::GemfireTypeIds::CacheableDouble) {
     NanReturnValue(NanNew<v8::Number>(((gemfire::CacheableDoublePtr) valuePtr)->value()));
