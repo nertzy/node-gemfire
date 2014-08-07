@@ -1,9 +1,4 @@
-var nodePreGyp = require('node-pre-gyp');
-var path = require('path')
-var pivotalGemfirePath = nodePreGyp.find(
-  path.resolve(path.join(__dirname,'../../package.json'))
-);
-var pivotalGemfire = require(pivotalGemfirePath);
+var pivotalGemfire = require('../../gemfire.js');
 
 pivotalGemfire.put("async", "test");
 
