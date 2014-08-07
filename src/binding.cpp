@@ -147,7 +147,7 @@ NAN_METHOD(put) {
     NanReturnUndefined();
   }
 
-  String::Utf8Value key(args[0]->ToString());
+  String::Utf8Value key(args[0]);
   CacheableKeyPtr keyPtr = CacheableString::create(*key);
 
   CacheablePtr valuePtr = gemfireValueFromV8(args[1]);
@@ -166,7 +166,7 @@ NAN_METHOD(put) {
 NAN_METHOD(get) {
   NanScope();
 
-  String::Utf8Value key(args[0]->ToString());
+  String::Utf8Value key(args[0]);
   CacheableKeyPtr keyPtr = CacheableString::create(*key);
 
   CacheablePtr valuePtr = regionPtr->get(keyPtr);
