@@ -47,6 +47,21 @@ describe("pivotal-gemfire", function() {
       expect(gemfire.get('now')).toEqual(now);
     });
 
+    it("stores and retrieves arrays", function() {
+      var emptyArray = [];
+      expect(gemfire.put('empty array', emptyArray)).toEqual(emptyArray);
+      expect(gemfire.get('empty array')).toEqual(emptyArray);
+
+      var complexArray = ['a string', 2, true, null, false, { an: 'object' }, new Date(), ['another array', true]];
+      expect(gemfire.put('empty array', complexArray)).toEqual(complexArray);
+      expect(gemfire.get('empty array')).toEqual(complexArray);
+
+      var sparseArray = [];
+      sparseArray[10] = 'an element';
+      expect(gemfire.put('sparse array', sparseArray)).toEqual(sparseArray);
+      expect(gemfire.get('sparse array')).toEqual(sparseArray);
+    });
+
     it("stores and retrieves numbers", function() {
       expect(gemfire.put("foo", 1.23)).toEqual(1.23);
       expect(gemfire.get("foo")).toEqual(1.23);
