@@ -38,6 +38,15 @@ CacheablePtr gemfireValueFromV8(Handle<Value> v8Value) {
 
     gemfireValuePtr = CacheableDate::create(timeSinceEpoch);
   }
+  else if(v8Value->IsArray()) {
+    Handle<Array> v8Array = Handle<Array>::Cast(v8Value);
+    unsigned int length = v8Array->Length();
+
+    gemfireValuePtr = CacheableObjectArray::create();
+    for(unsigned int i = 0; i < length; i++) {
+      ((CacheableObjectArrayPtr) gemfireValuePtr)->push_back(gemfireValueFromV8(v8Array->Get(i)));
+    }
+  }
   else if(v8Value->IsObject()) {
     gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
   }
@@ -73,6 +82,17 @@ Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
   }
   if(typeId == GemfireTypeIds::CacheableUndefined) {
     NanReturnNull();
+  }
+  if(typeId == GemfireTypeIds::CacheableObjectArray) {
+    CacheableObjectArrayPtr gemfireArray = (CacheableObjectArrayPtr) valuePtr;
+    unsigned int length = gemfireArray->length();
+
+    Handle<Array> v8Array = NanNew<Array>(length);
+    for(unsigned int i = 0; i < length; i++) {
+      v8Array->Set(i, v8ValueFromGemfire((*gemfireArray)[i]));
+    }
+
+    NanReturnValue(v8Array);
   }
   else if(typeId > GemfireTypeIds::CacheableStringHuge) {
     //We are assuming these are Pdx
