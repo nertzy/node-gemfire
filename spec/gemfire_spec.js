@@ -219,7 +219,7 @@ describe("pivotal-gemfire", function() {
       expect(results).toContain("another string");
     });
 
-    xit("executes a query that can retrieve results of all types", function() {
+    it("executes a query that can retrieve results of all types", function() {
       gemfire.put("a string", "a string");
       gemfire.put("an object", {"an": "object"});
 
