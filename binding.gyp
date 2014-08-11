@@ -24,7 +24,8 @@
       "sources": [
         "src/binding.cpp",
         "src/NodeCacheListener.cpp",
-        "src/v8_object_formatter.cpp"
+        "src/v8_object_formatter.cpp",
+        "src/exceptions.cpp",
       ]
     },
     {

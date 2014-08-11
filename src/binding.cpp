@@ -6,6 +6,7 @@
 #include "NodeCacheListener.hpp"
 #include <sstream>
 #include "event.hpp"
+#include "exceptions.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -229,7 +230,7 @@ NAN_METHOD(executeQuery) {
     resultsPtr = queryPtr->execute();
   }
   catch(const QueryException & exception) {
-    NanThrowError(exception.getMessage());
+    ThrowGemfireException(exception);
     NanReturnUndefined();
   }
 
