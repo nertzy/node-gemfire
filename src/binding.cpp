@@ -280,7 +280,6 @@ static void Initialize(Handle<Object> exports) {
 
   CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();
   cachePtr = cacheFactory
-    ->setPdxReadSerialized(true)
     ->set("log-level", "warning")
     ->set("cache-xml-file", "benchmark/xml/BenchmarkClient.xml")
     ->create();
