@@ -1,4 +1,6 @@
 module.exports = function(grunt) {
+  var startServer = 'cd tmp/gemfire && gfsh start server --dir=server --log-level=warning --cache-xml-file=../../benchmark/xml/BenchmarkServer.xml --name=server';
+  var ensureServerRunning = 'test -e tmp/gemfire/server/vf.gf.server.pid && ps ax | grep `cat tmp/gemfire/server/vf.gf.server.pid` | grep -qv grep && echo "Server already running..." || (' + startServer + ')';
 
   grunt.initConfig(
     {
@@ -10,8 +12,11 @@ module.exports = function(grunt) {
         benchmarkNode: {
           command: 'node benchmark/node/benchmark.js'
         },
+        ensureServerRunning: {
+          command: ensureServerRunning
+        },
         startServer: {
-          command: 'cd tmp/gemfire && gfsh start server --dir=server --log-level=warning --cache-xml-file=../../benchmark/xml/BenchmarkServer.xml --name=server'
+          command: startServer
         },
         stopServer: {
           command: 'cd tmp/gemfire && gfsh stop server --dir=server',
@@ -33,14 +38,15 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('build', ['shell:rebuild']);
-  grunt.registerTask('test', ['jasmine_node:all']);
+  grunt.registerTask('test', ['server:ensure', 'jasmine_node:all']);
 
   grunt.registerTask('server:start', ['shell:startServer']);
   grunt.registerTask('server:stop', ['shell:stopServer']);
   grunt.registerTask('server:restart', ['server:stop', 'server:start']);
+  grunt.registerTask('server:ensure', ['shell:ensureServerRunning']);
 
-  grunt.registerTask('benchmark:node', ['build', 'shell:benchmarkNode']);
-  grunt.registerTask('benchmark:java', ['shell:benchmarkJava']);
+  grunt.registerTask('benchmark:node', ['build', 'server:ensure', 'shell:benchmarkNode']);
+  grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
   grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
 
