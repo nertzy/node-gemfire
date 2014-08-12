@@ -32,14 +32,18 @@ public class Benchmark {
             throw new RuntimeException("Smoke test failed");
         }
 
+        System.out.println("Generating data...");
         HashMap<String,String> data = generateData();
 
+        System.out.println("Warming up the JVM...");
         //warm up the JVM
         benchmarkPut(region, data);
         benchmarkGet(region, data);
         region.clear();
 
+        System.out.println("Benchmarking put...");
         ArrayList<Double> putResults = benchmarkPut(region, data);
+        System.out.println("Benchmarking get...");
         ArrayList<Double> getResults = benchmarkGet(region, data);
 
         writeData("Put", putResults);
