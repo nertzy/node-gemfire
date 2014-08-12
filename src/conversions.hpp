@@ -1,4 +1,4 @@
-#ifndef __V8_OBJECT_FORMATTER_HPP__
+#ifndef __CONVERSIONS_HPP__
 
 #include <v8.h>
 #include <nan.h>
@@ -11,8 +11,11 @@ using namespace gemfire;
 class V8ObjectFormatter {
   public:
     static PdxInstancePtr toPdxInstance(CachePtr cache, Local<Object> v8Object);
-    static Local<Object> fromPdxInstance(PdxInstancePtr pdxInstance);
+    static Handle<Value> fromPdxInstance(PdxInstancePtr pdxInstance);
 };
 
-#define __V8_OBJECT_FORMATTER_HPP__
+CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, CachePtr cachePtr);
+Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr);
+
+#define __CONVERSIONS_HPP__
 #endif

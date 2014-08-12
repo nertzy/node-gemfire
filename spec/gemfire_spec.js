@@ -23,14 +23,16 @@ describe("pivotal-gemfire", function() {
       expect(gemfire.get('foo')).toBeUndefined();
     });
 
-    it("stores and retrieves objects", function() {
-      expect(gemfire.put("foo", { foo: "bar" })).toEqual({ foo: "bar" });
-      expect(gemfire.get("foo")).toEqual({ foo: "bar" });
-    });
-
     it("stores and retrieves strings", function() {
       expect(gemfire.put("foo", "bar")).toEqual("bar");
       expect(gemfire.get("foo")).toEqual("bar");
+
+      expect(gemfire.put("empty string", "")).toEqual("");
+      expect(gemfire.get("empty string")).toEqual("");
+
+      var wideString =  "\u0123\u4567\u89AB\uCDEF\uabcd\uef4A"
+      expect(gemfire.put("wide string", wideString)).toEqual(wideString);
+      expect(gemfire.get("wide string")).toEqual(wideString);
     });
 
     it("stores and retrieves booleans", function() {
@@ -60,6 +62,10 @@ describe("pivotal-gemfire", function() {
       sparseArray[10] = 'an element';
       expect(gemfire.put('sparse array', sparseArray)).toEqual(sparseArray);
       expect(gemfire.get('sparse array')).toEqual(sparseArray);
+
+      var deepArray = [[[[[[[[[[[[[[[[[[["Not too deep"]]]]]]]]]]]]]]]]]]];
+      expect(gemfire.put('deep array', deepArray)).toEqual(deepArray);
+      expect(gemfire.get('deep array')).toEqual(deepArray);
     });
 
     it("stores and retrieves numbers", function() {
@@ -94,6 +100,29 @@ describe("pivotal-gemfire", function() {
     it("stores and retrieves null", function() {
       expect(gemfire.put("foo", null)).toBeNull();
       expect(gemfire.get("foo")).toBeNull();
+    });
+
+    it("can use the empty string as a key", function() {
+      expect(gemfire.put('', 'value')).toEqual('value');
+      expect(gemfire.get('')).toEqual('value');
+    });
+
+    it("stores and retrieves objects", function() {
+      expect(gemfire.put('object', { baz: 'quuux' })).toEqual({ baz: 'quuux' });
+      expect(gemfire.get('object')).toEqual({ baz: 'quuux' });
+
+      expect(gemfire.put('empty object', {})).toEqual({});
+      expect(gemfire.get('empty object')).toEqual({});
+
+      expect(gemfire.put('nested object', { foo: { bar: 'baz' } })).toEqual( { foo: { bar: 'baz' } } );
+      expect(gemfire.get('nested object')).toEqual( { foo: { bar: 'baz' } } );
+
+      expect(gemfire.put('object containing array', { foo: [] })).toEqual( { foo: [] });
+      expect(gemfire.get('object containing array')).toEqual( { foo: [] });
+
+      var object = require("./fixtures/stress_test.json");
+      expect(gemfire.put('stress test', object)).toEqual(object);
+      expect(gemfire.get('stress test')).toEqual(object);
     });
   });
 

@@ -2,11 +2,11 @@
 #include <node.h>
 #include <nan.h>
 #include <gfcpp/GemfireCppCache.hpp>
-#include "v8_object_formatter.hpp"
 #include "NodeCacheListener.hpp"
 #include <sstream>
 #include "event.hpp"
 #include "exceptions.hpp"
+#include "conversions.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -17,95 +17,6 @@ RegionPtr regionPtr;
 Persistent<Object> callbacks;
 uv_mutex_t * eventMutex;
 bool cacheListenerSet = false;
-
-CacheablePtr gemfireValueFromV8(Handle<Value> v8Value) {
-  CacheablePtr gemfireValuePtr;
-
-  if(v8Value->IsString()) {
-    gemfireValuePtr = CacheableString::create(*String::Utf8Value(v8Value));
-  }
-  else if(v8Value->IsBoolean()) {
-    gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
-  }
-  else if(v8Value->IsNumber()) {
-    gemfireValuePtr = CacheableDouble::create(v8Value->ToNumber()->Value());
-  }
-  else if(v8Value->IsDate()) {
-    long millisecondsSinceEpoch = Date::Cast(*v8Value)->NumberValue();
-
-    timeval timeSinceEpoch;
-    timeSinceEpoch.tv_sec = millisecondsSinceEpoch / 1000;
-    timeSinceEpoch.tv_usec = (millisecondsSinceEpoch % 1000) * 1000;
-
-    gemfireValuePtr = CacheableDate::create(timeSinceEpoch);
-  }
-  else if(v8Value->IsArray()) {
-    Handle<Array> v8Array = Handle<Array>::Cast(v8Value);
-    unsigned int length = v8Array->Length();
-
-    gemfireValuePtr = CacheableObjectArray::create();
-    for(unsigned int i = 0; i < length; i++) {
-      ((CacheableObjectArrayPtr) gemfireValuePtr)->push_back(gemfireValueFromV8(v8Array->Get(i)));
-    }
-  }
-  else if(v8Value->IsObject()) {
-    gemfireValuePtr = V8ObjectFormatter::toPdxInstance(regionPtr->getCache(), v8Value->ToObject());
-  }
-  else if(v8Value->IsNull()) {
-    gemfireValuePtr = CacheableUndefined::create();
-  }
-  else {
-    gemfireValuePtr = NULLPTR;
-  }
-
-  return gemfireValuePtr;
-};
-
-Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
-  NanScope();
-
-  if(valuePtr == NULLPTR) {
-    NanReturnUndefined();
-  }
-
-  int typeId = valuePtr->typeId();
-  if(typeId == GemfireTypeIds::CacheableASCIIString) {
-    NanReturnValue(NanNew<String>(((CacheableStringPtr) valuePtr)->asChar()));
-  }
-  if(typeId == GemfireTypeIds::CacheableBoolean) {
-    NanReturnValue(NanNew<Boolean>(((CacheableBooleanPtr) valuePtr)->value()));
-  }
-  if(typeId == GemfireTypeIds::CacheableDouble) {
-    NanReturnValue(NanNew<Number>(((CacheableDoublePtr) valuePtr)->value()));
-  }
-  if(typeId == GemfireTypeIds::CacheableDate) {
-    NanReturnValue(NanNew<Date>((double) ((CacheableDatePtr) valuePtr)->milliseconds()));
-  }
-  if(typeId == GemfireTypeIds::CacheableUndefined) {
-    NanReturnNull();
-  }
-  if(typeId == GemfireTypeIds::CacheableObjectArray) {
-    CacheableObjectArrayPtr gemfireArray = (CacheableObjectArrayPtr) valuePtr;
-    unsigned int length = gemfireArray->length();
-
-    Handle<Array> v8Array = NanNew<Array>(length);
-    for(unsigned int i = 0; i < length; i++) {
-      v8Array->Set(i, v8ValueFromGemfire((*gemfireArray)[i]));
-    }
-
-    NanReturnValue(v8Array);
-  }
-  else if(typeId > GemfireTypeIds::CacheableStringHuge) {
-    //We are assuming these are Pdx
-    NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
-  }
-  else {
-    std::stringstream errorMessageStream;
-    errorMessageStream << "Unknown typeId: " << typeId;
-    NanThrowError(errorMessageStream.str().c_str());
-    NanReturnUndefined();
-  }
-}
 
 static void callPutCallbacks(event * incomingEvent) {
   const char * key = incomingEvent->key;
@@ -171,7 +82,7 @@ NAN_METHOD(put) {
   String::Utf8Value key(args[0]);
   CacheableKeyPtr keyPtr = CacheableString::create(*key);
 
-  CacheablePtr valuePtr = gemfireValueFromV8(args[1]);
+  CacheablePtr valuePtr = gemfireValueFromV8(args[1], cachePtr);
 
   if(valuePtr == NULLPTR) {
     std::stringstream errorMessageStream;
