@@ -97,6 +97,15 @@ describe("pivotal-gemfire", function() {
     });
   });
 
+  describe(".clear", function(){
+    it("removes all keys", function(){
+      gemfire.put('key', 'value');
+      expect(gemfire.get('key')).toBeDefined();
+      gemfire.clear();
+      expect(gemfire.get('key')).toBeUndefined();
+    });
+  });
+
   describe(".onPut", function() {
     describe("for puts triggered locally", function() {
       afterEach(function() {
