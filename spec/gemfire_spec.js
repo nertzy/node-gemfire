@@ -270,6 +270,19 @@ describe("pivotal-gemfire", function() {
       expect(results).toContain({"an": "object"});
       expect(results).toContain("a string");
     });
+
+    it("can search for wide strings", function(){
+      gemfire.put("narrow string", "Japan");
+      gemfire.put("wide string", "日本");
+
+      var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';"
+      var narrowResults = gemfire.executeQuery(narrowQuery);
+      expect(narrowResults).toEqual(["narrow string"]);
+
+      var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';"
+      var wideResults = gemfire.executeQuery(wideQuery);
+      expect(wideResults).toEqual(["wide string"]);
+    });
   });
 
   describe("cleanup", function(){
