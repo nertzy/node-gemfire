@@ -22,6 +22,37 @@ void randomString(char * string, const unsigned int length) {
   string[length] = 0;
 };
 
+std::wstring wstringFromV8String(Handle<String> v8String) {
+  unsigned int length = v8String->Length();
+  wchar_t * buffer = new wchar_t[length + 1];
+  NanUcs2String v8Data(v8String);
+  for(unsigned int i = 0; i < length; i++) {
+    buffer[i] = (*v8Data)[i];
+  }
+  buffer[length] = 0;
+
+  std::wstring wstring(buffer);
+  delete [] buffer;
+
+  return wstring;
+}
+
+Handle<String> v8StringFromWstring(std::wstring wideString) {
+  NanScope();
+
+  unsigned int length = wideString.length();
+  uint16_t * buffer = new uint16_t[length + 1];
+  for(unsigned int i = 0; i < length; i++) {
+    buffer[i] = wideString[i];
+  }
+  buffer[length] = 0;
+
+  Local<String> v8String = NanNew(buffer);
+  delete[] buffer;
+
+  NanReturnValue(v8String);
+}
+
 PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object> v8Object) {
   try {
     NanScope();
@@ -34,29 +65,15 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object>
     Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
     for(unsigned int i = 0; i < v8Keys->Length(); i++) {
       Local<Value> v8Key = v8Keys->Get(i);
-
+      Local<Value> v8Value = v8Object->Get(v8Key);
       String::Utf8Value key(v8Key);
 
-      Local<Value> v8Value = v8Object->Get(v8Key);
-
-      if(v8Value->IsString()){
-        String::Value v8String(v8Value);
-        unsigned int length = v8Value->ToString()->Length();
-        wchar_t * wcharData = new wchar_t[length + 1];
-
-        for(unsigned int i = 0; i < length; i++) {
-          wcharData[i] = (*v8String)[i];
-        }
-        wcharData[length] = 0;
-
-        pdxInstanceFactory->writeWideString(*key, wcharData);
-        delete [] wcharData;
-      }
-      else if(v8Value->IsArray()){
-        pdxInstanceFactory->writeObjectArray(*key, gemfireValueFromV8(v8Value, cachePtr));
+      CacheablePtr cacheablePtr = gemfireValueFromV8(v8Value, cachePtr);
+      if(v8Value->IsArray()){
+        pdxInstanceFactory->writeObjectArray(*key, cacheablePtr);
       }
       else {
-        pdxInstanceFactory->writeObject(*key, gemfireValueFromV8(v8Value, cachePtr));
+        pdxInstanceFactory->writeObject(*key, cacheablePtr);
       }
     }
 
@@ -81,12 +98,12 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
     Local<Object> v8Object = NanNew<Object>();
     for(int i = 0; i < gemfireKeys->length(); i++) {
       const char * key = gemfireKeys[i]->asChar();
-      CacheablePtr value;
 
+      CacheablePtr value;
       try {
         pdxInstance->getField(key, value);
       }
-      catch( gemfire::IllegalStateException &exception ) {
+      catch(gemfire::IllegalStateException &exception) {
         // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr triggers an
         // exception. We don't know a better way to detect that we are about to read in an array, so for now we
         // catch the exception and assume we are receiving an array.
@@ -95,10 +112,7 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
         value = valueArray;
       }
 
-      Local<String> v8Key = NanNew<String>(key);
-      Handle<Value> v8Value = v8ValueFromGemfire(value);
-
-      v8Object->Set(v8Key, v8Value);
+      v8Object->Set(NanNew(key), v8ValueFromGemfire(value));
     }
 
     NanReturnValue(v8Object);
@@ -113,7 +127,7 @@ CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, CachePtr cachePtr) {
   CacheablePtr gemfireValuePtr;
 
   if(v8Value->IsString()) {
-    gemfireValuePtr = CacheableString::create(*String::Utf8Value(v8Value));
+    gemfireValuePtr = CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
   }
   else if(v8Value->IsBoolean()) {
     gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
@@ -164,18 +178,7 @@ Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
     NanReturnValue(NanNew(((CacheableStringPtr) valuePtr)->asChar()));
   }
   if(typeId == GemfireTypeIds::CacheableString) {
-    std::wstring wideString = ((CacheableStringPtr) valuePtr)->asWChar();
-
-    unsigned int length = wideString.length();
-    uint16_t * buffer = new uint16_t[length + 1];
-    for(unsigned int i = 0; i <= length; i++) {
-      buffer[i] = wideString[i];
-    }
-    Local<String> string = NanNew<String>(buffer);
-
-    delete[] buffer;
-
-    NanReturnValue(NanNew(string));
+    NanReturnValue(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
   }
   if(typeId == GemfireTypeIds::CacheableBoolean) {
     NanReturnValue(NanNew<Boolean>(((CacheableBooleanPtr) valuePtr)->value()));
