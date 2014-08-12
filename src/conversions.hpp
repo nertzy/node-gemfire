@@ -9,7 +9,7 @@ using namespace v8;
 using namespace gemfire;
 
 class V8ObjectFormatter {
-  public:
+ public:
     static PdxInstancePtr toPdxInstance(CachePtr cache, Local<Object> v8Object);
     static Handle<Value> fromPdxInstance(PdxInstancePtr pdxInstance);
 };

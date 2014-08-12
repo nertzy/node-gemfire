@@ -26,6 +26,9 @@ module.exports = function(grunt) {
             'cd benchmark/java',
             './gradlew clean run -q'
           ].join(" && ")
+        },
+        lint: {
+          command: "cpplint.py --verbose=1 --linelength=100 --extensions=cpp,hpp src/*"
         }
       },
       jasmine_node: {
@@ -39,6 +42,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', ['shell:rebuild']);
   grunt.registerTask('test', ['server:ensure', 'jasmine_node:all']);
+  grunt.registerTask('lint', ['shell:lint']);
 
   grunt.registerTask('server:start', ['shell:startServer']);
   grunt.registerTask('server:stop', ['shell:stopServer']);
@@ -50,6 +54,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
 
-  grunt.registerTask('default', ['build', 'test']);
+  grunt.registerTask('default', ['build', 'test', 'lint']);
 };
 
