@@ -24,7 +24,7 @@ static void callPutCallbacks(event * incomingEvent) {
 
   NanScope();
 
-  Local<Value> putCallbacksValue = callbacks->Get(NanNew<String>("put"));
+  Local<Value> putCallbacksValue = callbacks->Get(NanNew("put"));
 
   Local<Array> putCallbacks =
     Local<Array>::Cast(putCallbacksValue);
@@ -34,7 +34,7 @@ static void callPutCallbacks(event * incomingEvent) {
     Local<Function> putCallback = Local<Function>::Cast(functionValue);
 
     static const int argc = 2;
-    Local<Value> argv[] = { NanNew<String>(key), NanNew<String>(newValue) };
+    Local<Value> argv[] = { NanNew(key), NanNew(newValue) };
     Local<Context> ctx = NanGetCurrentContext();
     NanMakeCallback(ctx->Global(), putCallback, argc, argv);
   }
@@ -68,7 +68,7 @@ static void setCacheListener() {
 
 NAN_METHOD(version) {
   NanScope();
-  NanReturnValue(NanNew<String>(CacheFactory::getVersion()));
+  NanReturnValue(NanNew(CacheFactory::getVersion()));
 }
 
 NAN_METHOD(put) {
@@ -122,11 +122,11 @@ NAN_METHOD(onPut) {
   Local<Function> callback = Local<Function>::Cast(args[0]);
 
   Local<Array> putCallbacks =
-    Local<Array>::Cast(callbacks->Get(NanNew<String>("put")));
+    Local<Array>::Cast(callbacks->Get(NanNew("put")));
 
   putCallbacks->Set(putCallbacks->Length(), callback);
 
-  NanReturnValue(NanNew<Boolean>(true));
+  NanReturnValue(NanNew(true));
 }
 
 NAN_METHOD(executeQuery) {
@@ -187,7 +187,7 @@ static void Initialize(Handle<Object> exports) {
   NanScope();
 
   Local<Object> callbacksObj = NanNew<Object>();
-  callbacksObj->Set(NanNew<String>("put"), NanNew<Array>());
+  callbacksObj->Set(NanNew("put"), NanNew<Array>());
   NanAssignPersistent(callbacks, callbacksObj);
 
   CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();

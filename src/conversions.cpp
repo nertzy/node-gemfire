@@ -181,10 +181,10 @@ Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
     NanReturnValue(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
   }
   if(typeId == GemfireTypeIds::CacheableBoolean) {
-    NanReturnValue(NanNew<Boolean>(((CacheableBooleanPtr) valuePtr)->value()));
+    NanReturnValue(NanNew(((CacheableBooleanPtr) valuePtr)->value()));
   }
   if(typeId == GemfireTypeIds::CacheableDouble) {
-    NanReturnValue(NanNew<Number>(((CacheableDoublePtr) valuePtr)->value()));
+    NanReturnValue(NanNew(((CacheableDoublePtr) valuePtr)->value()));
   }
   if(typeId == GemfireTypeIds::CacheableDate) {
     NanReturnValue(NanNew<Date>((double) ((CacheableDatePtr) valuePtr)->milliseconds()));
