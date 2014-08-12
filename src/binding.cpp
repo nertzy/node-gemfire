@@ -2,8 +2,8 @@
 #include <node.h>
 #include <nan.h>
 #include <gfcpp/GemfireCppCache.hpp>
-#include "NodeCacheListener.hpp"
 #include <sstream>
+#include "NodeCacheListener.hpp"
 #include "event.hpp"
 #include "exceptions.hpp"
 #include "conversions.hpp"
@@ -42,14 +42,14 @@ static void callPutCallbacks(event * incomingEvent) {
 
 static void doWork(uv_async_t * async, int status) {
   uv_mutex_lock(eventMutex);
-  event * incomingEvent = (event *) async->data;
+  event * incomingEvent = reinterpret_cast<event *>(async->data);
 
   callPutCallbacks(incomingEvent);
   uv_mutex_unlock(eventMutex);
 }
 
 static void setCacheListener() {
-  if(!cacheListenerSet) {
+  if (!cacheListenerSet) {
     uv_async_t * async = new uv_async_t();
     async->data = new event;
     uv_async_init(uv_default_loop(), async, doWork);
@@ -74,7 +74,7 @@ NAN_METHOD(version) {
 NAN_METHOD(put) {
   NanScope();
 
-  if(args.Length() != 2) {
+  if (args.Length() != 2) {
     NanThrowError("put must be called with a key and a value");
     NanReturnUndefined();
   }
@@ -84,7 +84,7 @@ NAN_METHOD(put) {
 
   CacheablePtr valuePtr = gemfireValueFromV8(args[1], cachePtr);
 
-  if(valuePtr == NULLPTR) {
+  if (valuePtr == NULLPTR) {
     std::stringstream errorMessageStream;
     errorMessageStream << "Unable to put value " << *String::Utf8Value(args[1]->ToDetailString());
     NanThrowError(errorMessageStream.str().c_str());
@@ -149,8 +149,7 @@ NAN_METHOD(executeQuery) {
 
   SelectResultsIterator iterator = resultsPtr->getIterator();
 
-  while (iterator.hasNext())
-  {
+  while (iterator.hasNext()) {
     const SerializablePtr result = iterator.next();
     Handle<Value> v8Value = v8ValueFromGemfire(result);
     array->Set(array->Length(), v8Value);

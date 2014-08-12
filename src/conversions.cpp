@@ -9,24 +9,24 @@
 using namespace v8;
 using namespace gemfire;
 
-void randomString(char * string, const unsigned int length) {
+void randomString(char * str, const unsigned int length) {
   static const char alphanum[] =
     "0123456789"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz";
 
   for (unsigned int i = 0; i < length; ++i) {
-    string[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    str[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
   }
 
-  string[length] = 0;
-};
+  str[length] = 0;
+}
 
 std::wstring wstringFromV8String(Handle<String> v8String) {
   unsigned int length = v8String->Length();
   wchar_t * buffer = new wchar_t[length + 1];
   NanUcs2String v8Data(v8String);
-  for(unsigned int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     buffer[i] = (*v8Data)[i];
   }
   buffer[length] = 0;
@@ -42,7 +42,7 @@ Handle<String> v8StringFromWstring(std::wstring wideString) {
 
   unsigned int length = wideString.length();
   uint16_t * buffer = new uint16_t[length + 1];
-  for(unsigned int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     buffer[i] = wideString[i];
   }
   buffer[length] = 0;
@@ -63,16 +63,15 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object>
     PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName);
 
     Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
-    for(unsigned int i = 0; i < v8Keys->Length(); i++) {
+    for (unsigned int i = 0; i < v8Keys->Length(); i++) {
       Local<Value> v8Key = v8Keys->Get(i);
       Local<Value> v8Value = v8Object->Get(v8Key);
       String::Utf8Value key(v8Key);
 
       CacheablePtr cacheablePtr = gemfireValueFromV8(v8Value, cachePtr);
-      if(v8Value->IsArray()){
+      if (v8Value->IsArray()) {
         pdxInstanceFactory->writeObjectArray(*key, cacheablePtr);
-      }
-      else {
+      } else {
         pdxInstanceFactory->writeObject(*key, cacheablePtr);
       }
     }
@@ -91,12 +90,12 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
 
     CacheableStringArrayPtr gemfireKeys = pdxInstance->getFieldNames();
 
-    if(gemfireKeys == NULLPTR) {
+    if (gemfireKeys == NULLPTR) {
       NanReturnValue(NanNew<Object>());
     }
 
     Local<Object> v8Object = NanNew<Object>();
-    for(int i = 0; i < gemfireKeys->length(); i++) {
+    for (int i = 0; i < gemfireKeys->length(); i++) {
       const char * key = gemfireKeys[i]->asChar();
 
       CacheablePtr value;
@@ -104,9 +103,9 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
         pdxInstance->getField(key, value);
       }
       catch(gemfire::IllegalStateException &exception) {
-        // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr triggers an
-        // exception. We don't know a better way to detect that we are about to read in an array, so for now we
-        // catch the exception and assume we are receiving an array.
+        // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
+        // triggers an exception. We don't know a better way to detect that we are about to read in
+        // an array, so for now we catch the exception and assume we are receiving an array.
         CacheableObjectArrayPtr valueArray;
         pdxInstance->getField(key, valueArray);
         value = valueArray;
@@ -126,88 +125,81 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
 CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, CachePtr cachePtr) {
   CacheablePtr gemfireValuePtr;
 
-  if(v8Value->IsString()) {
+  if (v8Value->IsString()) {
     gemfireValuePtr = CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
-  }
-  else if(v8Value->IsBoolean()) {
+  } else if (v8Value->IsBoolean()) {
     gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
-  }
-  else if(v8Value->IsNumber()) {
+  } else if (v8Value->IsNumber()) {
     gemfireValuePtr = CacheableDouble::create(v8Value->ToNumber()->Value());
-  }
-  else if(v8Value->IsDate()) {
-    long millisecondsSinceEpoch = Date::Cast(*v8Value)->NumberValue();
+  } else if (v8Value->IsDate()) {
+    uint64 millisecondsSinceEpoch = Date::Cast(*v8Value)->NumberValue();
 
     timeval timeSinceEpoch;
     timeSinceEpoch.tv_sec = millisecondsSinceEpoch / 1000;
     timeSinceEpoch.tv_usec = (millisecondsSinceEpoch % 1000) * 1000;
 
     gemfireValuePtr = CacheableDate::create(timeSinceEpoch);
-  }
-  else if(v8Value->IsArray()) {
+  } else if (v8Value->IsArray()) {
     Handle<Array> v8Array = Handle<Array>::Cast(v8Value);
     unsigned int length = v8Array->Length();
 
     gemfireValuePtr = CacheableObjectArray::create();
-    for(unsigned int i = 0; i < length; i++) {
-      ((CacheableObjectArrayPtr) gemfireValuePtr)->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
+    for (unsigned int i = 0; i < length; i++) {
+      ((CacheableObjectArrayPtr) gemfireValuePtr)->push_back(
+        gemfireValueFromV8(v8Array->Get(i), cachePtr));
     }
-  }
-  else if(v8Value->IsObject()) {
+  } else if (v8Value->IsObject()) {
     gemfireValuePtr = V8ObjectFormatter::toPdxInstance(cachePtr, v8Value->ToObject());
-  }
-  else if(v8Value->IsNull()) {
+  } else if (v8Value->IsNull()) {
     gemfireValuePtr = CacheableUndefined::create();
-  }
-  else {
+  } else {
     gemfireValuePtr = NULLPTR;
   }
 
   return gemfireValuePtr;
-};
+}
 
 Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
   NanScope();
 
-  if(valuePtr == NULLPTR) {
+  if (valuePtr == NULLPTR) {
     NanReturnUndefined();
   }
 
   int typeId = valuePtr->typeId();
-  if(typeId == GemfireTypeIds::CacheableASCIIString) {
+  if (typeId == GemfireTypeIds::CacheableASCIIString) {
     NanReturnValue(NanNew(((CacheableStringPtr) valuePtr)->asChar()));
   }
-  if(typeId == GemfireTypeIds::CacheableString) {
+  if (typeId == GemfireTypeIds::CacheableString) {
     NanReturnValue(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
   }
-  if(typeId == GemfireTypeIds::CacheableBoolean) {
+  if (typeId == GemfireTypeIds::CacheableBoolean) {
     NanReturnValue(NanNew(((CacheableBooleanPtr) valuePtr)->value()));
   }
-  if(typeId == GemfireTypeIds::CacheableDouble) {
+  if (typeId == GemfireTypeIds::CacheableDouble) {
     NanReturnValue(NanNew(((CacheableDoublePtr) valuePtr)->value()));
   }
-  if(typeId == GemfireTypeIds::CacheableDate) {
-    NanReturnValue(NanNew<Date>((double) ((CacheableDatePtr) valuePtr)->milliseconds()));
+  if (typeId == GemfireTypeIds::CacheableDate) {
+    NanReturnValue(NanNew<Date>(
+          static_cast<double>(((CacheableDatePtr) valuePtr)->milliseconds())));
   }
-  if(typeId == GemfireTypeIds::CacheableUndefined) {
+  if (typeId == GemfireTypeIds::CacheableUndefined) {
     NanReturnNull();
   }
-  if(typeId == GemfireTypeIds::CacheableObjectArray) {
+  if (typeId == GemfireTypeIds::CacheableObjectArray) {
     CacheableObjectArrayPtr gemfireArray = (CacheableObjectArrayPtr) valuePtr;
     unsigned int length = gemfireArray->length();
 
     Handle<Array> v8Array = NanNew<Array>(length);
-    for(unsigned int i = 0; i < length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
       v8Array->Set(i, v8ValueFromGemfire((*gemfireArray)[i]));
     }
 
     NanReturnValue(v8Array);
-  }
-  else if(typeId > GemfireTypeIds::CacheableStringHuge) {
-    //We are assuming these are Pdx
+  } else if (typeId > GemfireTypeIds::CacheableStringHuge) {
+    // We are assuming these are Pdx
     NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
-  }
-  else {
+  } else {
     std::stringstream errorMessageStream;
     errorMessageStream << "Unknown typeId: " << typeId;
     NanThrowError(errorMessageStream.str().c_str());
