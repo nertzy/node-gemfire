@@ -5,10 +5,11 @@
 
 <!--
   | BenchmarkServer.xml
-  | 
+  |
   | Configures a cache to serve caching clients at port 40404.
 -->
 <cache>
 	<cache-server port="40404"/>
 	<region name="exampleRegion" refid="REPLICATE"/>
+	<region name="anotherRegion" refid="REPLICATE"/>
 </cache>

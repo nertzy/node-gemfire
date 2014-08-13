@@ -1,11 +1,11 @@
 var childProcess = require('child_process');
 
 describe("gemfire.Region", function() {
-  var region;
+  var region, cache;
 
   beforeEach(function() {
     var gemfire = require("../gemfire.js");
-    var cache = new gemfire.Cache();
+    cache = new gemfire.Cache();
     region = cache.getRegion("exampleRegion");
     region.clear();
   });
@@ -17,6 +17,22 @@ describe("gemfire.Region", function() {
   describe(".put/.get", function() {
     it("returns undefined for unknown keys", function() {
       expect(region.get('foo')).toBeUndefined();
+    });
+
+    it("stores and retrieves values in the correct region", function() {
+      var region1 = cache.getRegion("exampleRegion");
+      var region2 = cache.getRegion("anotherRegion");
+
+      region1.clear();
+      region2.clear();
+
+      region1.put("foo", "bar");
+      expect(region1.get("foo")).toEqual("bar");
+      expect(region2.get("foo")).toBeUndefined();
+
+      region2.put("foo", 123);
+      expect(region1.get("foo")).toEqual("bar");
+      expect(region2.get("foo")).toEqual(123);
     });
 
     it("stores and retrieves strings", function() {
@@ -128,6 +144,25 @@ describe("gemfire.Region", function() {
       expect(region.get('key')).toBeDefined();
       region.clear();
       expect(region.get('key')).toBeUndefined();
+    });
+
+    it("only removes keys for the region, not for other regions", function() {
+      var region1 = cache.getRegion("exampleRegion");
+      var region2 = cache.getRegion("anotherRegion");
+
+      region1.clear();
+      region2.clear();
+
+      region1.put('key', 'value');
+      region2.put('key', 'value');
+
+      expect(region1.get('key')).toBeDefined();
+      expect(region2.get('key')).toBeDefined();
+
+      region1.clear();
+
+      expect(region1.get('key')).not.toBeDefined();
+      expect(region2.get('key')).toBeDefined();
     });
   });
 
