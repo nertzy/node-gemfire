@@ -89,9 +89,13 @@ NAN_METHOD(Cache::GetRegion) {
     NanReturnUndefined();
   }
 
-  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  Local<Function> regionGetRegionFunction = NanNew<FunctionTemplate>(Region::GetRegion)->GetFunction();
 
-  NanReturnValue(Region::GetRegion(cache, *NanAsciiString(args[0])));
+  const unsigned int argc = 2;
+  Local<Value> argv[argc] = { args.This(), args[0] };
+  Local<Value> regionHandle = NanMakeCallback(args.This(), regionGetRegionFunction, argc, argv);
+
+  NanReturnValue(regionHandle);
 }
 
 }  // namespace node_gemfire
