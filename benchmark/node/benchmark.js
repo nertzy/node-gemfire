@@ -1,12 +1,14 @@
 var randomString = require('random-string');
 var _ = require('lodash');
 var microtime = require("microtime");
-var pivotalGemfire = require('../../gemfire.js');
+var gemfire = require('../../gemfire.js');
+var cache = new gemfire.Cache();
+var region = cache.getRegion("exampleRegion");
 
-console.log("Gemfire version " + pivotalGemfire.version());
+console.log("Gemfire version " + gemfire.version());
 
-pivotalGemfire.put('smoke', { test: 'value' });
-if(JSON.stringify(pivotalGemfire.get('smoke')) !== JSON.stringify({ test: 'value' })) {
+region.put('smoke', { test: 'value' });
+if(JSON.stringify(region.get('smoke')) !== JSON.stringify({ test: 'value' })) {
   throw "Smoke test failed.";
 }
 
@@ -40,7 +42,7 @@ var suffix = 0;
 function putNValues(n){
   _.times(n, function(pair) {
     suffix++;
-    pivotalGemfire.put(gemfireKey + suffix, objectForSuffix(suffix));
+    region.put(gemfireKey + suffix, objectForSuffix(suffix));
   });
 }
 
@@ -65,5 +67,3 @@ putNValues(1000);
 _.each([1, 10, 100, 1000, 10000], function(numberOfPuts){
   benchmark(numberOfPuts);
 });
-
-pivotalGemfire.close();
