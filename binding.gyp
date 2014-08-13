@@ -26,6 +26,7 @@
         "src/NodeCacheListener.cpp",
         "src/exceptions.cpp",
         "src/conversions.cpp",
+        "src/cache.cpp",
       ]
     },
     {
