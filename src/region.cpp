@@ -4,6 +4,7 @@
 #include "conversions.hpp"
 #include "event.hpp"
 #include "NodeCacheListener.hpp"
+#include "cache.hpp"
 
 using node_gemfire::Region;
 
@@ -20,6 +21,10 @@ Persistent<FunctionTemplate> regionConstructor;
 bool cacheListenerSet = false;
 uv_mutex_t * eventMutex;
 Persistent<Object> callbacks;
+
+Region::~Region() {
+  NanDisposePersistent(cacheHandle);
+}
 
 void Region::Init(Handle<Object> exports) {
   NanScope();
@@ -57,17 +62,20 @@ NAN_METHOD(Region::New) {
   NanReturnValue(args.This());
 }
 
-Handle<Value> Region::GetRegion(Cache * cache, char * regionName) {
+NAN_METHOD(Region::GetRegion) {
   NanScope();
 
+  Local<Object> cacheHandle = args[0]->ToObject();
+
+  Cache * cache = ObjectWrap::Unwrap<Cache>(cacheHandle);
   CachePtr cachePtr = cache->cachePtr;
-  RegionPtr regionPtr = cachePtr->getRegion(regionName);
+  RegionPtr regionPtr = cachePtr->getRegion(*NanAsciiString(args[1]));
 
   if (regionPtr == NULLPTR) {
     NanReturnUndefined();
   }
 
-  Region * region = new Region(regionPtr);
+  Region * region = new Region(cacheHandle, regionPtr);
 
   const unsigned int argc = 0;
   Handle<Value> argv[] = {};
