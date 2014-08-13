@@ -284,10 +284,4 @@ describe("pivotal-gemfire", function() {
       expect(wideResults).toEqual(["wide string"]);
     });
   });
-
-  describe("cleanup", function(){
-    it("is not actually a test", function(){
-      gemfire.close();
-    });
-  });
 });
