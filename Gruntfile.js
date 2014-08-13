@@ -28,7 +28,7 @@ module.exports = function(grunt) {
           ].join(" && ")
         },
         lint: {
-          command: "cpplint.py --verbose=1 --linelength=100 --extensions=cpp,hpp src/*"
+          command: "cpplint.py --verbose=1 --linelength=110 --extensions=cpp,hpp src/*"
         }
       },
       jasmine_node: {
