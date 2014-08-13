@@ -1,5 +1,7 @@
 #include "NodeCacheListener.hpp"
+#include <gfcpp/Cache.hpp>
 #include <cstring>
+#include "event.hpp"
 
 using namespace gemfire;
 

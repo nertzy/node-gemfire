@@ -1,7 +1,21 @@
-pivotal-gemfire
-===============
+gemfire NodeJS addon
+====================
 
-Proof-of-concept node module connecting to Pivotal Gemfire
+Proof-of-concept NodeJS addon for connecting to Pivotal Gemfire
+
+## Usage
+
+```javascript
+var gemfire = require('gemfire');
+var cache = new gemfire.Cache();
+var region = cache.getRegion('exampleRegion');
+
+region.put('foo', { bar: ['baz', 'qux'] });
+region.get('foo');
+
+cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion");
+region.clear();
+```
 
 ## Prerequisites 
 

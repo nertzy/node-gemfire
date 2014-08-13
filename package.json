@@ -1,5 +1,5 @@
 {
-  "name": "pivotal-gemfire",
+  "name": "gemfire",
   "version": "0.0.1",
   "description": "Pivotal Gemfire Node package proof-of-concept",
   "main": "./index.js",
@@ -8,6 +8,10 @@
     {
       "name": "Grant Hutchins",
       "url": "https://github.com/nertzy"
+    },
+    {
+      "name": "Taavo Smith",
+      "url": "http://github.com/taavo"
     },
     {
       "name": "Michael Schubert",
@@ -19,7 +23,7 @@
     "url": "git@github.com:pivotal/nodejs-gemfire-poc.git"
   },
   "binary": {
-    "module_name": "pivotal-gemfire",
+    "module_name": "gemfire",
     "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",

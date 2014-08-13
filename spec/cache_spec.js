@@ -6,18 +6,51 @@ describe("gemfire.Cache", function() {
   beforeEach(function() {
     gemfire = require("../gemfire.js");
     cache = new gemfire.Cache();
-    gemfire.clear();
   });
 
   afterEach(function(done) {
     setTimeout(done, 0);
   });
 
+  describe(".getRegion", function() {
+    it("validates arguments", function(){
+      function callWithZeroArguments(){
+        cache.getRegion();
+      }
+      function callWithOneArgument(){
+        cache.getRegion("exampleRegion");
+      }
+      function callWithTwoArguments(){
+        cache.getRegion("exampleRegion", "foo");
+      }
+
+      expect(callWithZeroArguments).toThrow("getRegion expects one argument: the name of a Gemfire region");
+      expect(callWithOneArgument).not.toThrow();
+      expect(callWithTwoArguments).toThrow("getRegion expects one argument: the name of a Gemfire region");
+    })
+
+    it("returns a gemfire.Region object", function() {
+      var region = cache.getRegion("exampleRegion");
+      expect(region.constructor).toEqual(gemfire.Region);
+    });
+
+    it("returns undefined if the region is unknown", function(){
+      expect(cache.getRegion("there is no such region")).toBeUndefined();
+    });
+  });
+
   describe("executeQuery", function () {
+    var region;
+
+    beforeEach(function() {
+      exampleRegion = cache.getRegion("exampleRegion");
+      exampleRegion.clear();
+    });
+
     it("executes a query that can retrieve string results", function() {
-      gemfire.put("string1", "a string");
-      gemfire.put("string2", "another string");
-      gemfire.put("string3", "a string");
+      exampleRegion.put("string1", "a string");
+      exampleRegion.put("string2", "another string");
+      exampleRegion.put("string3", "a string");
 
       var query = "SELECT DISTINCT * FROM /exampleRegion";
 
@@ -30,8 +63,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("executes a query with an OQL predicate", function() {
-      gemfire.put("string1", "a string");
-      gemfire.put("string2", "another string");
+      exampleRegion.put("string1", "a string");
+      exampleRegion.put("string2", "another string");
 
       var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
 
@@ -43,8 +76,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("executes a query that can retrieve results of all types", function() {
-      gemfire.put("a string", "a string");
-      gemfire.put("an object", {"an": "object"});
+      exampleRegion.put("a string", "a string");
+      exampleRegion.put("an object", {"an": "object"});
 
       var query = "SELECT DISTINCT * FROM /exampleRegion";
 
@@ -57,8 +90,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("can search for wide strings", function(){
-      gemfire.put("narrow string", "Japan");
-      gemfire.put("wide string", "日本");
+      exampleRegion.put("narrow string", "Japan");
+      exampleRegion.put("wide string", "日本");
 
       var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';"
       var narrowResults = cache.executeQuery(narrowQuery);

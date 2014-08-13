@@ -27,6 +27,7 @@
         "src/exceptions.cpp",
         "src/conversions.cpp",
         "src/cache.cpp",
+        "src/region.cpp",
       ]
     },
     {
