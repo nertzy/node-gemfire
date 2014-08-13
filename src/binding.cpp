@@ -158,14 +158,6 @@ NAN_METHOD(executeQuery) {
   NanReturnValue(array);
 }
 
-NAN_METHOD(close) {
-  NanScope();
-
-  cachePtr->close();
-
-  NanReturnValue(NanTrue());
-}
-
 NAN_METHOD(registerAllKeys) {
   NanScope();
 
@@ -181,6 +173,15 @@ NAN_METHOD(unregisterAllKeys) {
 
   NanReturnValue(NanTrue());
 }
+
+class CacheCloser {
+ public:
+  ~CacheCloser() {
+    cachePtr->close();
+  }
+};
+
+CacheCloser cacheCloser;
 
 static void Initialize(Handle<Object> exports) {
   NanScope();
@@ -201,7 +202,6 @@ static void Initialize(Handle<Object> exports) {
   NODE_SET_METHOD(exports, "put", put);
   NODE_SET_METHOD(exports, "get", get);
   NODE_SET_METHOD(exports, "onPut", onPut);
-  NODE_SET_METHOD(exports, "close", close);
   NODE_SET_METHOD(exports, "clear", clear);
   NODE_SET_METHOD(exports, "registerAllKeys", registerAllKeys);
   NODE_SET_METHOD(exports, "unregisterAllKeys", unregisterAllKeys);
