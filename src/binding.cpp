@@ -7,6 +7,7 @@
 #include "event.hpp"
 #include "exceptions.hpp"
 #include "conversions.hpp"
+#include "cache.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -129,35 +130,6 @@ NAN_METHOD(onPut) {
   NanReturnValue(NanNew(true));
 }
 
-NAN_METHOD(executeQuery) {
-  NanScope();
-
-  String::Utf8Value queryString(args[0]);
-
-  QueryServicePtr queryServicePtr = cachePtr->getQueryService();
-  QueryPtr queryPtr = queryServicePtr->newQuery(*queryString);
-  SelectResultsPtr resultsPtr;
-  try {
-    resultsPtr = queryPtr->execute();
-  }
-  catch(const QueryException & exception) {
-    ThrowGemfireException(exception);
-    NanReturnUndefined();
-  }
-
-  Local<Array> array = NanNew<Array>();
-
-  SelectResultsIterator iterator = resultsPtr->getIterator();
-
-  while (iterator.hasNext()) {
-    const SerializablePtr result = iterator.next();
-    Handle<Value> v8Value = v8ValueFromGemfire(result);
-    array->Set(array->Length(), v8Value);
-  }
-
-  NanReturnValue(array);
-}
-
 NAN_METHOD(registerAllKeys) {
   NanScope();
 
@@ -185,6 +157,7 @@ CacheCloser cacheCloser;
 
 static void Initialize(Handle<Object> exports) {
   NanScope();
+  node_gemfire::Cache::Init(exports);
 
   Local<Object> callbacksObj = NanNew<Object>();
   callbacksObj->Set(NanNew("put"), NanNew<Array>());
@@ -205,7 +178,6 @@ static void Initialize(Handle<Object> exports) {
   NODE_SET_METHOD(exports, "clear", clear);
   NODE_SET_METHOD(exports, "registerAllKeys", registerAllKeys);
   NODE_SET_METHOD(exports, "unregisterAllKeys", unregisterAllKeys);
-  NODE_SET_METHOD(exports, "executeQuery", executeQuery);
 }
 
 NODE_MODULE(pivotal_gemfire, Initialize)
