@@ -43,14 +43,14 @@ describe("gemfire.Cache", function() {
     var region;
 
     beforeEach(function() {
-      exampleRegion = cache.getRegion("exampleRegion");
-      exampleRegion.clear();
+      region = cache.getRegion("exampleRegion");
+      region.clear();
     });
 
     it("executes a query that can retrieve string results", function() {
-      exampleRegion.put("string1", "a string");
-      exampleRegion.put("string2", "another string");
-      exampleRegion.put("string3", "a string");
+      region.put("string1", "a string");
+      region.put("string2", "another string");
+      region.put("string3", "a string");
 
       var query = "SELECT DISTINCT * FROM /exampleRegion";
 
@@ -63,8 +63,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("executes a query with an OQL predicate", function() {
-      exampleRegion.put("string1", "a string");
-      exampleRegion.put("string2", "another string");
+      region.put("string1", "a string");
+      region.put("string2", "another string");
 
       var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
 
@@ -76,8 +76,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("executes a query that can retrieve results of all types", function() {
-      exampleRegion.put("a string", "a string");
-      exampleRegion.put("an object", {"an": "object"});
+      region.put("a string", "a string");
+      region.put("an object", {"an": "object"});
 
       var query = "SELECT DISTINCT * FROM /exampleRegion";
 
@@ -90,8 +90,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("can search for wide strings", function(){
-      exampleRegion.put("narrow string", "Japan");
-      exampleRegion.put("wide string", "日本");
+      region.put("narrow string", "Japan");
+      region.put("wide string", "日本");
 
       var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';"
       var narrowResults = cache.executeQuery(narrowQuery);
