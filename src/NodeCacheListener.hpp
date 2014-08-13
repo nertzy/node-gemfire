@@ -1,15 +1,12 @@
 #include <gfcpp/EntryEvent.hpp>
 #include <gfcpp/CacheListener.hpp>
 #include <node.h>
-#include "event.hpp"
 
-using namespace gemfire;
-
-class NodeCacheListener: public CacheListener {
+class NodeCacheListener: public gemfire::CacheListener {
  public:
   NodeCacheListener(uv_async_t * async, uv_mutex_t * eventMutex);
-  virtual void afterCreate(const EntryEvent& event);
-  virtual void afterUpdate(const EntryEvent& event);
+  virtual void afterCreate(const gemfire::EntryEvent & event);
+  virtual void afterUpdate(const gemfire::EntryEvent & event);
  private:
   uv_async_t * async;
   uv_mutex_t * eventMutex;

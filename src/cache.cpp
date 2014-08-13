@@ -2,29 +2,40 @@
 #include <v8.h>
 #include <nan.h>
 #include <gfcpp/Cache.hpp>
+#include <gfcpp/CacheFactory.hpp>
+#include <gfcpp/Region.hpp>
 #include "exceptions.hpp"
 #include "conversions.hpp"
+#include "region.hpp"
 
 using namespace v8;
 using namespace gemfire;
 
-void node_gemfire::Cache::Init(Handle<Object> exports) {
+namespace node_gemfire {
+
+Cache::~Cache() {
+  cachePtr->close();
+}
+
+void Cache::Init(Handle<Object> exports) {
   NanScope();
 
   Local<FunctionTemplate> cacheConstructorTemplate =
-    NanNew<FunctionTemplate>(node_gemfire::Cache::New);
+    NanNew<FunctionTemplate>(Cache::New);
+
+  cacheConstructorTemplate->SetClassName(NanNew("Cache"));
   cacheConstructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Local<FunctionTemplate> executeQueryTemplate =
-    NanNew<FunctionTemplate>(node_gemfire::Cache::ExecuteQuery);
-
   NanSetPrototypeTemplate(cacheConstructorTemplate, "executeQuery",
-      executeQueryTemplate->GetFunction());
+      NanNew<FunctionTemplate>(Cache::ExecuteQuery)->GetFunction());
+
+  NanSetPrototypeTemplate(cacheConstructorTemplate, "getRegion",
+      NanNew<FunctionTemplate>(Cache::GetRegion)->GetFunction());
 
   exports->Set(NanNew("Cache"), cacheConstructorTemplate->GetFunction());
 }
 
-NAN_METHOD(node_gemfire::Cache::New) {
+NAN_METHOD(Cache::New) {
   NanScope();
 
   CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();
@@ -33,16 +44,16 @@ NAN_METHOD(node_gemfire::Cache::New) {
     ->set("cache-xml-file", "benchmark/xml/BenchmarkClient.xml")
     ->create();
 
-  node_gemfire::Cache * cache = new node_gemfire::Cache(cachePtr);
+  Cache * cache = new Cache(cachePtr);
   cache->Wrap(args.This());
 
   NanReturnValue(args.This());
 }
 
-NAN_METHOD(node_gemfire::Cache::ExecuteQuery) {
+NAN_METHOD(Cache::ExecuteQuery) {
   NanScope();
 
-  node_gemfire::Cache * cache = ObjectWrap::Unwrap<node_gemfire::Cache>(args.This());
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
   CachePtr cachePtr = cache->cachePtr;
 
   QueryServicePtr queryServicePtr = cachePtr->getQueryService();
@@ -69,3 +80,18 @@ NAN_METHOD(node_gemfire::Cache::ExecuteQuery) {
 
   NanReturnValue(array);
 }
+
+NAN_METHOD(Cache::GetRegion) {
+  NanScope();
+
+  if (args.Length() != 1) {
+    NanThrowError("getRegion expects one argument: the name of a Gemfire region");
+    NanReturnUndefined();
+  }
+
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+
+  NanReturnValue(Region::GetRegion(cache, *NanAsciiString(args[0])));
+}
+
+}  // namespace node_gemfire

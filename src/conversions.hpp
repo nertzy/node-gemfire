@@ -6,16 +6,15 @@
 #include <gfcpp/CacheFactory.hpp>
 
 using namespace v8;
-using namespace gemfire;
 
 class V8ObjectFormatter {
  public:
-    static PdxInstancePtr toPdxInstance(CachePtr cache, Local<Object> v8Object);
-    static Handle<Value> fromPdxInstance(PdxInstancePtr pdxInstance);
+    static gemfire::PdxInstancePtr toPdxInstance(gemfire::CachePtr cache, Local<Object> v8Object);
+    static Handle<Value> fromPdxInstance(gemfire::PdxInstancePtr pdxInstance);
 };
 
-CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, CachePtr cachePtr);
-Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr);
+gemfire::CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, gemfire::CachePtr cachePtr);
+Handle<Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr);
 
 #define __CONVERSIONS_HPP__
 #endif
