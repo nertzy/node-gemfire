@@ -7,8 +7,8 @@ Proof-of-concept NodeJS addon for connecting to Pivotal Gemfire
 
 ```javascript
 var gemfire = require('gemfire');
-var cache = new gemfire.Cache();
-var region = cache.getRegion('exampleRegion');
+var cache = new gemfire.Cache('config/cache.xml');
+var region = cache.getRegion('myRegion');
 
 region.put('foo', { bar: ['baz', 'qux'] });
 region.get('foo');
