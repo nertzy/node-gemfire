@@ -36,10 +36,17 @@ module.exports = function(grunt) {
       },
       jasmine_node: {
         all: ['spec/']
+      },
+      jshint: {
+        options: {
+          jshintrc: true
+        },
+        all: ['Gruntfile.js', './*.js', 'spec/**/*.js']
       }
     }
   );
 
+  grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jasmine-node');
   grunt.loadNpmTasks('grunt-shell');
 
@@ -58,6 +65,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
 
-  grunt.registerTask('default', ['build', 'test', 'lint']);
+  grunt.registerTask('default', ['build', 'test', 'lint', 'jshint']);
 };
 
