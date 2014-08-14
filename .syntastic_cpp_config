@@ -4,6 +4,3 @@
 -std=c++0x
 -D_REENTRANT
 -m64
--Wl,-rpath,${GFCPP}/lib
--Wl,-L${GFCPP}/lib
--lgfcppcache
