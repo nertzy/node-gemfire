@@ -1,11 +1,11 @@
 var childProcess = require('child_process');
+var factories = require('./support/factories.js');
 
 describe("gemfire.Region", function() {
   var region, cache;
 
   beforeEach(function() {
-    var gemfire = require("../gemfire.js");
-    cache = new gemfire.Cache();
+    cache = factories.getCache();
     region = cache.getRegion("exampleRegion");
     region.clear();
   });

@@ -1,5 +1,4 @@
-var gemfire = require('../../gemfire.js');
-var cache = new gemfire.Cache();
+var cache = require("./factories.js").getCache();
 var region = cache.getRegion("exampleRegion");
 
 region.put("async", "test");

@@ -38,11 +38,21 @@ void Cache::Init(Handle<Object> exports) {
 NAN_METHOD(Cache::New) {
   NanScope();
 
-  CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory();
-  CachePtr cachePtr = cacheFactory
-    ->set("log-level", "warning")
-    ->set("cache-xml-file", "benchmark/xml/BenchmarkClient.xml")
-    ->create();
+  if (args.Length() < 1) {
+    NanThrowError("Cache constructor requires a path to an XML configuration file as its first argument.");
+    NanReturnUndefined();
+  }
+
+  CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory()
+    ->set("cache-xml-file", *NanAsciiString(args[0]));
+
+  CachePtr cachePtr;
+  try {
+    cachePtr = cacheFactory->create();
+  } catch(gemfire::CacheXmlException & exception) {
+    ThrowGemfireException(exception);
+    NanReturnUndefined();
+  }
 
   Cache * cache = new Cache(cachePtr);
   cache->Wrap(args.This());
@@ -89,7 +99,8 @@ NAN_METHOD(Cache::GetRegion) {
     NanReturnUndefined();
   }
 
-  Local<Function> regionGetRegionFunction = NanNew<FunctionTemplate>(Region::GetRegion)->GetFunction();
+  Local<Function> regionGetRegionFunction =
+    NanNew<FunctionTemplate>(Region::GetRegion)->GetFunction();
 
   const unsigned int argc = 2;
   Local<Value> argv[argc] = { args.This(), args[0] };
