@@ -29,6 +29,9 @@ module.exports = function(grunt) {
         },
         lint: {
           command: "cpplint.py --verbose=1 --linelength=110 --extensions=cpp,hpp src/*"
+        },
+        console: {
+          command: "node bin/console.js"
         }
       },
       jasmine_node: {
@@ -43,6 +46,7 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['shell:rebuild']);
   grunt.registerTask('test', ['server:ensure', 'jasmine_node:all']);
   grunt.registerTask('lint', ['shell:lint']);
+  grunt.registerTask('console', ['shell:console']);
 
   grunt.registerTask('server:start', ['shell:startServer']);
   grunt.registerTask('server:stop', ['shell:stopServer']);
