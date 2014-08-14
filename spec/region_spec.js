@@ -42,7 +42,7 @@ describe("gemfire.Region", function() {
       expect(region.put("empty string", "")).toEqual("");
       expect(region.get("empty string")).toEqual("");
 
-      var wideString =  "\u0123\u4567\u89AB\uCDEF\uabcd\uef4A"
+      var wideString =  "\u0123\u4567\u89AB\uCDEF\uabcd\uef4A";
       expect(region.put("wide string", wideString)).toEqual(wideString);
       expect(region.get("wide string")).toEqual(wideString);
     });

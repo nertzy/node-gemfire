@@ -12,7 +12,7 @@ describe("gemfire.Cache", function() {
       if(!done) { throw("You must run this test asynchronously and pass done");  }
       if(!callback) { throw("You must pass a callback");  }
 
-      var filename = "spec/support/cache/" + name + ".js"
+      var filename = "spec/support/cache/" + name + ".js";
 
       childProcess.execFile("node", [filename], function(error, stdout, stderr) {
         callback(error, stdout, stderr);
@@ -68,7 +68,7 @@ describe("gemfire.Cache", function() {
       expect(callWithZeroArguments).toThrow("getRegion expects one argument: the name of a Gemfire region");
       expect(callWithOneArgument).not.toThrow();
       expect(callWithTwoArguments).toThrow("getRegion expects one argument: the name of a Gemfire region");
-    })
+    });
 
     it("returns a gemfire.Region object", function() {
       var region = cache.getRegion("exampleRegion");
@@ -135,11 +135,11 @@ describe("gemfire.Cache", function() {
       region.put("narrow string", "Japan");
       region.put("wide string", "日本");
 
-      var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';"
+      var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
       var narrowResults = cache.executeQuery(narrowQuery);
       expect(narrowResults).toEqual(["narrow string"]);
 
-      var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';"
+      var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
       var wideResults = cache.executeQuery(wideQuery);
       expect(wideResults).toEqual(["wide string"]);
     });
