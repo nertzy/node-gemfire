@@ -131,28 +131,49 @@ NAN_METHOD(Region::Get) {
   RegionPtr regionPtr = region->regionPtr;
 
   String::Utf8Value key(args[0]);
-  CacheableKeyPtr keyPtr = CacheableString::create(*key);
-
-  CacheablePtr valuePtr = regionPtr->get(keyPtr);
-
   if (args.Length() > 1 && args[1]->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(args[1]);
-    Local<Value> returnValue = NanNew(v8ValueFromGemfire(valuePtr));
-    Local<Value> error;
-    if (returnValue->IsUndefined()) {
-      error = NanError("Key not found in region.");
-    } else {
-      error = NanNull();
-    }
+    CacheableKeyPtr keyPtr = CacheableString::create(*key);
+    GetBaton * getBaton = new GetBaton(callback, region, keyPtr);
 
-    static const int argc = 2;
-    Local<Value> argv[2] = { error, returnValue };
-    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
+    uv_work_t * request = new uv_work_t();
+    request->data = reinterpret_cast<void *>(getBaton);
+
+    uv_queue_work(uv_default_loop(), request, region->AsyncGet, region->AfterAsyncGet);
 
     NanReturnValue(args.This());
   } else {
+    CacheableKeyPtr keyPtr = CacheableString::create(*key);
+    CacheablePtr valuePtr = regionPtr->get(keyPtr);
     NanReturnValue(v8ValueFromGemfire(valuePtr));
   }
+}
+
+void Region::AsyncGet(uv_work_t * request) {
+  GetBaton * getBaton = reinterpret_cast<GetBaton *>(request->data);
+  getBaton->valuePtr = getBaton->region->regionPtr->get(getBaton->keyPtr);
+}
+
+void Region::AfterAsyncGet(uv_work_t * request, int status) {
+  NanScope();
+
+  GetBaton * getBaton = reinterpret_cast<GetBaton *>(request->data);
+
+  Local<Value> returnValue = NanNew(v8ValueFromGemfire(getBaton->valuePtr));
+
+  Local<Value> error;
+  if (returnValue->IsUndefined()) {
+    error = NanError("Key not found in region.");
+  } else {
+    error = NanNull();
+  }
+
+  static const int argc = 2;
+  Local<Value> argv[2] = { error, returnValue };
+  NanMakeCallback(NanGetCurrentContext()->Global(), getBaton->callback, argc, argv);;
+
+  delete request;
+  delete getBaton;
 }
 
 NAN_METHOD(Region::RegisterAllKeys) {
