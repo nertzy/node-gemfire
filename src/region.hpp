@@ -25,9 +25,29 @@ class Region : node::ObjectWrap {
     static NAN_METHOD(RegisterAllKeys);
     static NAN_METHOD(UnregisterAllKeys);
     static NAN_METHOD(OnPut);
+    static void AsyncGet(uv_work_t * request);
+    static void AfterAsyncGet(uv_work_t * request, int status);
  private:
     gemfire::RegionPtr regionPtr;
     Persistent<Object> cacheHandle;
+};
+
+class GetBaton {
+ public:
+    GetBaton(Handle<Function> callback, Region * region, gemfire::CacheableKeyPtr keyPtr) :
+        region(region),
+        keyPtr(keyPtr) {
+      NanAssignPersistent(this->callback, callback);
+    }
+
+    ~GetBaton() {
+      NanDisposePersistent(callback);
+    }
+
+    Persistent<Function> callback;
+    Region * region;
+    gemfire::CacheableKeyPtr keyPtr;
+    gemfire::CacheablePtr valuePtr;
 };
 
 }  // namespace node_gemfire
