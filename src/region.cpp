@@ -135,7 +135,24 @@ NAN_METHOD(Region::Get) {
 
   CacheablePtr valuePtr = regionPtr->get(keyPtr);
 
-  NanReturnValue(v8ValueFromGemfire(valuePtr));
+  if (args.Length() > 1 && args[1]->IsFunction()) {
+    Local<Function> callback = Local<Function>::Cast(args[1]);
+    Local<Value> returnValue = NanNew(v8ValueFromGemfire(valuePtr));
+    Local<Value> error;
+    if (returnValue->IsUndefined()) {
+      error = NanError("Key not found in region.");
+    } else {
+      error = NanNull();
+    }
+
+    static const int argc = 2;
+    Local<Value> argv[2] = { error, returnValue };
+    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
+
+    NanReturnValue(args.This());
+  } else {
+    NanReturnValue(v8ValueFromGemfire(valuePtr));
+  }
 }
 
 NAN_METHOD(Region::RegisterAllKeys) {

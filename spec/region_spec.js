@@ -19,6 +19,29 @@ describe("gemfire.Region", function() {
       expect(region.get('foo')).toBeUndefined();
     });
 
+    describe("async interface", function() {
+      beforeEach(function(){
+        region.put('foo', 'bar');
+      });
+
+      it("supports async get via a callback", function(done) {
+        region.get("foo", function(error, value) {
+          expect(error).toBeNull();
+          expect(value).toEqual("bar");
+          done();
+        });
+      });
+
+      it("returns an error when async get is called for a nonexistent key", function(done) {
+        region.get("baz", function(error, value) {
+          expect(error).not.toBeNull();
+          expect(error.message).toEqual("Key not found in region.");
+          expect(value).toBeUndefined();
+          done();
+        });
+      });
+    });
+
     it("stores and retrieves values in the correct region", function() {
       var region1 = cache.getRegion("exampleRegion");
       var region2 = cache.getRegion("anotherRegion");
