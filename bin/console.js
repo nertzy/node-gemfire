@@ -7,7 +7,6 @@ region = cache.getRegion("exampleRegion");
 var repl = require("repl");
 repl.start({
   prompt: "node_gemfire> ",
-  input: process.stdin,
-  output: process.stdout
+  useColors: true
 });
 
