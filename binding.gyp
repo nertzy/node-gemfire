@@ -40,6 +40,35 @@
           "destination": "<(module_path)"
         }
       ]
+    },
+    {
+      "target_name": "test",
+      "include_dirs" : [
+        "$(GFCPP)/include",
+        "<!(node -e \"require('nan')\")",
+        "src"
+      ],
+      'cflags_cc!': [
+        '-fno-rtti',
+        '-fno-exceptions'
+      ],
+      'cflags_cc+': [
+        '-std=c++0x',
+        '-frtti'
+      ],
+      "defines": [
+        "_REENTRANT"
+      ],
+      "libraries": [ "$(GFCPP)/lib/libgfcppcache.so", "/usr/lib64/libgtest.so" ],
+      "sources": [
+        "spec/cpp/test.cpp",
+        "src/binding.cpp",
+        "src/NodeCacheListener.cpp",
+        "src/exceptions.cpp",
+        "src/conversions.cpp",
+        "src/cache.cpp",
+        "src/region.cpp",
+      ]
     }
   ]
 }
