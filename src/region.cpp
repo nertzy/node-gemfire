@@ -129,7 +129,7 @@ NAN_METHOD(Region::Put) {
       Local<Value> argv[2] = { error, NanUndefined() };
       NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);;
     } else {
-      PutBaton * putBaton = new PutBaton(callback, region, keyPtr, valuePtr);
+      PutBaton * putBaton = new PutBaton(callback, region->regionPtr, keyPtr, valuePtr);
 
       uv_work_t * request = new uv_work_t();
       request->data = reinterpret_cast<void *>(putBaton);
@@ -151,7 +151,7 @@ NAN_METHOD(Region::Put) {
 
 void Region::AsyncPut(uv_work_t * request) {
   PutBaton * putBaton = reinterpret_cast<PutBaton *>(request->data);
-  putBaton->region->regionPtr->put(putBaton->keyPtr, putBaton->valuePtr);
+  putBaton->regionPtr->put(putBaton->keyPtr, putBaton->valuePtr);
 }
 
 void Region::AfterAsyncPut(uv_work_t * request, int status) {
@@ -180,7 +180,7 @@ NAN_METHOD(Region::Get) {
   if (args.Length() > 1 && args[1]->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(args[1]);
     CacheableKeyPtr keyPtr = CacheableString::create(*key);
-    GetBaton * getBaton = new GetBaton(callback, region, keyPtr);
+    GetBaton * getBaton = new GetBaton(callback, region->regionPtr, keyPtr);
 
     uv_work_t * request = new uv_work_t();
     request->data = reinterpret_cast<void *>(getBaton);
@@ -197,7 +197,7 @@ NAN_METHOD(Region::Get) {
 
 void Region::AsyncGet(uv_work_t * request) {
   GetBaton * getBaton = reinterpret_cast<GetBaton *>(request->data);
-  getBaton->valuePtr = getBaton->region->regionPtr->get(getBaton->keyPtr);
+  getBaton->valuePtr = getBaton->regionPtr->get(getBaton->keyPtr);
 }
 
 void Region::AfterAsyncGet(uv_work_t * request, int status) {
