@@ -12,6 +12,7 @@ if ! yum -C repolist | grep epel ; then
 fi
 
 sudo yum -y install nodejs npm --enablerepo=epel
+sudo yum -y install gtest gtest-devel
 
 test -e /usr/bin/grunt || npm install -g grunt-cli
 
