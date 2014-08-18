@@ -99,10 +99,9 @@ NAN_METHOD(Cache::ExecuteQuery) {
 void Cache::AsyncExecuteQuery(uv_work_t * request) {
   ExecuteQueryBaton * baton = reinterpret_cast<ExecuteQueryBaton *>(request->data);
 
-  baton->queryExceptionPtr = NULLPTR;
-
   try {
     baton->selectResultsPtr = baton->queryPtr->execute();
+    baton->queryExceptionPtr = NULLPTR;
     baton->querySucceeded = true;
   }
   catch(const QueryException & exception) {
