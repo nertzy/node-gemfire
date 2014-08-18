@@ -39,9 +39,9 @@ class Region : node::ObjectWrap {
 class GetBaton {
  public:
     GetBaton(Handle<Function> callback,
-             Region * region,
+             gemfire::RegionPtr regionPtr,
              gemfire::CacheableKeyPtr keyPtr) :
-        region(region),
+        regionPtr(regionPtr),
         keyPtr(keyPtr) {
       NanAssignPersistent(this->callback, callback);
     }
@@ -51,7 +51,7 @@ class GetBaton {
     }
 
     Persistent<Function> callback;
-    Region * region;
+    gemfire::RegionPtr regionPtr;
     gemfire::CacheableKeyPtr keyPtr;
     gemfire::CacheablePtr valuePtr;
 };
@@ -59,10 +59,10 @@ class GetBaton {
 class PutBaton {
  public:
     PutBaton(Handle<Function> callback,
-             Region * region,
+             gemfire::RegionPtr regionPtr,
              gemfire::CacheableKeyPtr keyPtr,
              gemfire::CacheablePtr valuePtr) :
-        region(region),
+        regionPtr(regionPtr),
         keyPtr(keyPtr),
         valuePtr(valuePtr) {
       NanAssignPersistent(this->callback, callback);
@@ -73,7 +73,7 @@ class PutBaton {
     }
 
     Persistent<Function> callback;
-    Region * region;
+    gemfire::RegionPtr regionPtr;
     gemfire::CacheableKeyPtr keyPtr;
     gemfire::CacheablePtr valuePtr;
 };
