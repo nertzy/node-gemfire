@@ -4,6 +4,7 @@
 #include <gfcpp/Cache.hpp>
 #include <gfcpp/CacheFactory.hpp>
 #include <gfcpp/Region.hpp>
+#include <sstream>
 #include "exceptions.hpp"
 #include "conversions.hpp"
 #include "region.hpp"
@@ -69,26 +70,73 @@ NAN_METHOD(Cache::ExecuteQuery) {
   QueryServicePtr queryServicePtr = cachePtr->getQueryService();
   String::Utf8Value queryString(args[0]);
   QueryPtr queryPtr = queryServicePtr->newQuery(*queryString);
-  SelectResultsPtr resultsPtr;
+
+  if (args.Length() > 1 && args[1]->IsFunction()) {
+    Local<Function> callback = Local<Function>::Cast(args[1]);
+
+    ExecuteQueryBaton * baton = new ExecuteQueryBaton(callback, queryPtr);
+
+    uv_work_t * request = new uv_work_t();
+    request->data = reinterpret_cast<void *>(baton);
+
+    uv_queue_work(uv_default_loop(), request, cache->AsyncExecuteQuery, cache->AfterAsyncExecuteQuery);
+
+    NanReturnValue(args.This());
+  } else {
+    SelectResultsPtr selectResultsPtr;
+    try {
+      selectResultsPtr = queryPtr->execute();
+    }
+    catch(const QueryException & exception) {
+      ThrowGemfireException(exception);
+      NanReturnUndefined();
+    }
+
+    NanReturnValue(arrayFromSelectResults(selectResultsPtr));
+  }
+}
+
+void Cache::AsyncExecuteQuery(uv_work_t * request) {
+  ExecuteQueryBaton * baton = reinterpret_cast<ExecuteQueryBaton *>(request->data);
+
+  baton->queryExceptionPtr = NULLPTR;
+
   try {
-    resultsPtr = queryPtr->execute();
+    baton->selectResultsPtr = baton->queryPtr->execute();
+    baton->querySucceeded = true;
   }
   catch(const QueryException & exception) {
-    ThrowGemfireException(exception);
-    NanReturnUndefined();
+    baton->selectResultsPtr = NULLPTR;
+    baton->queryExceptionPtr = new QueryException(exception);
+    baton->querySucceeded = false;
+  }
+}
+
+void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
+  NanScope();
+
+  ExecuteQueryBaton * baton = reinterpret_cast<ExecuteQueryBaton *>(request->data);
+
+  Local<Value> error;
+  Local<Value> returnValue;
+
+  if (baton->querySucceeded) {
+    error = NanNull();
+    returnValue = NanNew(arrayFromSelectResults(baton->selectResultsPtr));
+  } else {
+    std::stringstream errorMessageStream;
+    errorMessageStream << baton->queryExceptionPtr->getName() << ": "
+      << baton->queryExceptionPtr->getMessage();
+    error = NanError(errorMessageStream.str().c_str());
+    returnValue = NanUndefined();
   }
 
-  Local<Array> array = NanNew<Array>();
+  static const int argc = 2;
+  Local<Value> argv[2] = { error, returnValue };
+  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);;
 
-  SelectResultsIterator iterator = resultsPtr->getIterator();
-
-  while (iterator.hasNext()) {
-    const SerializablePtr result = iterator.next();
-    Handle<Value> v8Value = v8ValueFromGemfire(result);
-    array->Set(array->Length(), v8Value);
-  }
-
-  NanReturnValue(array);
+  delete request;
+  delete baton;
 }
 
 NAN_METHOD(Cache::GetRegion) {

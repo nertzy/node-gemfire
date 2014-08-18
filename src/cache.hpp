@@ -19,8 +19,29 @@ class Cache : public node::ObjectWrap {
     static NAN_METHOD(New);
     static NAN_METHOD(ExecuteQuery);
     static NAN_METHOD(GetRegion);
+    static void AsyncExecuteQuery(uv_work_t * request);
+    static void AfterAsyncExecuteQuery(uv_work_t * request, int status);
 
     explicit Cache(gemfire::CachePtr cachePtr) : cachePtr(cachePtr) {}
+};
+
+class ExecuteQueryBaton {
+ public:
+    ExecuteQueryBaton(Handle<Function> callback,
+                      gemfire::QueryPtr queryPtr) :
+        queryPtr(queryPtr) {
+      NanAssignPersistent(this->callback, callback);
+    }
+
+    ~ExecuteQueryBaton() {
+      NanDisposePersistent(callback);
+    }
+
+    Persistent<Function> callback;
+    gemfire::QueryPtr queryPtr;
+    gemfire::SelectResultsPtr selectResultsPtr;
+    gemfire::ExceptionPtr queryExceptionPtr;
+    bool querySucceeded;
 };
 
 }  // namespace node_gemfire
