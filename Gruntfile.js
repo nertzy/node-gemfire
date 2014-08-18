@@ -32,6 +32,9 @@ module.exports = function(grunt) {
         },
         console: {
           command: "node bin/console.js"
+        },
+        cppUnitTests: {
+          command: "node spec/cpp/runner.js"
         }
       },
       jasmine_node: {
@@ -51,7 +54,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('build', ['shell:rebuild']);
-  grunt.registerTask('test', ['server:ensure', 'jasmine_node:all']);
+  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'jasmine_node:all']);
   grunt.registerTask('lint', ['shell:lint']);
   grunt.registerTask('console', ['shell:console']);
 
