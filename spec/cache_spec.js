@@ -143,5 +143,50 @@ describe("gemfire.Cache", function() {
       var wideResults = cache.executeQuery(wideQuery);
       expect(wideResults).toEqual(["wide string"]);
     });
+
+    it("throws an error for invalid queries", function() {
+      var exception;
+
+      try {
+        cache.executeQuery("INVALID;");
+      } catch(e) {
+        exception = e;
+      }
+
+      expect(exception).toBeDefined();
+      expect(exception.message).toMatch(/gemfire::QueryException/);
+    });
+
+    describe("asynchronous API", function() {
+      it("returns the cache for chaining", function(done) {
+        var query = "SELECT DISTINCT * FROM /exampleRegion;";
+        var returnValue = cache.executeQuery(query, function(error, results) {
+          done();
+        });
+        expect(returnValue).toEqual(cache);
+      });
+
+      it("supports async query execution when a callback is passed", function(done) {
+        region.put("narrow string", "Japan");
+        region.put("wide string", "日本");
+
+        var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
+        cache.executeQuery(wideQuery, function(error, results){
+          expect(error).toBeNull();
+          expect(results).toEqual(["wide string"]);
+          done();
+        });
+      });
+
+      it("passes an error to the callback for invalid queries", function(done) {
+        var exception;
+
+        cache.executeQuery("INVALID;", function(error, results) {
+          expect(error.message).toMatch(/gemfire::QueryException/);
+          expect(results).toBeUndefined();
+          done();
+        });
+      });
+    });
   });
 });
