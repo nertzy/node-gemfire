@@ -16,5 +16,7 @@ class V8ObjectFormatter {
 gemfire::CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, gemfire::CachePtr cachePtr);
 Handle<Value> v8ValueFromGemfire(gemfire::CacheablePtr valuePtr);
 
+Handle<Array> arrayFromSelectResults(gemfire::SelectResultsPtr selectResultsPtr);
+
 #define __CONVERSIONS_HPP__
 #endif

@@ -207,3 +207,18 @@ Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
   }
 }
 
+Handle<Array> arrayFromSelectResults(SelectResultsPtr selectResultsPtr) {
+  NanScope();
+
+  Local<Array> array = NanNew<Array>();
+
+  SelectResultsIterator iterator = selectResultsPtr->getIterator();
+
+  while (iterator.hasNext()) {
+    const SerializablePtr result = iterator.next();
+    Handle<Value> v8Value = v8ValueFromGemfire(result);
+    array->Set(array->Length(), v8Value);
+  }
+
+  NanReturnValue(array);
+}
