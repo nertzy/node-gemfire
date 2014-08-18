@@ -96,32 +96,78 @@ NAN_METHOD(Region::Clear) {
   NanReturnValue(NanTrue());
 }
 
+static Handle<Value> unableToPutValueError(Handle<Value> v8Value) {
+  NanScope();
+  std::stringstream errorMessageStream;
+  errorMessageStream << "Unable to put value " << *String::Utf8Value(v8Value->ToDetailString());
+  NanReturnValue(NanError(errorMessageStream.str().c_str()));
+}
+
 NAN_METHOD(Region::Put) {
   NanScope();
 
-  if (args.Length() != 2) {
+  if (args.Length() < 2) {
     NanThrowError("put must be called with a key and a value");
     NanReturnUndefined();
   }
 
   String::Utf8Value key(args[0]);
-  CacheableKeyPtr keyPtr = CacheableString::create(*key);
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr = region->regionPtr;
   CachePtr cachePtr = regionPtr->getCache();
-
+  CacheableKeyPtr keyPtr = CacheableString::create(*key);
   CacheablePtr valuePtr = gemfireValueFromV8(args[1], cachePtr);
 
-  if (valuePtr == NULLPTR) {
-    std::stringstream errorMessageStream;
-    errorMessageStream << "Unable to put value " << *String::Utf8Value(args[1]->ToDetailString());
-    NanThrowError(errorMessageStream.str().c_str());
-    NanReturnUndefined();
-  }
+  if (args.Length() > 2 && args[2]->IsFunction()) {
+    Local<Function> callback = Local<Function>::Cast(args[2]);
 
-  regionPtr->put(keyPtr, valuePtr);
-  NanReturnValue(args[1]);
+    if (valuePtr == NULLPTR) {
+      Local<Value> error = NanNew(unableToPutValueError(args[1]));
+
+      static const int argc = 2;
+      Local<Value> argv[2] = { error, NanUndefined() };
+      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);;
+    } else {
+      PutBaton * putBaton = new PutBaton(callback, region, keyPtr, valuePtr);
+
+      uv_work_t * request = new uv_work_t();
+      request->data = reinterpret_cast<void *>(putBaton);
+
+      uv_queue_work(uv_default_loop(), request, region->AsyncPut, region->AfterAsyncPut);
+    }
+
+    NanReturnValue(args.This());
+  } else {
+    if (valuePtr == NULLPTR) {
+      NanThrowError(unableToPutValueError(args[1]));
+      NanReturnUndefined();
+    }
+
+    regionPtr->put(keyPtr, valuePtr);
+    NanReturnValue(args[1]);
+  }
+}
+
+void Region::AsyncPut(uv_work_t * request) {
+  PutBaton * putBaton = reinterpret_cast<PutBaton *>(request->data);
+  putBaton->region->regionPtr->put(putBaton->keyPtr, putBaton->valuePtr);
+}
+
+void Region::AfterAsyncPut(uv_work_t * request, int status) {
+  NanScope();
+
+  PutBaton * putBaton = reinterpret_cast<PutBaton *>(request->data);
+
+  Local<Value> error = NanNull();
+  Local<Value> returnValue = NanNew(v8ValueFromGemfire(putBaton->valuePtr));
+
+  static const int argc = 2;
+  Local<Value> argv[2] = { error, returnValue };
+  NanMakeCallback(NanGetCurrentContext()->Global(), putBaton->callback, argc, argv);;
+
+  delete request;
+  delete putBaton;
 }
 
 NAN_METHOD(Region::Get) {

@@ -12,7 +12,9 @@ namespace node_gemfire {
 
 class Region : node::ObjectWrap {
  public:
-    explicit Region(Handle<Object> cacheHandle, gemfire::RegionPtr regionPtr) : regionPtr(regionPtr) {
+    explicit Region(Handle<Object> cacheHandle,
+                    gemfire::RegionPtr regionPtr) :
+        regionPtr(regionPtr) {
       NanAssignPersistent(this->cacheHandle, cacheHandle);
     }
     ~Region();
@@ -27,6 +29,8 @@ class Region : node::ObjectWrap {
     static NAN_METHOD(OnPut);
     static void AsyncGet(uv_work_t * request);
     static void AfterAsyncGet(uv_work_t * request, int status);
+    static void AsyncPut(uv_work_t * request);
+    static void AfterAsyncPut(uv_work_t * request, int status);
  private:
     gemfire::RegionPtr regionPtr;
     Persistent<Object> cacheHandle;
@@ -34,13 +38,37 @@ class Region : node::ObjectWrap {
 
 class GetBaton {
  public:
-    GetBaton(Handle<Function> callback, Region * region, gemfire::CacheableKeyPtr keyPtr) :
+    GetBaton(Handle<Function> callback,
+             Region * region,
+             gemfire::CacheableKeyPtr keyPtr) :
         region(region),
         keyPtr(keyPtr) {
       NanAssignPersistent(this->callback, callback);
     }
 
     ~GetBaton() {
+      NanDisposePersistent(callback);
+    }
+
+    Persistent<Function> callback;
+    Region * region;
+    gemfire::CacheableKeyPtr keyPtr;
+    gemfire::CacheablePtr valuePtr;
+};
+
+class PutBaton {
+ public:
+    PutBaton(Handle<Function> callback,
+             Region * region,
+             gemfire::CacheableKeyPtr keyPtr,
+             gemfire::CacheablePtr valuePtr) :
+        region(region),
+        keyPtr(keyPtr),
+        valuePtr(valuePtr) {
+      NanAssignPersistent(this->callback, callback);
+    }
+
+    ~PutBaton() {
       NanDisposePersistent(callback);
     }
 

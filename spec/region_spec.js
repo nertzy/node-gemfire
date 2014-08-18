@@ -19,9 +19,17 @@ describe("gemfire.Region", function() {
       expect(region.get('foo')).toBeUndefined();
     });
 
-    describe("async interface", function() {
+    describe("async get", function() {
       beforeEach(function(){
         region.put('foo', 'bar');
+      });
+
+      it("returns the region object to support chaining", function(done) {
+        var returnValue = region.get("foo", function(error, value) {
+          done();
+        });
+
+        expect(returnValue).toEqual(region);
       });
 
       it("supports async get via a callback", function(done) {
@@ -36,6 +44,35 @@ describe("gemfire.Region", function() {
         region.get("baz", function(error, value) {
           expect(error).not.toBeNull();
           expect(error.message).toEqual("Key not found in region.");
+          expect(value).toBeUndefined();
+          done();
+        });
+      });
+    });
+
+    describe("async put", function() {
+      it("returns the region object to support chaining", function(done) {
+        var returnValue = region.put("foo", "bar", function(error, value) {
+          done();
+        });
+
+        expect(returnValue).toEqual(region);
+      });
+
+      it("supports async put via a callback", function(done) {
+        region.put("foo", "bar", function(error, value) {
+          expect(error).toBeNull();
+          expect(value).toEqual("bar");
+          expect(region.get("foo")).toEqual("bar");
+          done();
+        });
+        expect(region.get("foo")).not.toEqual("bar");
+      });
+
+      it("returns an error when async put is called with an unsupported value", function(done) {
+        region.put("foo", undefined, function(error, value) {
+          expect(error).not.toBeNull();
+          expect(error.message).toEqual("Unable to put value undefined");
           expect(value).toBeUndefined();
           done();
         });
@@ -158,6 +195,14 @@ describe("gemfire.Region", function() {
       var object = require("./fixtures/stress_test.json");
       expect(region.put('stress test', object)).toEqual(object);
       expect(region.get('stress test')).toEqual(object);
+    });
+
+    it("throws an error for unsupported objects", function() {
+      function putUndefined(){
+        region.put("undefined", undefined);
+      }
+
+      expect(putUndefined).toThrow("Unable to put value undefined");
     });
   });
 
