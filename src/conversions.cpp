@@ -53,7 +53,7 @@ Handle<String> v8StringFromWstring(const std::wstring & wideString) {
   NanReturnValue(v8String);
 }
 
-PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, const Local<Object> & v8Object) {
+PdxInstancePtr V8ObjectFormatter::toPdxInstance(const CachePtr & cachePtr, const Local<Object> & v8Object) {
   try {
     NanScope();
 
@@ -130,7 +130,7 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(const PdxInstancePtr & pdxInsta
   }
 }
 
-CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, CachePtr cachePtr) {
+CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & cachePtr) {
   CacheablePtr gemfireValuePtr;
 
   if (v8Value->IsString()) {
@@ -215,7 +215,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   }
 }
 
-Handle<Array> arrayFromSelectResults(SelectResultsPtr selectResultsPtr) {
+Handle<Array> arrayFromSelectResults(const SelectResultsPtr & selectResultsPtr) {
   NanScope();
 
   Local<Array> array = NanNew<Array>();
