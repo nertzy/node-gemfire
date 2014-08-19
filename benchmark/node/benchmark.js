@@ -1,6 +1,7 @@
 var randomString = require('random-string');
 var _ = require('lodash');
 var microtime = require("microtime");
+
 var gemfire = require('../../gemfire.js');
 var cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 var region = cache.getRegion("exampleRegion");
@@ -19,30 +20,14 @@ var keyOptions = {
   special: false
 };
 
-var valueOptions = {
-  length: 15 * 1024,
-  numeric: true,
-  letter: true,
-  special: true
-};
-
+var randomObject = require('../data/randomObject.json');
 var gemfireKey = randomString(keyOptions);
-var str = randomString(valueOptions);
-
-function objectForSuffix(suffix) {
-  var JSKey = "foo" + suffix;
-  var JSValue = str + suffix;
-
-  var object = new Object;
-  object[JSKey] = JSValue;
-  return object;
-};
 
 var suffix = 0;
 function putNValues(n){
   _.times(n, function(pair) {
     suffix++;
-    region.put(gemfireKey + suffix, objectForSuffix(suffix));
+    region.put(gemfireKey + suffix, randomObject);
   });
 }
 
@@ -62,7 +47,7 @@ function benchmark(numberOfPuts){
   );
 }
 
-putNValues(1000);
+// putNValues(1000);
 
 _.each([1, 10, 100, 1000, 10000], function(numberOfPuts){
   benchmark(numberOfPuts);
