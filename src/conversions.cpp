@@ -57,11 +57,10 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, const Local<O
   try {
     NanScope();
 
-    char * pdxClassName = new char[32];
+    char pdxClassName[33];
     randomString(pdxClassName, 32);
 
     PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName);
-    delete [] pdxClassName;
 
     Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
     unsigned int length = v8Keys->Length();
@@ -69,13 +68,17 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, const Local<O
     for (unsigned int i = 0; i < length; i++) {
       Local<Value> v8Key = v8Keys->Get(i);
       Local<Value> v8Value = v8Object->Get(v8Key);
-      String::Utf8Value key(v8Key);
+
+      // Copy the key string since gemfire is going to clean it up for us
+      String::Utf8Value v8String(v8Key);
+      char * key = new char[v8String.length()+1];
+      snprintf(key, v8String.length() + 1, "%s", *v8String);
 
       CacheablePtr cacheablePtr = gemfireValueFromV8(v8Value, cachePtr);
       if (v8Value->IsArray()) {
-        pdxInstanceFactory->writeObjectArray(*key, cacheablePtr);
+        pdxInstanceFactory->writeObjectArray(key, cacheablePtr);
       } else {
-        pdxInstanceFactory->writeObject(*key, cacheablePtr);
+        pdxInstanceFactory->writeObject(key, cacheablePtr);
       }
     }
 
