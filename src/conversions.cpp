@@ -64,7 +64,9 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object>
     delete [] pdxClassName;
 
     Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
-    for (unsigned int i = 0; i < v8Keys->Length(); i++) {
+    unsigned int length = v8Keys->Length();
+
+    for (unsigned int i = 0; i < length; i++) {
       Local<Value> v8Key = v8Keys->Get(i);
       Local<Value> v8Value = v8Object->Get(v8Key);
       String::Utf8Value key(v8Key);
@@ -96,7 +98,9 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
     }
 
     Local<Object> v8Object = NanNew<Object>();
-    for (int i = 0; i < gemfireKeys->length(); i++) {
+    int length = gemfireKeys->length();
+
+    for (int i = 0; i < length; i++) {
       const char * key = gemfireKeys[i]->asChar();
 
       CacheablePtr value;
