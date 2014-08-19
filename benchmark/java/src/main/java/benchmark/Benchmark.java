@@ -8,6 +8,8 @@ import com.gemstone.gemfire.pdx.PdxInstance;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import java.io.File;
+import org.apache.commons.io.FileUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -16,6 +18,7 @@ public class Benchmark {
     static int KEY_SIZE = 8;
     static int VALUE_SIZE = 15 * 1024;
     static int NUMBER_OF_ITEMS = 10000;
+    private static String randomObject;
 
     public static void main(String[] args){
 
@@ -32,19 +35,25 @@ public class Benchmark {
             throw new RuntimeException("Smoke test failed");
         }
 
+        try {
+            randomObject = FileUtils.readFileToString(new File("../data/randomObject.json"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         System.out.println("Generating data...");
-        HashMap<String,String> data = generateData();
+        ArrayList<String> keys = generateKeys();
 
         System.out.println("Warming up the JVM...");
         //warm up the JVM
-        benchmarkPut(region, data);
-        benchmarkGet(region, data);
+        benchmarkPut(region, keys);
+        benchmarkGet(region, keys);
         region.clear();
 
         System.out.println("Benchmarking put...");
-        ArrayList<Double> putResults = benchmarkPut(region, data);
+        ArrayList<Double> putResults = benchmarkPut(region, keys);
         System.out.println("Benchmarking get...");
-        ArrayList<Double> getResults = benchmarkGet(region, data);
+        ArrayList<Double> getResults = benchmarkGet(region, keys);
 
         writeData("Put", putResults);
         writeData("Get", getResults);
@@ -52,29 +61,24 @@ public class Benchmark {
         cache.close();
     }
 
-    private static HashMap<String, String> generateData() {
-        HashMap<String,String> data = new HashMap<String,String>();
+    private static ArrayList<String> generateKeys() {
+        ArrayList<String> keys = new ArrayList<String>();
 
         for(int i = 0; i < NUMBER_OF_ITEMS; i++) {
-            String gemfireKey = RandomStringUtils.randomAlphanumeric(KEY_SIZE);
-            String key = RandomStringUtils.randomAlphanumeric(KEY_SIZE);
-            String value = RandomStringUtils.randomAlphanumeric(VALUE_SIZE);
-            String json = "{ \"" + key + "\": \"" + value + "\" }";
-            data.put(gemfireKey, json);
+            keys.add(RandomStringUtils.randomAlphanumeric(KEY_SIZE));
         }
 
-        return data;
+        return keys;
     }
 
-    private static ArrayList<Double> benchmarkPut(Region region, HashMap<String,String> data) {
+    private static ArrayList<Double> benchmarkPut(Region region, ArrayList<String> keys) {
         ArrayList<Double> results = new ArrayList<Double>();
-        Object[] keys = data.keySet().toArray();
         Long lastNanoTime;
 
         for(Object key : keys) {
             lastNanoTime = System.nanoTime();
 
-            String json = data.get(key);
+            String json = randomObject;
             PdxInstance pdxInstance = JSONFormatter.fromJSON(json);
 
             region.put(key, pdxInstance);
@@ -85,9 +89,8 @@ public class Benchmark {
         return results;
     }
 
-    private static ArrayList<Double> benchmarkGet(Region region, HashMap<String, String> data) {
+    private static ArrayList<Double> benchmarkGet(Region region, ArrayList<String> keys) {
         ArrayList<Double> results = new ArrayList<Double>();
-        Object[] keys = data.keySet().toArray();
         Long lastNanoTime;
 
         for(Object key : keys) {
