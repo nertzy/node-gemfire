@@ -47,10 +47,10 @@ module.exports = function(grunt) {
         },
         cppUnitTests: {
           command: runNode("spec/cpp/runner.js")
+        },
+        jasmine_node: {
+          command: "./node_modules/jasmine-node/bin/jasmine-node --color --captureExceptions --forceexit spec/"
         }
-      },
-      jasmine_node: {
-        all: ['spec/']
       },
       jshint: {
         options: {
@@ -62,12 +62,11 @@ module.exports = function(grunt) {
   );
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-jasmine-node');
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('build', ['shell:build']);
   grunt.registerTask('rebuild', ['shell:rebuild']);
-  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'jasmine_node:all']);
+  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'shell:jasmine_node']);
   grunt.registerTask('lint', ['shell:lint']);
   grunt.registerTask('console', ['shell:console']);
 
@@ -80,7 +79,7 @@ module.exports = function(grunt) {
   grunt.registerTask('benchmark:node:async', ['build', 'server:ensure', 'shell:benchmarkNodeAsync']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
-  grunt.registerTask('valgrind', ['shell:rebuild'], function() {
+  grunt.registerTask('valgrind', function() {
     grunt.log.writeln('Running with valgrind...');
     nodeCommand = "valgrind --suppressions=spec/valgrind/suppressions-gemfire-7.0.2.supp node";
   });
