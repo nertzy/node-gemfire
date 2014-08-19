@@ -12,7 +12,6 @@ using gemfire::CachePtr;
 using gemfire::RegionPtr;
 using gemfire::CacheableKeyPtr;
 using gemfire::CacheablePtr;
-using gemfire::CacheableString;
 using gemfire::AttributesMutatorPtr;
 using gemfire::CacheListenerPtr;
 
@@ -111,12 +110,10 @@ NAN_METHOD(Region::Put) {
     NanReturnUndefined();
   }
 
-  String::Utf8Value key(args[0]);
-
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr = region->regionPtr;
   CachePtr cachePtr = regionPtr->getCache();
-  CacheableKeyPtr keyPtr = CacheableString::create(*key);
+  CacheableKeyPtr keyPtr = gemfireValueFromV8(args[0], cachePtr);
   CacheablePtr valuePtr = gemfireValueFromV8(args[1], cachePtr);
 
   if (args.Length() > 2 && args[2]->IsFunction()) {
@@ -176,10 +173,10 @@ NAN_METHOD(Region::Get) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr = region->regionPtr;
 
-  String::Utf8Value key(args[0]);
+  CacheableKeyPtr keyPtr = gemfireValueFromV8(args[0], region->regionPtr->getCache());
+
   if (args.Length() > 1 && args[1]->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(args[1]);
-    CacheableKeyPtr keyPtr = CacheableString::create(*key);
     GetBaton * getBaton = new GetBaton(callback, region->regionPtr, keyPtr);
 
     uv_work_t * request = new uv_work_t();
@@ -189,7 +186,6 @@ NAN_METHOD(Region::Get) {
 
     NanReturnValue(args.This());
   } else {
-    CacheableKeyPtr keyPtr = CacheableString::create(*key);
     CacheablePtr valuePtr = regionPtr->get(keyPtr);
     NanReturnValue(v8ValueFromGemfire(valuePtr));
   }
