@@ -2,6 +2,12 @@ module.exports = function(grunt) {
   var startServer = 'cd tmp/gemfire && gfsh start server --dir=server --log-level=warning --cache-xml-file=../../benchmark/xml/BenchmarkServer.xml --name=server';
   var ensureServerRunning = 'test -e tmp/gemfire/server/vf.gf.server.pid && ps ax | grep `cat tmp/gemfire/server/vf.gf.server.pid` | grep -qv grep && echo "Server already running..." || (' + startServer + ')';
 
+  var nodeCommand = "node";
+
+  function runNode(args) {
+    return(function() { return nodeCommand + " " + args; });
+  }
+
   grunt.initConfig(
     {
       pkg: grunt.file.readJSON('package.json'),
@@ -10,7 +16,7 @@ module.exports = function(grunt) {
           command: 'npm install --build-from-source'
         },
         benchmarkNode: {
-          command: 'node benchmark/node/benchmark.js'
+          command: runNode('benchmark/node/benchmark.js')
         },
         ensureServerRunning: {
           command: ensureServerRunning
@@ -31,10 +37,10 @@ module.exports = function(grunt) {
           command: "cpplint.py --verbose=1 --linelength=110 --extensions=cpp,hpp src/*"
         },
         console: {
-          command: "node bin/console.js"
+          command: runNode("bin/console.js")
         },
         cppUnitTests: {
-          command: "node spec/cpp/runner.js"
+          command: runNode("spec/cpp/runner.js")
         }
       },
       jasmine_node: {
@@ -65,6 +71,11 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark:node', ['build', 'server:ensure', 'shell:benchmarkNode']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
+
+  grunt.registerTask('valgrind', ['shell:rebuild'], function() {
+    grunt.log.writeln('Running with valgrind...');
+    nodeCommand = "valgrind --suppressions=spec/valgrind/suppressions-gemfire-7.0.2.supp node";
+  });
 
   grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:java']);
 
