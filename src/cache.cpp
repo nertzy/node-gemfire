@@ -4,7 +4,6 @@
 #include <gfcpp/Cache.hpp>
 #include <gfcpp/CacheFactory.hpp>
 #include <gfcpp/Region.hpp>
-#include <sstream>
 #include "exceptions.hpp"
 #include "conversions.hpp"
 #include "region.hpp"
@@ -123,10 +122,7 @@ void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
     error = NanNull();
     returnValue = NanNew(arrayFromSelectResults(baton->selectResultsPtr));
   } else {
-    std::stringstream errorMessageStream;
-    errorMessageStream << baton->queryExceptionPtr->getName() << ": "
-      << baton->queryExceptionPtr->getMessage();
-    error = NanError(errorMessageStream.str().c_str());
+    error = NanError(gemfireExceptionMessage(*(baton->queryExceptionPtr)).c_str());
     returnValue = NanUndefined();
   }
 
