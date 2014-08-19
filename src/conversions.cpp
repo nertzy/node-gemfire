@@ -22,7 +22,7 @@ void randomString(char * str, const unsigned int length) {
   str[length] = 0;
 }
 
-std::wstring wstringFromV8String(Handle<String> v8String) {
+std::wstring wstringFromV8String(const Handle<String> & v8String) {
   unsigned int length = v8String->Length();
   wchar_t * buffer = new wchar_t[length + 1];
   NanUcs2String v8Data(v8String);
@@ -37,7 +37,7 @@ std::wstring wstringFromV8String(Handle<String> v8String) {
   return wstring;
 }
 
-Handle<String> v8StringFromWstring(std::wstring wideString) {
+Handle<String> v8StringFromWstring(const std::wstring & wideString) {
   NanScope();
 
   unsigned int length = wideString.length();
@@ -53,7 +53,7 @@ Handle<String> v8StringFromWstring(std::wstring wideString) {
   NanReturnValue(v8String);
 }
 
-PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object> v8Object) {
+PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, const Local<Object> & v8Object) {
   try {
     NanScope();
 
@@ -87,7 +87,7 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object>
   }
 }
 
-Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
+Handle<Value> V8ObjectFormatter::fromPdxInstance(const PdxInstancePtr & pdxInstance) {
   try {
     NanScope();
 
@@ -127,7 +127,7 @@ Handle<Value> V8ObjectFormatter::fromPdxInstance(PdxInstancePtr pdxInstance) {
   }
 }
 
-CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, CachePtr cachePtr) {
+CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, CachePtr cachePtr) {
   CacheablePtr gemfireValuePtr;
 
   if (v8Value->IsString()) {
@@ -164,7 +164,7 @@ CacheablePtr gemfireValueFromV8(Handle<Value> v8Value, CachePtr cachePtr) {
   return gemfireValuePtr;
 }
 
-Handle<Value> v8ValueFromGemfire(CacheablePtr valuePtr) {
+Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   NanScope();
 
   if (valuePtr == NULLPTR) {
