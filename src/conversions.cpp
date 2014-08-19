@@ -61,6 +61,7 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(CachePtr cachePtr, Local<Object>
     randomString(pdxClassName, 32);
 
     PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName);
+    delete [] pdxClassName;
 
     Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
     for (unsigned int i = 0; i < v8Keys->Length(); i++) {
