@@ -43,14 +43,20 @@
         }
       ]
     },
-    {
-      "target_name": "test",
-      "libraries": [
-        "/usr/lib64/libgtest.so"
-      ],
-      "sources": [
-        "spec/cpp/test.cpp",
+  ],
+  "conditions": [
+    ["configuration=='Debug'", {
+      "targets": [
+        {
+          "target_name": "test",
+          "libraries": [
+            "/usr/lib64/libgtest.so"
+          ],
+          "sources": [
+            "spec/cpp/test.cpp",
+          ]
+        }
       ]
-    }
+    }]
   ]
 }

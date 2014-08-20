@@ -12,10 +12,16 @@ module.exports = function(grunt) {
     {
       pkg: grunt.file.readJSON('package.json'),
       shell: {
-        build: {
+        buildDebug: {
+          command: './node_modules/.bin/node-pre-gyp --debug build'
+        },
+        rebuildDebug: {
+          command: './node_modules/.bin/node-pre-gyp --debug rebuild'
+        },
+        buildRelease: {
           command: './node_modules/.bin/node-pre-gyp build'
         },
-        rebuild: {
+        rebuildRelease: {
           command: './node_modules/.bin/node-pre-gyp rebuild'
         },
         benchmarkNode: {
@@ -64,10 +70,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('build', ['shell:build']);
-  grunt.registerTask('rebuild', ['shell:rebuild']);
+  grunt.registerTask('build', ['shell:buildDebug']);
+  grunt.registerTask('rebuild', ['shell:rebuildDebug']);
   grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'shell:jasmine_node']);
-  grunt.registerTask('lint', ['shell:lint']);
+  grunt.registerTask('lint', ['shell:lint', 'jshint']);
   grunt.registerTask('console', ['shell:console']);
 
   grunt.registerTask('server:start', ['shell:startServer']);
@@ -75,8 +81,8 @@ module.exports = function(grunt) {
   grunt.registerTask('server:restart', ['server:stop', 'server:start']);
   grunt.registerTask('server:ensure', ['shell:ensureServerRunning']);
 
-  grunt.registerTask('benchmark:node', ['build', 'server:ensure', 'shell:benchmarkNode']);
-  grunt.registerTask('benchmark:node:async', ['build', 'server:ensure', 'shell:benchmarkNodeAsync']);
+  grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
+  grunt.registerTask('benchmark:node:async', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsync']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
   grunt.registerTask('valgrind', function() {
@@ -86,6 +92,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:node:async', 'benchmark:java']);
 
-  grunt.registerTask('default', ['build', 'test', 'lint', 'jshint']);
+  grunt.registerTask('default', ['build', 'test', 'lint']);
 };
 

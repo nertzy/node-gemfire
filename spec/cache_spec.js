@@ -1,5 +1,5 @@
 var childProcess = require('child_process');
-const gemfire = require("..");
+const gemfire = require("./support/gemfire.js");
 const factories = require("./support/factories.js");
 
 describe("gemfire.Cache", function() {
