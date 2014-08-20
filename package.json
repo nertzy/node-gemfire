@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Pivotal Gemfire Node package proof-of-concept",
   "main": "./lib",
-  "files": ["lib/**/*.js", "src", "binding.gyp", "spec/cpp"],
+  "files": ["lib/**/*.js", "src", "binding.gyp"],
   "author": "Pivotal Software, Inc.",
   "contributors": [
     {
