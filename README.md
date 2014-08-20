@@ -1,7 +1,7 @@
-GemFire NodeJS addon
+Node GemFire
 ====================
 
-Proof-of-concept NodeJS addon for connecting to Pivotal GemFire
+NodeJS client for Pivotal GemFire
 
 ## Supported platforms
 
@@ -16,10 +16,9 @@ This is currently unsupported, but we're working on it.
 
 ### From Source
 
-1. Clone this repo to a local directory.
-2. Download and install the GemFire 7.0.2 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
-3. Set the environment variables described by the [GemFire Native Client installation instructions](http://gemfire.docs.pivotal.io/latest/userguide/index.html#gemfire_nativeclient/introduction/install-overview.html) for your platform.
-4. Install our package into your NodeJS project: `cd /my/node/project && npm install --save-dev /path/to/our/repo`
+1. Download and install the GemFire 7.0.2 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
+2. Set the environment variables described by the [GemFire Native Client installation instructions](http://gemfire.docs.pivotal.io/latest/userguide/index.html#gemfire_nativeclient/introduction/install-overview.html) for your platform.
+3. Install our package into your NodeJS project: `cd /my/node/project && npm install --save-dev pivotal/node-gemfire`
 
 ## Usage example
 
