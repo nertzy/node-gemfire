@@ -1,6 +1,7 @@
 #!/bin/bash
 JAVA_RPM_URL="http://download.oracle.com/otn-pub/java/jdk/7u65-b17/jdk-7u65-linux-x64.rpm"
 GEMFIRE_RPM_URL="http://download.pivotal.com.s3.amazonaws.com/gemfire/7.0.2/pivotal-gemfire-7.0.2-1.el6.noarch.rpm"
+GEMFIRE_NATIVE_CLIENT_URL="http://download.pivotal.com.s3.amazonaws.com/gemfire/7.0.2/Pivotal_GemFire_NativeClient_Linux_64bit_7020_b6036.zip"
 
 set -e -x
 
@@ -11,9 +12,12 @@ if ! yum -C repolist | grep epel ; then
   sudo rpm -Uvh http://download-i2.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 fi
 
-sudo yum -y install nodejs npm --enablerepo=epel
-sudo yum -y install gtest gtest-devel
-sudo yum -y install valgrind
+sudo yum -y install nodejs --enablerepo=epel
+sudo yum -y install gtest gtest-devel unzip valgrind
+
+if [ ! -e /usr/bin/npm ]; then
+  curl -L https://npmjs.org/install.sh | skipclean=1 sh
+fi
 
 test -e /usr/bin/grunt || npm install -g grunt-cli
 
@@ -29,8 +33,16 @@ if [ ! -e /usr/bin/gemfire ]; then
   sudo -E rpm -ivh /tmp/gemfire.rpm
 fi
 
+if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_7020_b6036 ]; then
+  rm -f /tmp/gemfire_native_client.zip
+  wget --no-verbose -O /tmp/gemfire_native_client.zip $GEMFIRE_NATIVE_CLIENT_URL
+  mkdir -p /opt/pivotal
+  cd /opt/pivotal
+  unzip /tmp/gemfire_native_client.zip
+fi
+
 sudo sh -c "cat > /etc/profile.d/gfcpp.sh" <<'EOF'
-export GFCPP=/project/vendor/NativeClient_Linux_64bit_7020_b6036
+export GFCPP=/opt/pivotal/NativeClient_Linux_64bit_7020_b6036
 export GEMFIRE=/opt/pivotal/gemfire/Pivotal_GemFire_702
 export JAVA_HOME=/usr/java/default
 export PATH=$GFCPP/bin:$PATH
