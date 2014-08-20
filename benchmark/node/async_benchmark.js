@@ -2,7 +2,7 @@ var randomString = require('random-string');
 var _ = require('lodash');
 var microtime = require("microtime");
 
-var gemfire = require('../../gemfire.js');
+var gemfire = require('../../index.js');
 var cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 var region = cache.getRegion("exampleRegion");
 

@@ -1,2 +1,2 @@
-const gemfire = require("../../../gemfire.js");
+const gemfire = require("../../../index.js");
 new gemfire.Cache("/bad/path.xml");
