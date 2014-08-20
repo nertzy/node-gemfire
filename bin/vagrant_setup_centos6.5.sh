@@ -13,7 +13,7 @@ if ! yum -C repolist | grep epel ; then
 fi
 
 sudo yum -y install nodejs --enablerepo=epel
-sudo yum -y install gtest gtest-devel unzip valgrind
+sudo yum -y install gcc-c++ git gtest gtest-devel unzip valgrind
 
 if [ ! -e /usr/bin/npm ]; then
   curl -L https://npmjs.org/install.sh | skipclean=1 sh
