@@ -12,8 +12,11 @@ module.exports = function(grunt) {
     {
       pkg: grunt.file.readJSON('package.json'),
       shell: {
+        build: {
+          command: './node_modules/.bin/node-pre-gyp build'
+        },
         rebuild: {
-          command: 'npm install --build-from-source'
+          command: './node_modules/.bin/node-pre-gyp rebuild'
         },
         benchmarkNode: {
           command: runNode('benchmark/node/benchmark.js')
@@ -59,7 +62,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-jasmine-node');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('build', ['shell:rebuild']);
+  grunt.registerTask('build', ['shell:build']);
+  grunt.registerTask('rebuild', ['shell:rebuild']);
   grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'jasmine_node:all']);
   grunt.registerTask('lint', ['shell:lint']);
   grunt.registerTask('console', ['shell:console']);

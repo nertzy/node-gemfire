@@ -2,5 +2,5 @@
 
 set -e
 
-cd /project && npm install --build-from-source && grunt
+cd /project && npm install && grunt
 
