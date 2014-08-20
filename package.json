@@ -37,7 +37,8 @@
     "node-pre-gyp"
   ],
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build"
+    "install": "node-pre-gyp install --fallback-to-build",
+    "test": "grunt test"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
