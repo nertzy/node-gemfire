@@ -24,29 +24,41 @@ var randomObject = require('../data/randomObject.json');
 var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
-function putNValues(n){
+function putNValues(n, done){
+  var success = 0;
+
+  var i = 0;
+
   _.times(n, function(pair) {
     suffix++;
-    region.put(gemfireKey + suffix, randomObject);
+    region.put(gemfireKey + suffix, randomObject, function(error){
+      if(error) {
+        throw error;
+      }
+
+      i++;
+
+      if(i == n) {
+        done();
+      }
+    } );
   });
 }
 
 function benchmark(numberOfPuts){
   var start = microtime.now();
 
-  putNValues(numberOfPuts);
+  putNValues(numberOfPuts, function(){
+    var microseconds = microtime.now() - start;
+    var seconds = (microseconds / 1000000);
 
-  var microseconds = microtime.now() - start;
-  var seconds = (microseconds / 1000000);
+    var putsPerSecond = Math.round(numberOfPuts / seconds);
+    var usecPerPut = Math.round(microseconds / numberOfPuts);
 
-  var putsPerSecond = Math.round(numberOfPuts / seconds);
-  var usecPerPut = Math.round(microseconds / numberOfPuts);
-
-  console.log(
-    "" + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
-  );
+    console.log(
+      "" + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+    );
+  });
 }
 
-_.each([1, 10], function(numberOfPuts){
-  benchmark(numberOfPuts);
-});
+benchmark(10);
