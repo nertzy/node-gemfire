@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-gemfire = require("../index.js");
+gemfire = require("..");
 cache = new gemfire.Cache("benchmark/xml/BenchmarkClient.xml");
 region = cache.getRegion("exampleRegion");
 
