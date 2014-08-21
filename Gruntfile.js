@@ -85,7 +85,14 @@ module.exports = function(grunt) {
           }
         },
         cppUnitTests: {
-          command: runNode("spec/cpp/runner.js")
+          command: runNode("spec/cpp/runner.js"),
+          options: {
+            execOptions: {
+              env: {
+                "GTEST_COLOR": "yes"
+              }
+            }
+          }
         },
         jasmine_node: {
           command: "./node_modules/.bin/jasmine-node --color --captureExceptions --forceexit spec/"
