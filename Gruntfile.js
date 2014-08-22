@@ -74,7 +74,7 @@ module.exports = function(grunt) {
   grunt.registerTask('rebuild', ['shell:rebuildDebug']);
   grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'shell:jasmine_node']);
   grunt.registerTask('lint', ['shell:lint', 'jshint']);
-  grunt.registerTask('console', ['shell:console']);
+  grunt.registerTask('console', ['build', 'shell:console']);
 
   grunt.registerTask('server:start', ['shell:startServer']);
   grunt.registerTask('server:stop', ['shell:stopServer']);
