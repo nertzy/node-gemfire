@@ -55,7 +55,10 @@ module.exports = function(grunt) {
           command: runNode("spec/cpp/runner.js")
         },
         jasmine_node: {
-          command: "./node_modules/jasmine-node/bin/jasmine-node --color --captureExceptions --forceexit spec/"
+          command: "./node_modules/.bin/jasmine-node --color --captureExceptions --forceexit spec/"
+        },
+        release: {
+          command: "./node_modules/.bin/node-pre-gyp rebuild package testpackage publish"
         }
       },
       jshint: {
@@ -84,6 +87,8 @@ module.exports = function(grunt) {
   grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
   grunt.registerTask('benchmark:node:async', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsync']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
+
+  grunt.registerTask('release', ['default', 'shell:release']);
 
   grunt.registerTask('valgrind', function() {
     grunt.log.writeln('Running with valgrind...');
