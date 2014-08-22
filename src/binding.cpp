@@ -1,3 +1,5 @@
+#define NODE_GEMFIRE_VERSION "0.0.1"
+
 #include <v8.h>
 #include <nan.h>
 #include <gfcpp/CacheFactory.hpp>
@@ -6,18 +8,19 @@
 
 using namespace v8;
 
-NAN_METHOD(version) {
-  NanScope();
-  NanReturnValue(NanNew(gemfire::CacheFactory::getVersion()));
-}
-
 static void Initialize(Handle<Object> exports) {
   NanScope();
+
+  exports->Set(NanNew("version"),
+      NanNew(NODE_GEMFIRE_VERSION),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  exports->Set(NanNew("gemfireVersion"),
+      NanNew(gemfire::CacheFactory::getVersion()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
   node_gemfire::Cache::Init(exports);
   node_gemfire::Region::Init(exports);
-
-  NODE_SET_METHOD(exports, "version", version);
 }
 
 NODE_MODULE(gemfire, Initialize)
-
