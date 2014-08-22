@@ -12,7 +12,7 @@
   "contributors": [
     {
       "name": "Grant Hutchins",
-      "url": "https://github.com/nertzy"
+      "url": "http://nertzy.com"
     },
     {
       "name": "Taavo Smith",
@@ -20,7 +20,11 @@
     },
     {
       "name": "Michael Schubert",
-      "url": "http://github.com/schubert"
+      "url": "http://schubert.cx/"
+    },
+    {
+      "name": "Mike Dalessio",
+      "url": "http://www.daless.io/"
     }
   ],
   "repository": {
