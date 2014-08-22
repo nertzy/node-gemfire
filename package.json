@@ -3,7 +3,11 @@
   "version": "0.0.1",
   "description": "Pivotal Gemfire Node package proof-of-concept",
   "main": "./lib",
-  "files": ["lib/**/*.js", "src", "binding.gyp"],
+  "files": [
+    "lib/**/*.js",
+    "src",
+    "binding.gyp"
+  ],
   "author": "Pivotal Software, Inc.",
   "contributors": [
     {
@@ -26,9 +30,8 @@
   "binary": {
     "module_name": "gemfire",
     "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
-    "remote_path": "./{module_name}/v{version}/{configuration}/",
-    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
-    "host": "https://node-pre-gyp-tests.s3-us-west-1.amazonaws.com"
+    "remote_path": "./node-{module_name}/{version}/",
+    "host": "https://download.pivotal.com.s3.amazonaws.com"
   },
   "dependencies": {
     "node-pre-gyp": "0.5.x",
@@ -42,6 +45,7 @@
     "test": "grunt test"
   },
   "devDependencies": {
+    "aws-sdk": "^2.0.15",
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-shell": "^1.0.0",
