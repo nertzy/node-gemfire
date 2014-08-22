@@ -10,19 +10,19 @@ NodeJS client for Pivotal GemFire
 
 ## Installation
 
-### From Precompiled Binary
-
-For the time being, the precompiled binaries are hosted in an S3 bucket with an invalid HTTPS certificate. We are working on a fix for this. Until then, you must set `NODE_TLS_REJECT_UNAUTHORIZED=0` when running `npm install` to add this module, and also when setting up your project on a new machine.
-
-```
-$ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save-dev pivotal/node-gemfire
-```
-
-### From Source
+### Prerequisites
 
 1. Download and install the GemFire 7.0.2 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
 2. Set the environment variables described by the [GemFire Native Client installation instructions](http://gemfire.docs.pivotal.io/latest/userguide/index.html#gemfire_nativeclient/introduction/install-overview.html) for your platform.
-3. Install our package into your NodeJS project: `cd /my/node/project && npm install --save-dev pivotal/node-gemfire`
+
+### Installing the NPM package
+
+Note that for the time being, if you want to be able to use the precompiled binary, you'll need to set `NODE_TLS_REJECT_UNAUTHORIZED=0` when running `npm install`. Otherwise, `npm install` will fallback to compiling from source, which may only work on certain platforms.
+
+```
+$ cd /my/node/project
+$ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save pivotal/node-gemfire
+```
 
 ## Usage example
 
