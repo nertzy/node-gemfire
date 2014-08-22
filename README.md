@@ -12,7 +12,11 @@ NodeJS client for Pivotal GemFire
 
 ### From Precompiled Binary
 
-This is currently unsupported, but we're working on it.
+For the time being, the precompiled binaries are hosted in an S3 bucket with an invalid HTTPS certificate. We are working on a fix for this. Until then, you must set `NODE_TLS_REJECT_UNAUTHORIZED=0` when running `npm install` to add this module, and also when setting up your project on a new machine.
+
+```
+$ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save-dev pivotal/node-gemfire
+```
 
 ### From Source
 
