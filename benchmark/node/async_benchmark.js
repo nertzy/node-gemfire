@@ -6,7 +6,8 @@ var gemfire = require('../..');
 var cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 var region = cache.getRegion("exampleRegion");
 
-console.log("Gemfire version " + gemfire.version());
+console.log("node-gemfire version " + gemfire.version);
+console.log("GemFire version " + gemfire.gemfireVersion);
 
 region.put('smoke', { test: 'value' });
 if(JSON.stringify(region.get('smoke')) !== JSON.stringify({ test: 'value' })) {
