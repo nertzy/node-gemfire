@@ -8,4 +8,5 @@
   <pdx read-serialized="true" />
   <region name="exampleRegion" refid="REPLICATE"/>
   <region name="anotherRegion" refid="REPLICATE"/>
+  <region name="oqlBenchmark" refid="REPLICATE"/>
 </cache>

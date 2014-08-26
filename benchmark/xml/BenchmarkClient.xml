@@ -11,4 +11,5 @@
 
   <region name="exampleRegion" refid="CACHING_PROXY"/>
   <region name="anotherRegion" refid="CACHING_PROXY"/>
+  <region name="oqlBenchmark" refid="CACHING_PROXY"/>
 </client-cache>
