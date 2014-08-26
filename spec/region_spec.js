@@ -179,25 +179,61 @@ describe("gemfire.Region", function() {
       expect(region.get('')).toEqual('value');
     });
 
-    it("stores and retrieves objects", function() {
-      expect(region.put('object', { baz: 'quuux' })).toEqual({ baz: 'quuux' });
-      expect(region.get('object')).toEqual({ baz: 'quuux' });
+    describe("for objects", function() {
+      it("stores and retrieves empty objects", function() {
+        expect(region.put('empty object', {})).toEqual({});
+        expect(region.get('empty object')).toEqual({});
+      });
 
-      expect(region.put('empty object', {})).toEqual({});
-      expect(region.get('empty object')).toEqual({});
+      it("stores and retrieves objects containing strings", function() {
+        expect(region.put('object', { baz: 'quuux' })).toEqual({ baz: 'quuux' });
+        expect(region.get('object')).toEqual({ baz: 'quuux' });
+      });
 
-      expect(region.put('nested object', { foo: { bar: 'baz' } })).toEqual( { foo: { bar: 'baz' } } );
-      expect(region.get('nested object')).toEqual( { foo: { bar: 'baz' } } );
+      it("stores and retrieves nested objects", function() {
+        expect(region.put('nested object', { foo: { bar: 'baz' } })).toEqual( { foo: { bar: 'baz' } } );
+        expect(region.get('nested object')).toEqual( { foo: { bar: 'baz' } } );
+      });
 
-      expect(region.put('object containing array', { foo: [] })).toEqual( { foo: [] });
-      expect(region.get('object containing array')).toEqual( { foo: [] });
+      it("stores and retrieves objects containing arrays", function() {
+        expect(region.put('object containing array', { foo: [] })).toEqual( { foo: [] });
+        expect(region.get('object containing array')).toEqual( { foo: [] });
+      });
 
-      var object = require("./fixtures/stress_test.json");
-      expect(region.put('stress test', object)).toEqual(object);
-      expect(region.get('stress test')).toEqual(object);
+      it("stores and retrieves objects containing booleans", function() {
+        expect(region.put('object containing boolean', { foo: true })).toEqual( { foo: true });
+        expect(region.get('object containing boolean')).toEqual( { foo: true });
+      });
+
+      it("stores and retrieves objects containing integers", function() {
+        expect(region.put('object containing integer', { foo: 123 })).toEqual( { foo: 123 });
+        expect(region.get('object containing integer')).toEqual( { foo: 123 });
+      });
+
+      it("stores and retrieves objects containing floats", function() {
+        expect(region.put('object containing float', { foo: 123.456 })).toEqual( { foo: 123.456 });
+        expect(region.get('object containing float')).toEqual( { foo: 123.456 });
+      });
+
+      it("stores and retrieves objects containing dates", function() {
+        var date = new Date();
+        expect(region.put('object containing number', { foo: date })).toEqual( { foo: date });
+        expect(region.get('object containing number')).toEqual( { foo: date });
+      });
+
+      it("stores and retrieves objects", function() {
+        expect(region.put('object containing null', { foo: null })).toEqual( { foo: null });
+        expect(region.get('object containing null')).toEqual( { foo: null });
+      });
+
+      it("stores and retrieves a stress test object", function() {
+        var object = require("./fixtures/stress_test.json");
+        expect(region.put('stress test', object)).toEqual(object);
+        expect(region.get('stress test')).toEqual(object);
+      });
     });
 
-    it("throws an error for unsupported objects", function() {
+    it("throws an error for unsupported values", function() {
       function putUndefined(){
         region.put("undefined", undefined);
       }
