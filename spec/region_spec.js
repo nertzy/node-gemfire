@@ -240,6 +240,17 @@ describe("gemfire.Region", function() {
 
       expect(putUndefined).toThrow("Unable to put value undefined");
     });
+
+    it("allows dynamic schema", function() {
+      region.put('foo', {});
+      expect(region.get('foo')).toEqual({});
+
+      region.put('foo', { baz: 'qux' });
+      expect(region.get('foo')).toEqual({ baz: 'qux' });
+
+      region.put('foo', { baz: [] });
+      expect(region.get('foo')).toEqual({ baz: [] });
+    });
   });
 
   describe(".clear", function(){
