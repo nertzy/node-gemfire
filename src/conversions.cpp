@@ -194,6 +194,9 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   if (typeId == GemfireTypeIds::CacheableUndefined) {
     NanReturnNull();
   }
+  if (typeId == GemfireTypeIds::Struct) {
+    NanReturnValue(v8ObjectFromGemfireStruct(valuePtr));
+  }
   if (typeId == GemfireTypeIds::CacheableObjectArray) {
     CacheableObjectArrayPtr gemfireArray = (CacheableObjectArrayPtr) valuePtr;
     unsigned int length = gemfireArray->length();
@@ -229,4 +232,18 @@ Handle<Array> arrayFromSelectResults(const SelectResultsPtr & selectResultsPtr) 
   }
 
   NanReturnValue(array);
+}
+
+Handle<Object> v8ObjectFromGemfireStruct(const gemfire::StructPtr & structPtr) {
+  NanScope();
+
+  Local<Object> v8Object = NanNew<Object>();
+
+  unsigned int length = structPtr->length();
+  for (unsigned int i = 0; i < length; i++) {
+    v8Object->Set(NanNew(structPtr->getFieldName(i)),
+                  v8ValueFromGemfire((*structPtr)[i]));
+  }
+
+  NanReturnValue(v8Object);
 }
