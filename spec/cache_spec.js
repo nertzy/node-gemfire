@@ -144,6 +144,16 @@ describe("gemfire.Cache", function() {
       expect(results).toContain(object1);
     });
 
+    it("executes a query that returns a GemFire struct", function() {
+      region.put("object", { foo: 1, bar: 2, baz: 3 });
+
+      const query = "SELECT foo, bar FROM /exampleRegion";
+      const results = cache.executeQuery(query);
+
+      expect(results.length).toEqual(1);
+      expect(results[0]).toEqual({ foo: 1, bar: 2 });
+    });
+
     it("executes a query that can retrieve results of all types", function() {
       region.put("a string", "a string");
       region.put("an object", {"an": "object"});

@@ -18,6 +18,7 @@ gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const ge
 Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
 
 Handle<Array> arrayFromSelectResults(const gemfire::SelectResultsPtr & selectResultsPtr);
+Handle<Object> v8ObjectFromGemfireStruct(const gemfire::StructPtr & structPtr);
 
 #define __CONVERSIONS_HPP__
 #endif
