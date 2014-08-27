@@ -190,6 +190,11 @@ describe("gemfire.Region", function() {
         expect(region.get('object')).toEqual({ baz: 'quuux' });
       });
 
+      it("stores and retrieves objects with wide string keys and values", function() {
+        expect(region.put('object', { '日': '本' })).toEqual({ '日': '本' });
+        expect(region.get('object')).toEqual({ '日': '本' });
+      });
+
       it("stores and retrieves nested objects", function() {
         expect(region.put('nested object', { foo: { bar: 'baz' } })).toEqual( { foo: { bar: 'baz' } } );
         expect(region.get('nested object')).toEqual( { foo: { bar: 'baz' } } );
