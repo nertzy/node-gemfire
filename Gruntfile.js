@@ -30,6 +30,9 @@ module.exports = function(grunt) {
         benchmarkNodeAsync: {
           command: runNode('benchmark/node/async_benchmark.js')
         },
+        benchmarkNodeAsyncString: {
+          command: runNode('benchmark/node/async_string_benchmark.js')
+        },
         ensureServerRunning: {
           command: ensureServerRunning
         },
@@ -86,6 +89,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
   grunt.registerTask('benchmark:node:async', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsync']);
+  grunt.registerTask('benchmark:node:async:string', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsyncString']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
   grunt.registerTask('release', ['default', 'shell:release']);
@@ -95,7 +99,12 @@ module.exports = function(grunt) {
     nodeCommand = "valgrind --suppressions=spec/valgrind/suppressions-gemfire-7.0.2.supp node";
   });
 
-  grunt.registerTask('benchmark', ['benchmark:node', 'benchmark:node:async', 'benchmark:java']);
+  grunt.registerTask('benchmark', [
+    'benchmark:node',
+    'benchmark:node:async',
+    'benchmark:node:async:string',
+    'benchmark:java'
+  ]);
 
   grunt.registerTask('default', ['build', 'test', 'lint']);
 };

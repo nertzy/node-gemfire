@@ -23,7 +23,14 @@ var keyOptions = {
   special: false
 };
 
-var randomObject = require('../data/randomObject.json');
+var valueOptions = {
+  length: 15 * 1024,
+  numeric: true,
+  letter: true,
+  special: true
+};
+
+var stringValue = randomString(valueOptions);
 var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
@@ -34,7 +41,7 @@ function putNValues(n, done){
 
   _.times(n, function(pair) {
     suffix++;
-    region.put(gemfireKey + suffix, randomObject, function(error){
+    region.put(gemfireKey + suffix, stringValue, function(error){
       if(error) {
         throw error;
       }
@@ -59,9 +66,9 @@ function benchmark(numberOfPuts){
     var usecPerPut = Math.round(microseconds / numberOfPuts);
 
     console.log(
-      "(object) " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+      "(string) " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
     );
   });
 }
 
-benchmark(10);
+benchmark(100000);
