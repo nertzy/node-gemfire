@@ -117,6 +117,20 @@ describe("gemfire.Cache", function() {
       expect(results).toContain("another string");
     });
 
+    it("executes a query with a nested object", function() {
+      const object1 = { foo: [{ bar: 'baz' }] };
+      region.put("object1", object1);
+      region.put("object2", { foo: [{ bar: 'qux' }] });
+
+      var query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
+
+      var results = cache.executeQuery(query);
+
+      expect(results.length).toEqual(1);
+
+      expect(results).toContain(object1);
+    });
+
     it("executes a query that can retrieve results of all types", function() {
       region.put("a string", "a string");
       region.put("an object", {"an": "object"});
