@@ -117,6 +117,19 @@ describe("gemfire.Cache", function() {
       expect(results).toContain("another string");
     });
 
+    it("executes a query with a where clause on a field", function(){
+      const object = { foo: 'bar' };
+      region.put("object", object);
+      region.put("other object", { foo: 'qux' });
+      region.put("empty", {});
+
+      const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
+      const results = cache.executeQuery(query);
+
+      expect(results.length).toEqual(1);
+      expect(results).toContain(object);
+    });
+
     it("executes a query with a nested object", function() {
       const object1 = { foo: [{ bar: 'baz' }] };
       region.put("object1", object1);
