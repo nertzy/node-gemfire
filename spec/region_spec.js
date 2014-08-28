@@ -403,4 +403,19 @@ describe("gemfire.Region", function() {
       });
     });
   });
+
+  describe(".executeFunction", function() {
+    it("runs a function on the GemFire cluster and returns the results", function() {
+      const results = region.executeFunction("io.pivotal.node_gemfire.TestFunction");
+      expect(results).toEqual(["TestFunction succeeded."]);
+    });
+
+    it("runs a function on the GemFire cluster and passes its result to the callback", function(done) {
+      region.executeFunction("io.pivotal.node_gemfire.TestFunction", function(error, results) {
+        expect(error).toBeNull();
+        expect(results).toEqual(["TestFunction succeeded."]);
+        done();
+      });
+    });
+  });
 });
