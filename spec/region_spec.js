@@ -410,11 +410,54 @@ describe("gemfire.Region", function() {
       expect(results).toEqual(["TestFunction succeeded."]);
     });
 
-    it("runs a function on the GemFire cluster and passes its result to the callback", function(done) {
-      region.executeFunction("io.pivotal.node_gemfire.TestFunction", function(error, results) {
-        expect(error).toBeNull();
-        expect(results).toEqual(["TestFunction succeeded."]);
-        done();
+    it("throws an exception when no function name is passed in", function(){
+      function callWithoutArgs() {
+        region.executeFunction();
+      }
+      expect(callWithoutArgs).toThrow("You must provide the name of a function to execute.");
+    });
+
+    it("throws an exception when the function is not found", function(){
+      function callNonexistentFunction() {
+        region.executeFunction("com.example.Nonexistent");
+      }
+      expect(callNonexistentFunction).toThrow();
+    });
+
+    describe("async", function() {
+      const testFunctionName = "io.pivotal.node_gemfire.TestFunction";
+
+      it("returns the region object to support chaining", function(done) {
+        var returnValue = region.executeFunction(testFunctionName, function(error, value) {
+          done();
+        });
+
+        expect(returnValue).toEqual(region);
+      });
+
+      it("runs a function on the GemFire cluster and passes its result to the callback", function(done) {
+        region.executeFunction(testFunctionName, function(error, results) {
+          expect(error).toBeNull();
+          expect(results).toEqual(["TestFunction succeeded."]);
+          done();
+        });
+      });
+
+      it("throws an exception when no function name is passed in, but a callback is", function() {
+        function callWithoutArgs() {
+          region.executeFunction(function(){});
+        }
+
+        expect(callWithoutArgs).toThrow("You must provide the name of a function to execute.");
+      });
+
+      it("passes an error into the callback when the function is not found", function(done){
+        region.executeFunction("com.example.Nonexistent", function(error, results) {
+          expect(error).not.toBeNull();
+          expect(error.message).toMatch(/gemfire::Exception:/);
+          expect(results).toBeUndefined();
+          done();
+        });
       });
     });
   });
