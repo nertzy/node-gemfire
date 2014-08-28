@@ -1,0 +1,4 @@
+connect
+undeploy
+deploy --jar=/project/spec/support/java/function/build/libs/function.jar
+execute function --id=io.pivotal.node_gemfire.TestFunction

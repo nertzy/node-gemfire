@@ -54,6 +54,15 @@ module.exports = function(grunt) {
         stopLocator: {
           command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopLocator.gfsh'
         },
+        installTestFunction: {
+          command: "cd tmp/gemfire && gfsh deploy --jar=/project/spec/support/java/function/build/libs/function.jar"
+        },
+        buildTestFunction: {
+          command: 'cd spec/support/java/function/ && ./gradlew build'
+        },
+        deployTestFunction: {
+          command: 'cd tmp/gemfire && gfsh run --file /project/bin/deployTestFunction.gfsh'
+        },
         benchmarkJava: {
           command: 'cd benchmark/java && ./gradlew clean run -q'
         },
@@ -87,7 +96,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', ['shell:buildDebug']);
   grunt.registerTask('rebuild', ['shell:rebuildDebug']);
-  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'shell:jasmine_node']);
+  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'server:deploy', 'shell:jasmine_node']);
   grunt.registerTask('lint', ['shell:lint', 'jshint']);
   grunt.registerTask('console', ['build', 'shell:console']);
 
@@ -105,6 +114,8 @@ module.exports = function(grunt) {
   grunt.registerTask('benchmark:node:async', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsync']);
   grunt.registerTask('benchmark:node:async:string', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsyncString']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
+
+  grunt.registerTask('server:deploy', ['shell:buildTestFunction', 'shell:deployTestFunction']);
 
   grunt.registerTask('release', ['default', 'shell:release']);
 
