@@ -1,19 +1,17 @@
 #include "region.hpp"
 #include <gfcpp/Region.hpp>
+#include <gfcpp/FunctionService.hpp>
 #include <sstream>
 #include "conversions.hpp"
+#include "exceptions.hpp"
 #include "event.hpp"
 #include "NodeCacheListener.hpp"
 #include "cache.hpp"
 
-using node_gemfire::Region;
+using namespace v8;
+using namespace gemfire;
 
-using gemfire::CachePtr;
-using gemfire::RegionPtr;
-using gemfire::CacheableKeyPtr;
-using gemfire::CacheablePtr;
-using gemfire::AttributesMutatorPtr;
-using gemfire::CacheListenerPtr;
+namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
 
@@ -45,6 +43,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::UnregisterAllKeys)->GetFunction());
   NanSetPrototypeTemplate(constructor, "onPut",
       NanNew<FunctionTemplate>(Region::OnPut)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "executeFunction",
+      NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
 
   NanAssignPersistent(regionConstructor, constructor);
 
@@ -305,3 +305,42 @@ NAN_METHOD(Region::OnPut) {
 
   NanReturnValue(NanNew(true));
 }
+
+NAN_METHOD(Region::ExecuteFunction) {
+  NanScope();
+
+  Local<Value> lastArgument = args[args.Length() - 1];
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
+  String::Utf8Value functionName(args[0]);
+  bool something = true;
+
+  ExecutionPtr executionPtr = FunctionService::onRegion(region->regionPtr);
+
+  CacheableVectorPtr resultsPtr;
+  try {
+    resultsPtr = executionPtr->execute(*functionName, something)->getResult();
+  }
+  catch (gemfire::Exception &exception) {
+    ThrowGemfireException(exception);
+    NanReturnUndefined();
+  }
+
+  Local<Function> callback = Local<Function>::Cast(lastArgument);
+
+  Local<Value> error = NanNull();
+  Handle<Value> response = v8ValueFromGemfire(resultsPtr);
+
+  if (lastArgument->IsFunction()) {
+    const unsigned int argc = 2;
+    Handle<Value> argv[argc] = { error, response };
+    Local<Context> ctx = NanGetCurrentContext();
+    NanMakeCallback(ctx->Global(), callback, argc, argv);
+    NanReturnUndefined();
+  } else {
+    NanReturnValue(response);
+  }
+}
+
+}  // namespace node_gemfire

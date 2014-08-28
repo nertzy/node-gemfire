@@ -207,6 +207,17 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     }
 
     NanReturnValue(v8Array);
+  }
+  if (typeId == GemfireTypeIds::CacheableVector) {
+    CacheableVectorPtr gemfireVector = (CacheableVectorPtr) valuePtr;
+    unsigned int length = gemfireVector->length();
+
+    Handle<Array> v8Array = NanNew<Array>(length);
+    for (unsigned int i = 0; i < length; i++) {
+      v8Array->Set(i, v8ValueFromGemfire((*gemfireVector)[i]));
+    }
+
+    NanReturnValue(v8Array);
   } else if (typeId > GemfireTypeIds::CacheableStringHuge) {
     // We are assuming these are Pdx
     NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
