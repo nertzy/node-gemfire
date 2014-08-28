@@ -66,7 +66,6 @@ describe("gemfire.Region", function() {
           expect(region.get("foo")).toEqual("bar");
           done();
         });
-        expect(region.get("foo")).not.toEqual("bar");
       });
 
       it("returns an error when async put is called with an unsupported value", function(done) {
