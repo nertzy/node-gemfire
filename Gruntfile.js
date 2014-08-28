@@ -55,10 +55,7 @@ module.exports = function(grunt) {
           command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopLocator.gfsh'
         },
         benchmarkJava: {
-          command: [
-            'cd benchmark/java',
-            './gradlew clean run -q'
-          ].join(" && ")
+          command: 'cd benchmark/java && ./gradlew clean run -q'
         },
         lint: {
           command: "cpplint.py --verbose=1 --linelength=110 --extensions=cpp,hpp src/*"
