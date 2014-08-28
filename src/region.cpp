@@ -15,6 +15,7 @@ namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
 
+bool highAvailability = true;
 bool cacheListenerSet = false;
 uv_mutex_t * eventMutex;
 Persistent<Object> callbacks;
@@ -309,38 +310,83 @@ NAN_METHOD(Region::OnPut) {
 NAN_METHOD(Region::ExecuteFunction) {
   NanScope();
 
-  Local<Value> lastArgument = args[args.Length() - 1];
-
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-
-  String::Utf8Value functionName(args[0]);
-  bool something = true;
-
-  ExecutionPtr executionPtr = FunctionService::onRegion(region->regionPtr);
-
-  CacheableVectorPtr resultsPtr;
-  try {
-    resultsPtr = executionPtr->execute(*functionName, something)->getResult();
-  }
-  catch (gemfire::Exception &exception) {
-    ThrowGemfireException(exception);
+  if (args.Length() == 0 || args[0]->IsFunction()) {
+    NanThrowError("You must provide the name of a function to execute.");
     NanReturnUndefined();
   }
 
-  Local<Function> callback = Local<Function>::Cast(lastArgument);
-
-  Local<Value> error = NanNull();
-  Handle<Value> response = v8ValueFromGemfire(resultsPtr);
+  Local<Value> lastArgument = args[args.Length() - 1];
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  NanUtf8String * functionName = new NanUtf8String(args[0]);
 
   if (lastArgument->IsFunction()) {
-    const unsigned int argc = 2;
-    Handle<Value> argv[argc] = { error, response };
-    Local<Context> ctx = NanGetCurrentContext();
-    NanMakeCallback(ctx->Global(), callback, argc, argv);
-    NanReturnUndefined();
+    Local<Function> callback = Local<Function>::Cast(lastArgument);
+
+    ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(callback, functionName, region->regionPtr);
+
+    uv_work_t * request = new uv_work_t();
+    request->data = reinterpret_cast<void *>(baton);
+
+    uv_queue_work(uv_default_loop(),
+                  request,
+                  region->AsyncExecuteFunction,
+                  region->AfterAsyncExecuteFunction);
+
+    NanReturnValue(args.This());
   } else {
-    NanReturnValue(response);
+    ExecutionPtr executionPtr = FunctionService::onRegion(region->regionPtr);
+
+    CacheableVectorPtr resultsPtr;
+    try {
+      resultsPtr = executionPtr->execute(**functionName, highAvailability)->getResult();
+    }
+    catch (gemfire::Exception &exception) {
+      delete functionName;
+      ThrowGemfireException(exception);
+      NanReturnUndefined();
+    }
+
+    delete functionName;
+    NanReturnValue(v8ValueFromGemfire(resultsPtr));
   }
+}
+
+void Region::AsyncExecuteFunction(uv_work_t * request) {
+  ExecuteFunctionBaton * baton = reinterpret_cast<ExecuteFunctionBaton *>(request->data);
+
+  ExecutionPtr executionPtr = FunctionService::onRegion(baton->regionPtr);
+
+  try {
+    baton->resultsPtr = executionPtr->execute(**(baton->functionName), highAvailability)->getResult();
+    baton->executionSucceded = true;
+  }
+  catch (gemfire::Exception &exception) {
+    baton->exceptionPtr = new gemfire::Exception(exception);
+    baton->executionSucceded = false;
+  }
+}
+
+void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
+  ExecuteFunctionBaton * baton = reinterpret_cast<ExecuteFunctionBaton *>(request->data);
+
+  Local<Value> error;
+  Local<Value> returnValue;
+
+  if (baton->executionSucceded) {
+    error = NanNull();
+    returnValue = NanNew(v8ValueFromGemfire(baton->resultsPtr));
+  } else {
+    error = NanError(gemfireExceptionMessage(*(baton->exceptionPtr)).c_str());
+    returnValue = NanUndefined();
+  }
+
+  const unsigned int argc = 2;
+  Handle<Value> argv[argc] = { error, returnValue };
+  Local<Context> ctx = NanGetCurrentContext();
+  NanMakeCallback(ctx->Global(), baton->callback, argc, argv);
+
+  delete request;
+  delete baton;
 }
 
 }  // namespace node_gemfire

@@ -32,6 +32,8 @@ class Region : node::ObjectWrap {
     static void AfterAsyncGet(uv_work_t * request, int status);
     static void AsyncPut(uv_work_t * request);
     static void AfterAsyncPut(uv_work_t * request, int status);
+    static void AsyncExecuteFunction(uv_work_t * request);
+    static void AfterAsyncExecuteFunction(uv_work_t * request, int status);
 
  private:
     gemfire::RegionPtr regionPtr;
@@ -78,6 +80,30 @@ class PutBaton {
     gemfire::RegionPtr regionPtr;
     gemfire::CacheableKeyPtr keyPtr;
     gemfire::CacheablePtr valuePtr;
+};
+
+class ExecuteFunctionBaton {
+ public:
+    explicit ExecuteFunctionBaton(Handle<Function> callback,
+                                  NanUtf8String * functionName,
+                                  gemfire::RegionPtr regionPtr) :
+        functionName(functionName),
+        regionPtr(regionPtr),
+        executionSucceded(false) {
+      NanAssignPersistent(this->callback, callback);
+    }
+
+    ~ExecuteFunctionBaton() {
+      NanDisposePersistent(callback);
+      delete functionName;
+    }
+
+    Persistent<Function> callback;
+    NanUtf8String * functionName;
+    gemfire::RegionPtr regionPtr;
+    bool executionSucceded;
+    gemfire::CacheableVectorPtr resultsPtr;
+    gemfire::ExceptionPtr exceptionPtr;
 };
 
 }  // namespace node_gemfire
