@@ -1,0 +1,2 @@
+connect
+start server --dir=server --log-level=warning --cache-xml-file=/project/benchmark/xml/BenchmarkServer.xml --name=server

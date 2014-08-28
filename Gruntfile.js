@@ -1,6 +1,9 @@
 module.exports = function(grunt) {
-  var startServer = 'cd tmp/gemfire && gfsh start server --dir=server --log-level=warning --cache-xml-file=../../benchmark/xml/BenchmarkServer.xml --name=server';
+  var startServer = 'cd tmp/gemfire && gfsh run --file /project/bin/startServer.gfsh';
   var ensureServerRunning = 'test -e tmp/gemfire/server/vf.gf.server.pid && ps ax | grep `cat tmp/gemfire/server/vf.gf.server.pid` | grep -qv grep && echo "Server already running..." || (' + startServer + ')';
+
+  var startLocator = 'cd tmp/gemfire && gfsh run --file /project/bin/startLocator.gfsh';
+  var ensureLocatorRunning = 'test -e tmp/gemfire/locator/vf.gf.locator.pid && ps ax | grep `cat tmp/gemfire/locator/vf.gf.locator.pid` | grep -qv grep && echo "Locator already running..." || (' + startLocator + ')';
 
   var nodeCommand = "node";
 
@@ -40,7 +43,16 @@ module.exports = function(grunt) {
           command: startServer
         },
         stopServer: {
-          command: 'cd tmp/gemfire && gfsh stop server --dir=server',
+          command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopServer.gfsh'
+        },
+        ensureLocatorRunning: {
+          command: ensureLocatorRunning
+        },
+        startLocator: {
+          command: startLocator
+        },
+        stopLocator: {
+          command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopLocator.gfsh'
         },
         benchmarkJava: {
           command: [
@@ -82,10 +94,15 @@ module.exports = function(grunt) {
   grunt.registerTask('lint', ['shell:lint', 'jshint']);
   grunt.registerTask('console', ['build', 'shell:console']);
 
-  grunt.registerTask('server:start', ['shell:startServer']);
-  grunt.registerTask('server:stop', ['shell:stopServer']);
+  grunt.registerTask('server:start', ['locator:ensure', 'shell:startServer']);
+  grunt.registerTask('server:stop', ['shell:stopServer', 'locator:stop']);
   grunt.registerTask('server:restart', ['server:stop', 'server:start']);
-  grunt.registerTask('server:ensure', ['shell:ensureServerRunning']);
+  grunt.registerTask('server:ensure', ['locator:ensure', 'shell:ensureServerRunning']);
+
+  grunt.registerTask('locator:start', ['shell:startLocator']);
+  grunt.registerTask('locator:stop', ['shell:stopLocator']);
+  grunt.registerTask('locator:restart', ['locator:stop', 'locator:start']);
+  grunt.registerTask('locator:ensure', ['shell:ensureLocatorRunning']);
 
   grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
   grunt.registerTask('benchmark:node:async', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsync']);
