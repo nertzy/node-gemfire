@@ -235,6 +235,32 @@ describe("gemfire.Region", function() {
         expect(region.put('stress test', object)).toEqual(object);
         expect(region.get('stress test')).toEqual(object);
       });
+
+      it("stores and retrieves objects with numerical keys", function() {
+        region.put(1, "number key");
+        region.put("1", "string key");
+
+        expect(region.get(1)).toEqual("number key");
+        expect(region.get("1")).toEqual("string key");
+      });
+
+      it("stores and retrieves objects with date keys", function() {
+        var date = new Date();
+        region.put(date, "date key");
+        expect(region.get(date)).toEqual("date key");
+      });
+
+      it("stores and retrieves objects with boolean keys", function() {
+        region.put(true, "true key");
+        region.put(false, "false key");
+        region.put("true", "true string key");
+        region.put("false", "false string key");
+
+        expect(region.get(true)).toEqual("true key");
+        expect(region.get(false)).toEqual("false key");
+        expect(region.get("true")).toEqual("true string key");
+        expect(region.get("false")).toEqual("false string key");
+      });
     });
 
     it("throws an error for unsupported values", function() {
