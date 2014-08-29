@@ -4,6 +4,7 @@
 #include <string>
 
 std::string gemfireExceptionMessage(const gemfire::Exception & exception);
+std::string gemfireExceptionMessage(gemfire::UserFunctionExecutionExceptionPtr exceptionPtr);
 void ThrowGemfireException(const gemfire::Exception & e);
 
 #define __EXCEPTIONS_HPP__
