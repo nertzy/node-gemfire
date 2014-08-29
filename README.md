@@ -49,20 +49,25 @@ region.clear();
 ## Development
 ### Prerequisites 
 
-* node 0.10.x http://nodejs.org/
-* vagrant 1.6.x http://www.vagrantup.com/
+* [Vagrant 1.6.x or later](http://www.vagrantup.com/)
+* [GemFire 8.0.0 server RPM file](https://network.pivotal.io/products/pivotal-gemfire)
+* [GemFire 8.0.0 C++ Native Client ZIP file](https://network.pivotal.io/products/pivotal-gemfire)
 
 ### Setup
 
-Build out the virtualbox and install nodejs, GemFire, etc.
+First, download the GemFire 8.0.0 server and native client packages from
+[Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire)
+and place them in the `tmp/` subdirectory.
+
+Then, to build the VM:
 
     $ vagrant up
-    
+
 ### Re-provision VM to install missing dependencies
 
 After pulling down updated code, you may need to re-provision your VM to get any new dependencies.
 
-	$ vagrant provision
+    $ vagrant provision
 
 ### Developer workflow
 
