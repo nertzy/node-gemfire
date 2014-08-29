@@ -412,6 +412,23 @@ describe("gemfire.Region", function() {
       expect(results).toEqual(["TestFunction succeeded."]);
     });
 
+    it("gives the function access to the region", function() {
+      const functionName = "io.pivotal.node_gemfire.SumRegion";
+
+      region.put("one", 1);
+      region.put("two", 2);
+
+      const anotherRegion = cache.getRegion("anotherRegion");
+      anotherRegion.clear();
+      anotherRegion.put("thousand", 1000);
+
+      var results = region.executeFunction(functionName);
+      expect(results).toEqual([3]);
+
+      results = anotherRegion.executeFunction(functionName);
+      expect(results).toEqual([1000]);
+    });
+
     it("runs a function on the GemFire cluster with arguments and returns the results", function() {
       const functionName = "io.pivotal.node_gemfire.Sum";
 
