@@ -405,8 +405,10 @@ describe("gemfire.Region", function() {
   });
 
   describe(".executeFunction", function() {
+    const testFunctionName = "io.pivotal.node_gemfire.TestFunction";
+
     it("runs a function on the GemFire cluster and returns the results", function() {
-      const results = region.executeFunction("io.pivotal.node_gemfire.TestFunction");
+      const results = region.executeFunction(testFunctionName);
       expect(results).toEqual(["TestFunction succeeded."]);
     });
 
@@ -424,9 +426,27 @@ describe("gemfire.Region", function() {
       expect(callNonexistentFunction).toThrow();
     });
 
-    describe("async", function() {
-      const testFunctionName = "io.pivotal.node_gemfire.TestFunction";
+    it("throws an exception when the function throws an exception", function() {
+      var exception;
 
+      try {
+        region.executeFunction("io.pivotal.node_gemfire.TestFunctionException");
+      } catch(e) {
+        exception = e;
+      }
+
+      expect(exception).toBeDefined();
+      expect(exception.message).toMatch(/Test exception message thrown by server./);
+    });
+
+    it("returns the results and an error when the function sends an exception with the results", function() {
+      const results = region.executeFunction("io.pivotal.node_gemfire.TestFunctionExceptionResult");
+      expect(results.length).toEqual(2);
+      expect(results[0]).toEqual("First result");
+      expect(results[1].message).toMatch("java.lang.Exception: Test exception message sent by server.");
+    });
+
+    describe("async", function() {
       it("returns the region object to support chaining", function(done) {
         var returnValue = region.executeFunction(testFunctionName, function(error, value) {
           done();
@@ -454,8 +474,31 @@ describe("gemfire.Region", function() {
       it("passes an error into the callback when the function is not found", function(done){
         region.executeFunction("com.example.Nonexistent", function(error, results) {
           expect(error).not.toBeNull();
-          expect(error.message).toMatch(/gemfire::Exception:/);
+          expect(error.message).toEqual(
+            "gemfire::Exception: Execute::GET_FUNCTION_ATTRIBUTES: message from server could not be handled"
+          );
           expect(results).toBeUndefined();
+          done();
+        });
+      });
+
+      it("passes an error into the callback when the function throws an exception", function(done) {
+        region.executeFunction("io.pivotal.node_gemfire.TestFunctionException", function(error, results) {
+          expect(error).not.toBeNull();
+          expect(error.message).toMatch(
+            /com.gemstone.gemfire.cache.execute.FunctionException: Test exception message thrown by server./
+          );
+          expect(results).toBeUndefined();
+          done();
+        });
+      });
+
+      it("passes the results and an error when the function sends an exception with the results", function(done) {
+        region.executeFunction("io.pivotal.node_gemfire.TestFunctionExceptionResult", function(error, results) {
+          expect(error).not.toBeNull();
+          expect(error.message).toMatch("java.lang.Exception: Test exception message sent by server.");
+          expect(results.length).toEqual(1);
+          expect(results[0]).toEqual("First result");
           done();
         });
       });

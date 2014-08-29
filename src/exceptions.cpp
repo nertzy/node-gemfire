@@ -13,3 +13,9 @@ std::string gemfireExceptionMessage(const gemfire::Exception & exception) {
   errorMessageStream << exception.getName() << ": " << exception.getMessage();
   return errorMessageStream.str();
 }
+
+std::string gemfireExceptionMessage(gemfire::UserFunctionExecutionExceptionPtr exceptionPtr) {
+  std::stringstream errorMessageStream;
+  errorMessageStream << exceptionPtr->getName()->asChar() << ": " << exceptionPtr->getMessage()->asChar();
+  return errorMessageStream.str();
+}

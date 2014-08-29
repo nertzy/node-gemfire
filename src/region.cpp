@@ -15,7 +15,6 @@ namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
 
-bool highAvailability = true;
 bool cacheListenerSet = false;
 uv_mutex_t * eventMutex;
 Persistent<Object> callbacks;
@@ -336,18 +335,17 @@ NAN_METHOD(Region::ExecuteFunction) {
   } else {
     ExecutionPtr executionPtr = FunctionService::onRegion(region->regionPtr);
 
-    CacheableVectorPtr resultsPtr;
     try {
-      resultsPtr = executionPtr->execute(**functionName, highAvailability)->getResult();
+      ResultCollectorPtr resultCollectorPtr = executionPtr->execute(**functionName);
+      CacheableVectorPtr resultsPtr = resultCollectorPtr->getResult();
+      delete functionName;
+      NanReturnValue(v8ValueFromGemfire(resultsPtr));
     }
     catch (gemfire::Exception &exception) {
       delete functionName;
       ThrowGemfireException(exception);
       NanReturnUndefined();
     }
-
-    delete functionName;
-    NanReturnValue(v8ValueFromGemfire(resultsPtr));
   }
 }
 
@@ -357,7 +355,7 @@ void Region::AsyncExecuteFunction(uv_work_t * request) {
   ExecutionPtr executionPtr = FunctionService::onRegion(baton->regionPtr);
 
   try {
-    baton->resultsPtr = executionPtr->execute(**(baton->functionName), highAvailability)->getResult();
+    baton->resultsPtr = executionPtr->execute(**(baton->functionName))->getResult();
     baton->executionSucceded = true;
   }
   catch (gemfire::Exception &exception) {
@@ -373,8 +371,25 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
   Local<Value> returnValue;
 
   if (baton->executionSucceded) {
+    Handle<Array> resultsArray = Handle<Array>::Cast(v8ValueFromGemfire(baton->resultsPtr));
     error = NanNull();
-    returnValue = NanNew(v8ValueFromGemfire(baton->resultsPtr));
+
+    unsigned int length = resultsArray->Length();
+    if (length > 0) {
+      Handle<Value> lastResult = resultsArray->Get(length - 1);
+
+      if (lastResult->IsNativeError()) {
+        error = NanNew(lastResult);
+
+        Local<Array> resultsExceptLast = NanNew<Array>(length - 1);
+        for (unsigned int i = 0; i < length - 1; i++) {
+          resultsExceptLast->Set(i, resultsArray->Get(i));
+        }
+        resultsArray = resultsExceptLast;
+      }
+    }
+
+    returnValue = NanNew(resultsArray);
   } else {
     error = NanError(gemfireExceptionMessage(*(baton->exceptionPtr)).c_str());
     returnValue = NanUndefined();

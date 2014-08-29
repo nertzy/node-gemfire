@@ -214,19 +214,32 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
 
     Handle<Array> v8Array = NanNew<Array>(length);
     for (unsigned int i = 0; i < length; i++) {
-      v8Array->Set(i, v8ValueFromGemfire((*gemfireVector)[i]));
+      CacheablePtr gemfireValuePtr = (*gemfireVector)[i];
+      v8Array->Set(i, v8ValueFromGemfire(gemfireValuePtr));
     }
 
     NanReturnValue(v8Array);
-  } else if (typeId > GemfireTypeIds::CacheableStringHuge) {
+  }
+  if (typeId == 0) {
+    try {
+      UserFunctionExecutionExceptionPtr functionExceptionPtr =
+        (UserFunctionExecutionExceptionPtr) valuePtr;
+
+      NanReturnValue(NanError(gemfireExceptionMessage(functionExceptionPtr).c_str()));
+    }
+    catch (ClassCastException & exception) {
+      // fall through to default error case
+    }
+  }
+  if (typeId > GemfireTypeIds::CacheableStringHuge) {
     // We are assuming these are Pdx
     NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
-  } else {
-    std::stringstream errorMessageStream;
-    errorMessageStream << "Unknown typeId: " << typeId;
-    NanThrowError(errorMessageStream.str().c_str());
-    NanReturnUndefined();
   }
+
+  std::stringstream errorMessageStream;
+  errorMessageStream << "Unknown typeId: " << typeId;
+  NanThrowError(errorMessageStream.str().c_str());
+  NanReturnUndefined();
 }
 
 Handle<Array> arrayFromSelectResults(const SelectResultsPtr & selectResultsPtr) {
