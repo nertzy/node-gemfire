@@ -4,6 +4,7 @@
 #include <nan.h>
 #include <gfcpp/Region.hpp>
 #include <node.h>
+#include <string>
 #include "cache.hpp"
 
 using namespace v8;
@@ -85,7 +86,7 @@ class PutBaton {
 class ExecuteFunctionBaton {
  public:
     explicit ExecuteFunctionBaton(gemfire::RegionPtr regionPtr,
-                                  NanUtf8String * functionName,
+                                  std::string functionName,
                                   gemfire::CacheablePtr functionArguments,
                                   Handle<Function> callback) :
         regionPtr(regionPtr),
@@ -97,11 +98,10 @@ class ExecuteFunctionBaton {
 
     ~ExecuteFunctionBaton() {
       NanDisposePersistent(callback);
-      delete functionName;
     }
 
     gemfire::RegionPtr regionPtr;
-    NanUtf8String * functionName;
+    std::string functionName;
     gemfire::CacheablePtr functionArguments;
     Persistent<Function> callback;
 

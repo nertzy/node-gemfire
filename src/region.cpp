@@ -2,6 +2,7 @@
 #include <gfcpp/Region.hpp>
 #include <gfcpp/FunctionService.hpp>
 #include <sstream>
+#include <string>
 #include "conversions.hpp"
 #include "exceptions.hpp"
 #include "event.hpp"
@@ -318,7 +319,7 @@ NAN_METHOD(Region::ExecuteFunction) {
 
   Local<Value> lastArgument = args[v8ArgsLength - 1];
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  NanUtf8String * functionName = new NanUtf8String(args[0]);
+  std::string functionName(*NanUtf8String(args[0]));
   CacheablePtr functionArguments = NULLPTR;
 
   if (v8ArgsLength > 1 && !args[1]->IsFunction()) {
@@ -349,13 +350,11 @@ NAN_METHOD(Region::ExecuteFunction) {
     }
 
     try {
-      ResultCollectorPtr resultCollectorPtr = executionPtr->execute(**functionName);
+      ResultCollectorPtr resultCollectorPtr = executionPtr->execute(functionName.c_str());
       CacheableVectorPtr resultsPtr = resultCollectorPtr->getResult();
-      delete functionName;
       NanReturnValue(v8ValueFromGemfire(resultsPtr));
     }
     catch (gemfire::Exception &exception) {
-      delete functionName;
       ThrowGemfireException(exception);
       NanReturnUndefined();
     }
@@ -372,7 +371,7 @@ void Region::AsyncExecuteFunction(uv_work_t * request) {
   }
 
   try {
-    baton->resultsPtr = executionPtr->execute(**(baton->functionName))->getResult();
+    baton->resultsPtr = executionPtr->execute(baton->functionName.c_str())->getResult();
     baton->executionSucceded = true;
   }
   catch (gemfire::Exception &exception) {
