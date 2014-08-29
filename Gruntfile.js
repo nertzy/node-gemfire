@@ -121,7 +121,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('valgrind', function() {
     grunt.log.writeln('Running with valgrind...');
-    nodeCommand = "valgrind --suppressions=spec/valgrind/suppressions-gemfire-7.0.2.supp node";
+    nodeCommand = "valgrind --suppressions=spec/valgrind/suppressions-gemfire-8.0.0.supp node";
   });
 
   grunt.registerTask('callgrind', function() {
