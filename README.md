@@ -39,6 +39,10 @@ cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, resu
   console.log("executeQuery: ", results);
 });
 
+region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"], function(error, results){
+  console.log("executeFunction MyJavaFunction: ", results);
+});
+
 region.clear();
 ```
 
