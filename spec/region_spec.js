@@ -412,6 +412,16 @@ describe("gemfire.Region", function() {
       expect(results).toEqual(["TestFunction succeeded."]);
     });
 
+    it("runs a function on the GemFire cluster with arguments and returns the results", function() {
+      const functionName = "io.pivotal.node_gemfire.Sum";
+
+      var results = region.executeFunction(functionName, [1, 2]);
+      expect(results).toEqual([3]);
+
+      results = region.executeFunction(functionName, [1, 2, 3, 4]);
+      expect(results).toEqual([10]);
+    });
+
     it("throws an exception when no function name is passed in", function(){
       function callWithoutArgs() {
         region.executeFunction();
@@ -459,6 +469,14 @@ describe("gemfire.Region", function() {
         region.executeFunction(testFunctionName, function(error, results) {
           expect(error).toBeNull();
           expect(results).toEqual(["TestFunction succeeded."]);
+          done();
+        });
+      });
+
+      it("runs a function on the GemFire cluster and passes its result to the callback", function(done) {
+        region.executeFunction("io.pivotal.node_gemfire.Sum", [1, 2, 3], function(error, results) {
+          expect(error).toBeNull();
+          expect(results).toEqual([6]);
           done();
         });
       });

@@ -84,11 +84,13 @@ class PutBaton {
 
 class ExecuteFunctionBaton {
  public:
-    explicit ExecuteFunctionBaton(Handle<Function> callback,
+    explicit ExecuteFunctionBaton(gemfire::RegionPtr regionPtr,
                                   NanUtf8String * functionName,
-                                  gemfire::RegionPtr regionPtr) :
-        functionName(functionName),
+                                  gemfire::CacheablePtr functionArguments,
+                                  Handle<Function> callback) :
         regionPtr(regionPtr),
+        functionName(functionName),
+        functionArguments(functionArguments),
         executionSucceded(false) {
       NanAssignPersistent(this->callback, callback);
     }
@@ -98,10 +100,13 @@ class ExecuteFunctionBaton {
       delete functionName;
     }
 
-    Persistent<Function> callback;
-    NanUtf8String * functionName;
     gemfire::RegionPtr regionPtr;
+    NanUtf8String * functionName;
+    gemfire::CacheablePtr functionArguments;
+    Persistent<Function> callback;
+
     bool executionSucceded;
+
     gemfire::CacheableVectorPtr resultsPtr;
     gemfire::ExceptionPtr exceptionPtr;
 };

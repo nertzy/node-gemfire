@@ -309,19 +309,29 @@ NAN_METHOD(Region::OnPut) {
 NAN_METHOD(Region::ExecuteFunction) {
   NanScope();
 
-  if (args.Length() == 0 || args[0]->IsFunction()) {
+  const unsigned int v8ArgsLength = args.Length();
+
+  if (v8ArgsLength == 0 || args[0]->IsFunction()) {
     NanThrowError("You must provide the name of a function to execute.");
     NanReturnUndefined();
   }
 
-  Local<Value> lastArgument = args[args.Length() - 1];
+  Local<Value> lastArgument = args[v8ArgsLength - 1];
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   NanUtf8String * functionName = new NanUtf8String(args[0]);
+  CacheablePtr functionArguments = NULLPTR;
+
+  if (v8ArgsLength > 1 && !args[1]->IsFunction()) {
+    functionArguments = gemfireValueFromV8(args[1], region->regionPtr->getCache());
+  }
 
   if (lastArgument->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(lastArgument);
 
-    ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(callback, functionName, region->regionPtr);
+    ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(region->regionPtr,
+                                                            functionName,
+                                                            functionArguments,
+                                                            callback);
 
     uv_work_t * request = new uv_work_t();
     request->data = reinterpret_cast<void *>(baton);
@@ -334,6 +344,9 @@ NAN_METHOD(Region::ExecuteFunction) {
     NanReturnValue(args.This());
   } else {
     ExecutionPtr executionPtr = FunctionService::onRegion(region->regionPtr);
+    if (functionArguments != NULLPTR) {
+      executionPtr = executionPtr->withArgs(functionArguments);
+    }
 
     try {
       ResultCollectorPtr resultCollectorPtr = executionPtr->execute(**functionName);
@@ -353,6 +366,10 @@ void Region::AsyncExecuteFunction(uv_work_t * request) {
   ExecuteFunctionBaton * baton = reinterpret_cast<ExecuteFunctionBaton *>(request->data);
 
   ExecutionPtr executionPtr = FunctionService::onRegion(baton->regionPtr);
+
+  if (baton->functionArguments != NULLPTR) {
+    executionPtr = executionPtr->withArgs(baton->functionArguments);
+  }
 
   try {
     baton->resultsPtr = executionPtr->execute(**(baton->functionName))->getResult();
