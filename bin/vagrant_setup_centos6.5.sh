@@ -1,11 +1,28 @@
 #!/bin/bash
 JAVA_RPM_URL="http://download.oracle.com/otn-pub/java/jdk/7u65-b17/jdk-7u65-linux-x64.rpm"
-GEMFIRE_RPM_URL="http://download.pivotal.com.s3.amazonaws.com/gemfire/7.0.2/pivotal-gemfire-7.0.2-1.el6.noarch.rpm"
-GEMFIRE_NATIVE_CLIENT_URL="http://download.pivotal.com.s3.amazonaws.com/gemfire/7.0.2/Pivotal_GemFire_NativeClient_Linux_64bit_7020_b6036.zip"
+GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0-48398.el6.noarch.rpm"
+NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8000_b6169.zip"
 
-set -e -x
+set -e
 
 echo "Setting up Centos 6.5"
+
+if [ ! -e /usr/bin/gemfire ]; then
+  if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
+    1>&2 echo "Please download $GEMFIRE_SERVER_FILENAME from https://network.pivotal.io/products/pivotal-gemfire and place in the tmp/ subdirectory of this project"
+    exit 1
+  fi
+  sudo -E rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
+fi
+
+if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
+  if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
+    1>&2 echo "Please download $NATIVE_CLIENT_FILENAME from https://network.pivotal.io/products/pivotal-gemfire and place in the tmp/ subdirectory of this project"
+    exit 1
+  fi
+  cd /opt/pivotal
+  unzip /project/tmp/$NATIVE_CLIENT_FILENAME
+fi
 
 if ! yum -C repolist | grep epel ; then
   sudo rpm --import https://fedoraproject.org/static/0608B895.txt
@@ -28,23 +45,9 @@ if [ ! -e /usr/bin/javac ]; then
   sudo -E rpm -ivh /tmp/java.rpm
 fi
 
-if [ ! -e /usr/bin/gemfire ]; then
-  rm -f /tmp/gemfire.rpm
-  wget --no-verbose -O /tmp/gemfire.rpm $GEMFIRE_RPM_URL
-  sudo -E rpm -ivh /tmp/gemfire.rpm
-fi
-
-if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_7020_b6036 ]; then
-  rm -f /tmp/gemfire_native_client.zip
-  wget --no-verbose -O /tmp/gemfire_native_client.zip $GEMFIRE_NATIVE_CLIENT_URL
-  mkdir -p /opt/pivotal
-  cd /opt/pivotal
-  unzip /tmp/gemfire_native_client.zip
-fi
-
 sudo sh -c "cat > /etc/profile.d/gfcpp.sh" <<'EOF'
-export GFCPP=/opt/pivotal/NativeClient_Linux_64bit_7020_b6036
-export GEMFIRE=/opt/pivotal/gemfire/Pivotal_GemFire_702
+export GFCPP=/opt/pivotal/NativeClient_Linux_64bit_8000_b6169
+export GEMFIRE=/opt/pivotal/gemfire/Pivotal_GemFire_800
 export JAVA_HOME=/usr/java/default
 export PATH=$GFCPP/bin:$PATH
 export LD_LIBRARY_PATH=$GFCPP/lib:$LD_LIBRARY_PATH
