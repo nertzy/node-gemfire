@@ -128,7 +128,7 @@ void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
 
   static const int argc = 2;
   Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);;
+  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
 
   delete request;
   delete baton;
