@@ -21,7 +21,6 @@
     ],
     "sources": [
       "src/binding.cpp",
-      "src/NodeCacheListener.cpp",
       "src/exceptions.cpp",
       "src/conversions.cpp",
       "src/cache.cpp",

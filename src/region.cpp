@@ -6,7 +6,6 @@
 #include "conversions.hpp"
 #include "exceptions.hpp"
 #include "event.hpp"
-#include "NodeCacheListener.hpp"
 #include "cache.hpp"
 
 using namespace v8;
@@ -15,10 +14,6 @@ using namespace gemfire;
 namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
-
-bool cacheListenerSet = false;
-uv_mutex_t * eventMutex;
-Persistent<Object> callbacks;
 
 Region::~Region() {
   NanDisposePersistent(cacheHandle);
@@ -38,20 +33,10 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Put)->GetFunction());
   NanSetPrototypeTemplate(constructor, "get",
       NanNew<FunctionTemplate>(Region::Get)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "registerAllKeys",
-      NanNew<FunctionTemplate>(Region::RegisterAllKeys)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "unregisterAllKeys",
-      NanNew<FunctionTemplate>(Region::UnregisterAllKeys)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "onPut",
-      NanNew<FunctionTemplate>(Region::OnPut)->GetFunction());
   NanSetPrototypeTemplate(constructor, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
 
   NanAssignPersistent(regionConstructor, constructor);
-
-  Local<Object> callbacksObj = NanNew<Object>();
-  callbacksObj->Set(NanNew("put"), NanNew<Array>());
-  NanAssignPersistent(callbacks, callbacksObj);
 
   exports->Set(NanNew("Region"), regionConstructor->GetFunction());
 }
@@ -217,94 +202,6 @@ void Region::AfterAsyncGet(uv_work_t * request, int status) {
 
   delete request;
   delete getBaton;
-}
-
-NAN_METHOD(Region::RegisterAllKeys) {
-  NanScope();
-
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
-
-  regionPtr->registerAllKeys();
-
-  NanReturnValue(NanTrue());
-}
-
-NAN_METHOD(Region::UnregisterAllKeys) {
-  NanScope();
-
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
-
-  regionPtr->unregisterAllKeys();
-
-  NanReturnValue(NanTrue());
-}
-
-static void callPutCallbacks(event * incomingEvent) {
-  const char * key = incomingEvent->key;
-  const char * newValue = incomingEvent->value;
-
-  NanScope();
-
-  Local<Value> putCallbacksValue = callbacks->Get(NanNew("put"));
-
-  Local<Array> putCallbacks =
-    Local<Array>::Cast(putCallbacksValue);
-
-  for (unsigned int i = 0; i < putCallbacks->Length(); i++) {
-    Local<Value> functionValue = putCallbacks->Get(i);
-    Local<Function> putCallback = Local<Function>::Cast(functionValue);
-
-    static const int argc = 2;
-    Local<Value> argv[] = { NanNew(key), NanNew(newValue) };
-    Local<Context> ctx = NanGetCurrentContext();
-    NanMakeCallback(ctx->Global(), putCallback, argc, argv);
-  }
-}
-
-static void doWork(uv_async_t * async, int status) {
-  uv_mutex_lock(eventMutex);
-  event * incomingEvent = reinterpret_cast<event *>(async->data);
-
-  callPutCallbacks(incomingEvent);
-  uv_mutex_unlock(eventMutex);
-}
-
-static void setCacheListener(RegionPtr regionPtr) {
-  if (!cacheListenerSet) {
-    uv_async_t * async = new uv_async_t();
-    async->data = new event;
-    uv_async_init(uv_default_loop(), async, doWork);
-
-    eventMutex = new uv_mutex_t();
-    uv_mutex_init(eventMutex);
-
-    NodeCacheListener * nodeCacheListener = new NodeCacheListener(async, eventMutex);
-
-    AttributesMutatorPtr attrMutatorPtr = regionPtr->getAttributesMutator();
-    attrMutatorPtr->setCacheListener(CacheListenerPtr(nodeCacheListener));
-
-    cacheListenerSet = true;
-  }
-}
-
-NAN_METHOD(Region::OnPut) {
-  NanScope();
-
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
-
-  setCacheListener(regionPtr);
-
-  Local<Function> callback = Local<Function>::Cast(args[0]);
-
-  Local<Array> putCallbacks =
-    Local<Array>::Cast(callbacks->Get(NanNew("put")));
-
-  putCallbacks->Set(putCallbacks->Length(), callback);
-
-  NanReturnValue(NanNew(true));
 }
 
 NAN_METHOD(Region::ExecuteFunction) {

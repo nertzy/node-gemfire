@@ -26,9 +26,6 @@ class Region : node::ObjectWrap {
     static NAN_METHOD(Put);
     static NAN_METHOD(Get);
     static NAN_METHOD(ExecuteFunction);
-    static NAN_METHOD(RegisterAllKeys);
-    static NAN_METHOD(UnregisterAllKeys);
-    static NAN_METHOD(OnPut);
     static void AsyncGet(uv_work_t * request);
     static void AfterAsyncGet(uv_work_t * request, int status);
     static void AsyncPut(uv_work_t * request);
