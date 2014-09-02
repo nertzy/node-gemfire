@@ -87,7 +87,7 @@ NAN_METHOD(Cache::ExecuteQuery) {
       NanReturnUndefined();
     }
 
-    NanReturnValue(arrayFromSelectResults(selectResultsPtr));
+    NanReturnValue(v8ValueFromGemfire(selectResultsPtr));
   }
 }
 
@@ -116,7 +116,7 @@ void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
 
   if (baton->querySucceeded) {
     error = NanNull();
-    returnValue = NanNew(arrayFromSelectResults(baton->selectResultsPtr));
+    returnValue = NanNew(v8ValueFromGemfire(baton->selectResultsPtr));
   } else {
     error = NanError(gemfireExceptionMessage(*(baton->queryExceptionPtr)).c_str());
     returnValue = NanUndefined();

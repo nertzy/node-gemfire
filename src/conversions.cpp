@@ -233,22 +233,6 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   NanReturnUndefined();
 }
 
-Handle<Array> arrayFromSelectResults(const SelectResultsPtr & selectResultsPtr) {
-  NanScope();
-
-  Local<Array> array = NanNew<Array>();
-
-  SelectResultsIterator iterator = selectResultsPtr->getIterator();
-
-  while (iterator.hasNext()) {
-    const SerializablePtr result = iterator.next();
-    Handle<Value> v8Value = v8ValueFromGemfire(result);
-    array->Set(array->Length(), v8Value);
-  }
-
-  NanReturnValue(array);
-}
-
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   NanScope();
 
@@ -261,18 +245,4 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   }
 
   NanReturnValue(v8Object);
-}
-
-Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & cacheableVectorPtr) {
-  NanScope();
-
-  unsigned int length = cacheableVectorPtr->length();
-
-  Handle<Array> v8Array = NanNew<Array>(length);
-  for (unsigned int i = 0; i < length; i++) {
-    CacheablePtr gemfireValuePtr = (*cacheableVectorPtr)[i];
-    v8Array->Set(i, v8ValueFromGemfire(gemfireValuePtr));
-  }
-
-  NanReturnValue(v8Array);
 }
