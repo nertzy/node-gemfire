@@ -53,7 +53,7 @@ Handle<String> v8StringFromWstring(const std::wstring & wideString) {
   NanReturnValue(v8String);
 }
 
-PdxInstancePtr V8ObjectFormatter::toPdxInstance(const CachePtr & cachePtr, const Local<Object> & v8Object) {
+PdxInstancePtr pdxInstanceFromV8Object(const CachePtr & cachePtr, const Local<Object> & v8Object) {
   try {
     NanScope();
 
@@ -90,7 +90,7 @@ PdxInstancePtr V8ObjectFormatter::toPdxInstance(const CachePtr & cachePtr, const
   }
 }
 
-Handle<Value> V8ObjectFormatter::fromPdxInstance(const PdxInstancePtr & pdxInstance) {
+Handle<Value> v8ObjectFromPdxInstance(const PdxInstancePtr & pdxInstance) {
   try {
     NanScope();
 
@@ -157,7 +157,7 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
         gemfireValueFromV8(v8Array->Get(i), cachePtr));
     }
   } else if (v8Value->IsObject()) {
-    gemfireValuePtr = V8ObjectFormatter::toPdxInstance(cachePtr, v8Value->ToObject());
+    gemfireValuePtr = pdxInstanceFromV8Object(cachePtr, v8Value->ToObject());
   } else if (v8Value->IsNull()) {
     gemfireValuePtr = CacheableUndefined::create();
   } else {
@@ -224,7 +224,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   }
   if (typeId > GemfireTypeIds::CacheableStringHuge) {
     // We are assuming these are Pdx
-    NanReturnValue(V8ObjectFormatter::fromPdxInstance(valuePtr));
+    NanReturnValue(v8ObjectFromPdxInstance(valuePtr));
   }
 
   std::stringstream errorMessageStream;

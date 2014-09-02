@@ -7,12 +7,10 @@
 
 using namespace v8;
 
-class V8ObjectFormatter {
- public:
-  static gemfire::PdxInstancePtr toPdxInstance(const gemfire::CachePtr & cache,
-                                               const Local<Object> & v8Object);
-  static Handle<Value> fromPdxInstance(const gemfire::PdxInstancePtr & pdxInstance);
-};
+
+gemfire::PdxInstancePtr pdxInstanceFromV8Object(const gemfire::CachePtr & cache,
+                                                const Local<Object> & v8Object);
+Handle<Value> v8ObjectFromPdxInstance(const gemfire::PdxInstancePtr & pdxInstance);
 
 gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
