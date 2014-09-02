@@ -14,15 +14,19 @@ class Cache : public node::ObjectWrap {
     static void Init(Handle<Object> exports);
 
     gemfire::CachePtr cachePtr;
+
  protected:
-    ~Cache();
+    explicit Cache(gemfire::CachePtr cachePtr) : cachePtr(cachePtr) {}
+
+    ~Cache() {
+      cachePtr->close();
+    }
+
     static NAN_METHOD(New);
     static NAN_METHOD(ExecuteQuery);
     static NAN_METHOD(GetRegion);
     static void AsyncExecuteQuery(uv_work_t * request);
     static void AfterAsyncExecuteQuery(uv_work_t * request, int status);
-
-    explicit Cache(gemfire::CachePtr cachePtr) : cachePtr(cachePtr) {}
 };
 
 class ExecuteQueryBaton {
