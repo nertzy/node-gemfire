@@ -13,10 +13,6 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-Cache::~Cache() {
-  cachePtr->close();
-}
-
 void Cache::Init(Handle<Object> exports) {
   NanScope();
 

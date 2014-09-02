@@ -18,7 +18,11 @@ class Region : node::ObjectWrap {
         regionPtr(regionPtr) {
       NanAssignPersistent(this->cacheHandle, cacheHandle);
     }
-    ~Region();
+
+    ~Region() {
+      NanDisposePersistent(cacheHandle);
+    }
+
     static void Init(Handle<Object> exports);
     static NAN_METHOD(GetRegion);
     static NAN_METHOD(New);

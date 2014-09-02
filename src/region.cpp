@@ -15,10 +15,6 @@ namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
 
-Region::~Region() {
-  NanDisposePersistent(cacheHandle);
-}
-
 void Region::Init(Handle<Object> exports) {
   NanScope();
 
