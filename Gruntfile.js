@@ -125,7 +125,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('callgrind', function() {
-    grunt.log.writeln('Running with valgrind...');
+    grunt.log.writeln('Running with callgrind...');
     nodeCommand = "valgrind --tool=callgrind node";
   });
 
