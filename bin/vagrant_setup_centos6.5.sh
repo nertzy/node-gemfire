@@ -1,28 +1,12 @@
 #!/bin/bash
-JAVA_RPM_URL="http://download.oracle.com/otn-pub/java/jdk/7u65-b17/jdk-7u65-linux-x64.rpm"
+S3_PREFIX="http://download.pivotal.com.s3.amazonaws.com/gemfire/8.0.0/"
 GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0-48398.el6.noarch.rpm"
 NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8000_b6169.zip"
+JAVA_RPM_URL="http://download.oracle.com/otn-pub/java/jdk/7u65-b17/jdk-7u65-linux-x64.rpm"
 
 set -e
 
 echo "Setting up Centos 6.5"
-
-if [ ! -e /usr/bin/gemfire ]; then
-  if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
-    1>&2 echo "Please download $GEMFIRE_SERVER_FILENAME from https://network.pivotal.io/products/pivotal-gemfire and place in the tmp/ subdirectory of this project"
-    exit 1
-  fi
-  sudo -E rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
-fi
-
-if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
-  if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
-    1>&2 echo "Please download $NATIVE_CLIENT_FILENAME from https://network.pivotal.io/products/pivotal-gemfire and place in the tmp/ subdirectory of this project"
-    exit 1
-  fi
-  cd /opt/pivotal
-  unzip /project/tmp/$NATIVE_CLIENT_FILENAME
-fi
 
 if ! yum -C repolist | grep epel ; then
   sudo rpm --import https://fedoraproject.org/static/0608B895.txt
@@ -32,6 +16,21 @@ fi
 sudo yum -y install nodejs --enablerepo=epel
 sudo yum -y install gcc-c++ gdb git gtest gtest-devel unzip valgrind yum-utils yum-plugin-auto-update-debug-info.noarch
 sudo debuginfo-install -y nodejs
+
+if [ ! -e /usr/bin/gemfire ]; then
+  if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
+    wget -O /project/tmp/$GEMFIRE_SERVER_FILENAME $S3_PREFIX$GEMFIRE_SERVER_FILENAME
+  fi
+  sudo -E rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
+fi
+
+if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
+  if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
+    wget -O /project/tmp/$NATIVE_CLIENT_FILENAME $S3_PREFIX$NATIVE_CLIENT_FILENAME
+  fi
+  cd /opt/pivotal
+  unzip /project/tmp/$NATIVE_CLIENT_FILENAME
+fi
 
 if [ ! -e /usr/bin/npm ]; then
   curl -L https://npmjs.org/install.sh | skipclean=1 sh
