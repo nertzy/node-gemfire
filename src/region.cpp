@@ -387,7 +387,7 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
   Local<Value> returnValue;
 
   if (baton->executionSucceded) {
-    Handle<Array> resultsArray = Handle<Array>::Cast(v8ValueFromGemfire(baton->resultsPtr));
+    Handle<Array> resultsArray = v8ValueFromGemfire(baton->resultsPtr);
     error = NanNull();
 
     unsigned int length = resultsArray->Length();

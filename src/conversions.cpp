@@ -195,7 +195,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     NanReturnNull();
   }
   if (typeId == GemfireTypeIds::Struct) {
-    NanReturnValue(v8ObjectFromGemfireStruct(valuePtr));
+    NanReturnValue(v8ValueFromGemfire((StructPtr) valuePtr));
   }
   if (typeId == GemfireTypeIds::CacheableObjectArray) {
     CacheableObjectArrayPtr gemfireArray = (CacheableObjectArrayPtr) valuePtr;
@@ -209,16 +209,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     NanReturnValue(v8Array);
   }
   if (typeId == GemfireTypeIds::CacheableVector) {
-    CacheableVectorPtr gemfireVector = (CacheableVectorPtr) valuePtr;
-    unsigned int length = gemfireVector->length();
-
-    Handle<Array> v8Array = NanNew<Array>(length);
-    for (unsigned int i = 0; i < length; i++) {
-      CacheablePtr gemfireValuePtr = (*gemfireVector)[i];
-      v8Array->Set(i, v8ValueFromGemfire(gemfireValuePtr));
-    }
-
-    NanReturnValue(v8Array);
+    NanReturnValue(v8ValueFromGemfire((CacheableVectorPtr) valuePtr));
   }
   if (typeId == 0) {
     try {
@@ -258,7 +249,7 @@ Handle<Array> arrayFromSelectResults(const SelectResultsPtr & selectResultsPtr) 
   NanReturnValue(array);
 }
 
-Handle<Object> v8ObjectFromGemfireStruct(const gemfire::StructPtr & structPtr) {
+Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   NanScope();
 
   Local<Object> v8Object = NanNew<Object>();
@@ -270,4 +261,18 @@ Handle<Object> v8ObjectFromGemfireStruct(const gemfire::StructPtr & structPtr) {
   }
 
   NanReturnValue(v8Object);
+}
+
+Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & cacheableVectorPtr) {
+  NanScope();
+
+  unsigned int length = cacheableVectorPtr->length();
+
+  Handle<Array> v8Array = NanNew<Array>(length);
+  for (unsigned int i = 0; i < length; i++) {
+    CacheablePtr gemfireValuePtr = (*cacheableVectorPtr)[i];
+    v8Array->Set(i, v8ValueFromGemfire(gemfireValuePtr));
+  }
+
+  NanReturnValue(v8Array);
 }

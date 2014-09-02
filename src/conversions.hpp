@@ -9,16 +9,19 @@ using namespace v8;
 
 class V8ObjectFormatter {
  public:
-    static gemfire::PdxInstancePtr toPdxInstance(const gemfire::CachePtr & cache,
-                                                 const Local<Object> & v8Object);
-    static Handle<Value> fromPdxInstance(const gemfire::PdxInstancePtr & pdxInstance);
+  static gemfire::PdxInstancePtr toPdxInstance(const gemfire::CachePtr & cache,
+                                               const Local<Object> & v8Object);
+  static Handle<Value> fromPdxInstance(const gemfire::PdxInstancePtr & pdxInstance);
 };
 
-gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const gemfire::CachePtr & cachePtr);
+gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value,
+                                         const gemfire::CachePtr & cachePtr);
+
 Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
+Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & cacheableVectorPtr);
+Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
 
 Handle<Array> arrayFromSelectResults(const gemfire::SelectResultsPtr & selectResultsPtr);
-Handle<Object> v8ObjectFromGemfireStruct(const gemfire::StructPtr & structPtr);
 
 #define __CONVERSIONS_HPP__
 #endif
