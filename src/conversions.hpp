@@ -7,17 +7,15 @@
 
 using namespace v8;
 
-
-gemfire::PdxInstancePtr pdxInstanceFromV8Object(const gemfire::CachePtr & cache,
-                                                const Local<Object> & v8Object);
-Handle<Value> v8ObjectFromPdxInstance(const gemfire::PdxInstancePtr & pdxInstance);
-
 gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
+gemfire::PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object,
+                                           const gemfire::CachePtr & cachePtr);
 
 Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
 Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & cacheableVectorPtr);
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
+Handle<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstance);
 
 Handle<Array> arrayFromSelectResults(const gemfire::SelectResultsPtr & selectResultsPtr);
 
