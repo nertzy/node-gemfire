@@ -81,7 +81,7 @@ NAN_METHOD(Region::Clear) {
   NanReturnValue(NanTrue());
 }
 
-static Handle<Value> unableToPutValueError(Handle<Value> v8Value) {
+Handle<Value> unableToPutValueError(Handle<Value> v8Value) {
   NanScope();
   std::stringstream errorMessageStream;
   errorMessageStream << "Unable to put value " << *String::Utf8Value(v8Value->ToDetailString());
