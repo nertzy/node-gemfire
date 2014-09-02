@@ -110,7 +110,7 @@ NAN_METHOD(Region::Put) {
 
       static const int argc = 2;
       Local<Value> argv[2] = { error, NanUndefined() };
-      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);;
+      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
     } else {
       PutBaton * putBaton = new PutBaton(callback, region->regionPtr, keyPtr, valuePtr);
 
@@ -147,7 +147,7 @@ void Region::AfterAsyncPut(uv_work_t * request, int status) {
 
   static const int argc = 2;
   Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), putBaton->callback, argc, argv);;
+  NanMakeCallback(NanGetCurrentContext()->Global(), putBaton->callback, argc, argv);
 
   delete request;
   delete putBaton;
@@ -198,7 +198,7 @@ void Region::AfterAsyncGet(uv_work_t * request, int status) {
 
   static const int argc = 2;
   Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), getBaton->callback, argc, argv);;
+  NanMakeCallback(NanGetCurrentContext()->Global(), getBaton->callback, argc, argv);
 
   delete request;
   delete getBaton;
