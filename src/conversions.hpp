@@ -13,11 +13,21 @@ gemfire::PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
 
 Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
-Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & cacheableVectorPtr);
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
 Handle<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstance);
 
-Handle<Array> arrayFromSelectResults(const gemfire::SelectResultsPtr & selectResultsPtr);
+template<typename T> Handle<Array> v8ValueFromGemfire(const T & vectorPtr) {
+  NanScope();
+
+  unsigned int length = vectorPtr->size();
+
+  Local<Array> array = NanNew<Array>(length);
+  for (unsigned int i = 0; i < length; i++) {
+    array->Set(i, v8ValueFromGemfire((*vectorPtr)[i]));
+  }
+
+  NanReturnValue(array);
+}
 
 #define __CONVERSIONS_HPP__
 #endif
