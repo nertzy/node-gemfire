@@ -1,15 +1,11 @@
 <?xml version="1.0"?>
 <!DOCTYPE cache PUBLIC
-    "-//GemStone Systems, Inc.//GemFire Declarative Caching 6.5//EN"
-    "http://www.gemstone.com/dtd/cache6_5.dtd">
+    "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+    "http://www.gemstone.com/dtd/cache7_0.dtd">
 
-<!--
-  | BenchmarkServer.xml
-  |
-  | Configures a cache to serve caching clients at port 40404.
--->
 <cache>
-	<cache-server port="40404"/>
-	<region name="exampleRegion" refid="REPLICATE"/>
-	<region name="anotherRegion" refid="REPLICATE"/>
+  <cache-server port="40404"/>
+  <pdx read-serialized="true" />
+  <region name="exampleRegion" refid="REPLICATE"/>
+  <region name="anotherRegion" refid="REPLICATE"/>
 </cache>

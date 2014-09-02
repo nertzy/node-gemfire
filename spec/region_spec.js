@@ -336,6 +336,11 @@ describe("gemfire.Region", function() {
       expect(results).toEqual([1000]);
     });
 
+    it("supports objects as input and output", function() {
+      const results = region.executeFunction("io.pivotal.node_gemfire.Passthrough", { foo: 'bar' });
+      expect(results).toEqual([{ foo: 'bar' }]);
+    });
+
     it("runs a function on the GemFire cluster with arguments and returns the results", function() {
       const functionName = "io.pivotal.node_gemfire.Sum";
 
