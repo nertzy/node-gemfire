@@ -50,16 +50,10 @@ region.clear();
 ### Prerequisites 
 
 * [Vagrant 1.6.x or later](http://www.vagrantup.com/)
-* [GemFire 8.0.0 server RPM file](https://network.pivotal.io/products/pivotal-gemfire)
-* [GemFire 8.0.0 C++ Native Client ZIP file](https://network.pivotal.io/products/pivotal-gemfire)
 
 ### Setup
 
-First, download the GemFire 8.0.0 server and native client packages from
-[Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire)
-and place them in the `tmp/` subdirectory.
-
-Then, to build the VM:
+To build the VM:
 
     $ vagrant up
 
