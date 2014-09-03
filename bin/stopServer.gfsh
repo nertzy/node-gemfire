@@ -1,2 +1,2 @@
 connect
-shutdown
+stop server --name=server --dir=server
