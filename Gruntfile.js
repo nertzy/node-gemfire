@@ -104,13 +104,13 @@ module.exports = function(grunt) {
   grunt.registerTask('console', ['build', 'shell:console']);
 
   grunt.registerTask('server:start', ['locator:ensure', 'shell:startServer']);
-  grunt.registerTask('server:stop', ['shell:stopServer', 'locator:stop']);
+  grunt.registerTask('server:stop', ['shell:stopServer']);
   grunt.registerTask('server:restart', ['server:stop', 'server:start']);
   grunt.registerTask('server:ensure', ['locator:ensure', 'shell:ensureServerRunning']);
 
   grunt.registerTask('locator:start', ['shell:startLocator']);
-  grunt.registerTask('locator:stop', ['shell:stopLocator']);
-  grunt.registerTask('locator:restart', ['locator:stop', 'locator:start']);
+  grunt.registerTask('locator:stop', ['server:stop', 'shell:stopLocator']);
+  grunt.registerTask('locator:restart', ['locator:stop', 'locator:start', 'server:start']);
   grunt.registerTask('locator:ensure', ['shell:ensureLocatorRunning']);
 
   grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
