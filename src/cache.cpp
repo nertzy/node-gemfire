@@ -59,6 +59,11 @@ NAN_METHOD(Cache::New) {
 NAN_METHOD(Cache::ExecuteQuery) {
   NanScope();
 
+  if (args.Length() == 0 || !args[0]->IsString()) {
+    NanThrowError("You must pass a query string to executeQuery()");
+    NanReturnUndefined();
+  }
+
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
   CachePtr cachePtr = cache->cachePtr;
 

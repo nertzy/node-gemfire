@@ -194,6 +194,14 @@ describe("gemfire.Cache", function() {
       expect(exception.message).toMatch(/gemfire::QueryException/);
     });
 
+    it("throws an error when no query is passed", function() {
+      function callWithoutQuery() {
+        cache.executeQuery();
+      }
+
+      expect(callWithoutQuery).toThrow("You must pass a query string to executeQuery()");
+    });
+
     describe("asynchronous API", function() {
       it("returns the cache for chaining", function(done) {
         var query = "SELECT DISTINCT * FROM /exampleRegion;";
@@ -223,6 +231,14 @@ describe("gemfire.Cache", function() {
           expect(results).toBeUndefined();
           done();
         });
+      });
+
+      it("throws an error for missing queries", function() {
+        function callWithoutQuery() {
+          cache.executeQuery(function(){});
+        }
+
+        expect(callWithoutQuery).toThrow("You must pass a query string to executeQuery()");
       });
     });
   });
