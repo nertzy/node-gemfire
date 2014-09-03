@@ -152,6 +152,11 @@ void Region::AfterAsyncPut(uv_work_t * request, int status) {
 NAN_METHOD(Region::Get) {
   NanScope();
 
+  if (args.Length() < 1) {
+    NanThrowError("You must pass a key to get()");
+    NanReturnUndefined();
+  }
+
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr = region->regionPtr;
 

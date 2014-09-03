@@ -19,6 +19,13 @@ describe("gemfire.Region", function() {
       expect(region.get('foo')).toBeUndefined();
     });
 
+    it("throws an error if a key is not passed to .get", function() {
+      function getWithoutKey() {
+        region.get();
+      }
+      expect(getWithoutKey).toThrow("You must pass a key to get()");
+    });
+
     describe("async get", function() {
       beforeEach(function(){
         region.put('foo', 'bar');
