@@ -51,6 +51,7 @@ NAN_METHOD(Cache::New) {
   }
 
   if (!cachePtr->getPdxReadSerialized()) {
+    cachePtr->close();
     NanThrowError("<pdx read-serialized='true' /> must be set in your cache xml");
     NanReturnUndefined();
   }
