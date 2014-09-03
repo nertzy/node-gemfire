@@ -58,10 +58,18 @@ module.exports = function(grunt) {
           command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopLocator.gfsh'
         },
         buildTestFunction: {
-          command: 'cd spec/support/java/function/ && ./gradlew build'
+          command: 'cd spec/support/java/function/ && ./gradlew build',
+          src: [
+            "spec/support/java/function/src/**/*.java",
+            "spec/support/java/function/build.gradle",
+          ]
         },
         deployTestFunction: {
-          command: 'cd tmp/gemfire && gfsh run --file /project/bin/deployTestFunction.gfsh'
+          command: 'cd tmp/gemfire && gfsh run --file /project/bin/deployTestFunction.gfsh',
+          src: [
+            'tmp/gemfire/server/vf.gf.server.pid',
+            'spec/support/java/function/build/libs/function.jar'
+          ]
         },
         benchmarkJava: {
           command: 'cd benchmark/java && ./gradlew clean run -q'
@@ -93,6 +101,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-newer');
 
   grunt.registerTask('build', ['shell:buildDebug']);
   grunt.registerTask('rebuild', ['shell:rebuildDebug']);
@@ -116,7 +125,7 @@ module.exports = function(grunt) {
   grunt.registerTask('benchmark:node:oql', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeOql']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
-  grunt.registerTask('server:deploy', ['shell:buildTestFunction', 'shell:deployTestFunction']);
+  grunt.registerTask('server:deploy', ['newer:shell:buildTestFunction', 'newer:shell:deployTestFunction']);
 
   grunt.registerTask('release', ['default', 'shell:release']);
 
