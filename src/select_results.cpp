@@ -1,3 +1,4 @@
+#include <gfcpp/SelectResultsIterator.hpp>
 #include "conversions.hpp"
 #include "select_results.hpp"
 
@@ -18,6 +19,8 @@ void SelectResults::Init(Handle<Object> exports) {
 
   NanSetPrototypeTemplate(constructor, "toArray",
       NanNew<FunctionTemplate>(SelectResults::ToArray)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "each",
+      NanNew<FunctionTemplate>(SelectResults::Each)->GetFunction());
 
   NanAssignPersistent(selectResultsConstructor, constructor);
 }
@@ -49,6 +52,24 @@ NAN_METHOD(SelectResults::ToArray) {
   }
 
   NanReturnValue(array);
+}
+
+NAN_METHOD(SelectResults::Each) {
+  NanScope();
+
+  SelectResults * selectResults = ObjectWrap::Unwrap<SelectResults>(args.This());
+  SelectResultsPtr selectResultsPtr = selectResults->selectResultsPtr;
+
+  SelectResultsIterator iterator = selectResultsPtr->getIterator();
+  Local<Function> callback = Local<Function>::Cast(args[0]);
+
+  while (iterator.hasNext()) {
+    const unsigned int argc = 1;
+    Handle<Value> argv[argc] = { v8ValueFromGemfire(iterator.next()) };
+    Local<Value> regionHandle = NanMakeCallback(args.This(), callback, argc, argv);
+  }
+
+  NanReturnValue(args.This());
 }
 
 }  // namespace node_gemfire
