@@ -17,7 +17,7 @@ Persistent<FunctionTemplate> regionConstructor;
 void Region::Init(Handle<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>(Region::New);
+  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
 
   constructor->SetClassName(NanNew("Region"));
   constructor->InstanceTemplate()->SetInternalFieldCount(1);
@@ -32,14 +32,6 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
 
   NanAssignPersistent(regionConstructor, constructor);
-
-  exports->Set(NanNew("Region"), regionConstructor->GetFunction());
-}
-
-NAN_METHOD(Region::New) {
-  NanScope();
-
-  NanReturnValue(args.This());
 }
 
 NAN_METHOD(Region::GetRegion) {

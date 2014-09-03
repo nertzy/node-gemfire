@@ -25,7 +25,6 @@ class Region : node::ObjectWrap {
 
     static void Init(Handle<Object> exports);
     static NAN_METHOD(GetRegion);
-    static NAN_METHOD(New);
     static NAN_METHOD(Clear);
     static NAN_METHOD(Put);
     static NAN_METHOD(Get);

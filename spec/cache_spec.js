@@ -72,7 +72,7 @@ describe("gemfire.Cache", function() {
 
     it("returns a gemfire.Region object", function() {
       var region = cache.getRegion("exampleRegion");
-      expect(region.constructor).toEqual(gemfire.Region);
+      expect(region.constructor.name).toEqual("Region");
     });
 
     it("returns undefined if the region is unknown", function(){
