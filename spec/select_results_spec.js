@@ -38,5 +38,13 @@ describe("SelectResults", function() {
       expect(callback).toHaveBeenCalledWith("two");
       expect(callback).toHaveBeenCalledWith("three");
     });
+
+    it("throws an error if a callback is not passed", function() {
+      function callWithoutCallback() {
+        selectResults.each();
+      }
+
+      expect(callWithoutCallback).toThrow("You must pass a callback to each()");
+    });
   });
 });

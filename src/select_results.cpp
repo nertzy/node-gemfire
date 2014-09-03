@@ -57,6 +57,11 @@ NAN_METHOD(SelectResults::ToArray) {
 NAN_METHOD(SelectResults::Each) {
   NanScope();
 
+  if (args.Length() == 0 || !args[0]->IsFunction()) {
+    NanThrowError("You must pass a callback to each()");
+    NanReturnUndefined();
+  }
+
   SelectResults * selectResults = ObjectWrap::Unwrap<SelectResults>(args.This());
   SelectResultsPtr selectResultsPtr = selectResults->selectResultsPtr;
 
