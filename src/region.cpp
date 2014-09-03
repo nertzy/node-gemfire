@@ -5,7 +5,6 @@
 #include <string>
 #include "conversions.hpp"
 #include "exceptions.hpp"
-#include "event.hpp"
 #include "cache.hpp"
 
 using namespace v8;
