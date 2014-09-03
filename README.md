@@ -37,6 +37,10 @@ region.get('foo', function(error, value) { console.log("get: ", value); });
 
 cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, results){
   console.log("executeQuery: ", results.toArray());
+
+  results.each(function(result) {
+    console.log(result);
+  });
 });
 
 region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"], function(error, results){
