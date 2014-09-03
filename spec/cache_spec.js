@@ -38,6 +38,11 @@ describe("gemfire.Cache", function() {
       expectExternalFailure("missing_xml_file", done, expectedMessage);
     });
 
+    it("throws an exception if setReadSerialized not set to true", function(done) {
+      var expectedMessage = "<pdx read-serialized='true' /> must be set in your cache xml";
+      expectExternalFailure("not_pdx_read_serialized", done, expectedMessage);
+    });
+
     it("accepts an xml file path", function(done) {
       expectExternalSuccess("correct_xml_file", done);
     });
