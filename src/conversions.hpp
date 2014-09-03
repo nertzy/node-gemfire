@@ -7,6 +7,8 @@
 
 using namespace v8;
 
+namespace node_gemfire {
+
 gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
 gemfire::PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object,
@@ -14,20 +16,11 @@ gemfire::PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object,
 
 Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
-Handle<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstance);
+Handle<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
+Handle<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
+Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
 
-template<typename T> Handle<Array> v8ValueFromGemfire(const T & vectorPtr) {
-  NanScope();
-
-  unsigned int length = vectorPtr->size();
-
-  Local<Array> array = NanNew<Array>(length);
-  for (unsigned int i = 0; i < length; i++) {
-    array->Set(i, v8ValueFromGemfire((*vectorPtr)[i]));
-  }
-
-  NanReturnValue(array);
-}
+}  // namespace node_gemfire
 
 #define __CONVERSIONS_HPP__
 #endif

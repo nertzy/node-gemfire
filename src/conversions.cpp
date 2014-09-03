@@ -5,9 +5,12 @@
 #include <sstream>
 #include "conversions.hpp"
 #include "exceptions.hpp"
+#include "select_results.hpp"
 
 using namespace v8;
 using namespace gemfire;
+
+namespace node_gemfire {
 
 void randomString(char * str, const unsigned int length) {
   static const char alphanum[] =
@@ -246,3 +249,26 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
 
   NanReturnValue(v8Object);
 }
+
+Handle<Object> v8ValueFromGemfire(const SelectResultsPtr & selectResultsPtr) {
+  NanScope();
+
+  Handle<Object> selectResults = SelectResults::NewInstance(selectResultsPtr);
+
+  NanReturnValue(selectResults);
+}
+
+Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr) {
+  NanScope();
+
+  unsigned int length = vectorPtr->size();
+
+  Local<Array> array = NanNew<Array>(length);
+  for (unsigned int i = 0; i < length; i++) {
+    array->Set(i, v8ValueFromGemfire((*vectorPtr)[i]));
+  }
+
+  NanReturnValue(array);
+}
+
+}  // namespace node_gemfire

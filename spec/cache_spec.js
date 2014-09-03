@@ -96,7 +96,7 @@ describe("gemfire.Cache", function() {
 
       var query = "SELECT DISTINCT * FROM /exampleRegion";
 
-      var results = cache.executeQuery(query);
+      var results = cache.executeQuery(query).toArray();
 
       expect(results.length).toEqual(2);
 
@@ -110,7 +110,7 @@ describe("gemfire.Cache", function() {
 
       var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
 
-      var results = cache.executeQuery(query);
+      var results = cache.executeQuery(query).toArray();
 
       expect(results.length).toEqual(1);
 
@@ -124,7 +124,7 @@ describe("gemfire.Cache", function() {
       region.put("empty", {});
 
       const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
-      const results = cache.executeQuery(query);
+      const results = cache.executeQuery(query).toArray();
 
       expect(results.length).toEqual(1);
       expect(results).toContain(object);
@@ -137,7 +137,7 @@ describe("gemfire.Cache", function() {
 
       var query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
 
-      var results = cache.executeQuery(query);
+      var results = cache.executeQuery(query).toArray();
 
       expect(results.length).toEqual(1);
 
@@ -148,7 +148,7 @@ describe("gemfire.Cache", function() {
       region.put("object", { foo: 1, bar: 2, baz: 3 });
 
       const query = "SELECT foo, bar FROM /exampleRegion";
-      const results = cache.executeQuery(query);
+      const results = cache.executeQuery(query).toArray();
 
       expect(results.length).toEqual(1);
       expect(results[0]).toEqual({ foo: 1, bar: 2 });
@@ -160,7 +160,7 @@ describe("gemfire.Cache", function() {
 
       var query = "SELECT DISTINCT * FROM /exampleRegion";
 
-      var results = cache.executeQuery(query);
+      var results = cache.executeQuery(query).toArray();
 
       expect(results.length).toEqual(2);
 
@@ -173,11 +173,11 @@ describe("gemfire.Cache", function() {
       region.put("wide string", "日本");
 
       var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
-      var narrowResults = cache.executeQuery(narrowQuery);
+      var narrowResults = cache.executeQuery(narrowQuery).toArray();
       expect(narrowResults).toEqual(["narrow string"]);
 
       var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
-      var wideResults = cache.executeQuery(wideQuery);
+      var wideResults = cache.executeQuery(wideQuery).toArray();
       expect(wideResults).toEqual(["wide string"]);
     });
 
@@ -210,7 +210,7 @@ describe("gemfire.Cache", function() {
         var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
         cache.executeQuery(wideQuery, function(error, results){
           expect(error).toBeNull();
-          expect(results).toEqual(["wide string"]);
+          expect(results.toArray()).toEqual(["wide string"]);
           done();
         });
       });

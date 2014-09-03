@@ -25,6 +25,7 @@
       "src/conversions.cpp",
       "src/cache.cpp",
       "src/region.cpp",
+      "src/select_results.cpp",
     ]
   },
   "targets": [

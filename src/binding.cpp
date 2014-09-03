@@ -5,6 +5,7 @@
 #include <gfcpp/CacheFactory.hpp>
 #include "cache.hpp"
 #include "region.hpp"
+#include "select_results.hpp"
 
 using namespace v8;
 
@@ -21,6 +22,7 @@ static void Initialize(Handle<Object> exports) {
 
   node_gemfire::Cache::Init(exports);
   node_gemfire::Region::Init(exports);
+  node_gemfire::SelectResults::Init(exports);
 }
 
 NODE_MODULE(gemfire, Initialize)
