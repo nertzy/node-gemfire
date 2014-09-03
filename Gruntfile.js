@@ -57,9 +57,6 @@ module.exports = function(grunt) {
         stopLocator: {
           command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopLocator.gfsh'
         },
-        installTestFunction: {
-          command: "cd tmp/gemfire && gfsh deploy --jar=/project/spec/support/java/function/build/libs/function.jar"
-        },
         buildTestFunction: {
           command: 'cd spec/support/java/function/ && ./gradlew build'
         },
