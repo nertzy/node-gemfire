@@ -58,7 +58,9 @@ class GetBaton {
     Persistent<Function> callback;
     gemfire::RegionPtr regionPtr;
     gemfire::CacheableKeyPtr keyPtr;
+
     gemfire::CacheablePtr valuePtr;
+    std::string errorMessage;
 };
 
 class PutBaton {
