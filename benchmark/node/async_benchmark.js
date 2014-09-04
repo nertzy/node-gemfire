@@ -6,6 +6,8 @@ var gemfire = require('../..');
 var cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 var region = cache.getRegion("exampleRegion");
 
+const Q = require("q");
+
 region.clear();
 
 console.log("node-gemfire version " + gemfire.version);
@@ -35,10 +37,12 @@ var stringValue = randomString(valueOptions);
 var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
-function benchmark(numberOfPuts, title, done, callback) {
+function benchmark(numberOfPuts, title, callback) {
+  var deferred = Q.defer();
+
   var start = microtime.now();
 
-  callback(numberOfPuts, function(){
+  callback(numberOfPuts).then(function(){
     var microseconds = microtime.now() - start;
     var seconds = (microseconds / 1000000);
 
@@ -49,50 +53,46 @@ function benchmark(numberOfPuts, title, done, callback) {
       "(" + title + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
     );
 
-    done();
+    deferred.resolve();
   });
+
+  return deferred.promise;
 }
 
 function putNValues(value) {
-  return function(n, done) {
+  return function(n) {
+    var deferred = Q.defer();
     var success = 0;
 
     var i = 0;
 
     _.times(n, function(pair) {
       suffix++;
-      region.put(gemfireKey + suffix, value, function(error){
-        if(error) {
-          throw error;
-        }
-
+      region.put(gemfireKey + suffix, value, function() {
         i++;
 
         if(i == n) {
-          done();
+          deferred.resolve();
         }
-      } );
+      });
     });
+
+    return deferred.promise;
   };
 }
 
-function benchmarkObjects(numberOfPuts, done){
-  benchmark(numberOfPuts, "object", done, putNValues(randomObject));
+function benchmarkObjects(numberOfPuts){
+  return benchmark(numberOfPuts, "object", putNValues(randomObject));
 }
 
-function benchmarkStrings(numberOfPuts, done){
-  benchmark(numberOfPuts, "string", done, putNValues(stringValue));
+function benchmarkStrings(numberOfPuts){
+  return benchmark(numberOfPuts, "string", putNValues(stringValue));
 }
 
-benchmarkObjects(1, function(){
-  benchmarkObjects(10, function () {
-    benchmarkObjects(100, function () {
-      benchmarkStrings(100, function () {
-        benchmarkStrings(1000, function () {
-          benchmarkStrings(10000, function () {
-          });
-        });
-      });
-    });
-  });
-});
+Q()
+  .then(function(){ return benchmarkObjects(1); })
+  .then(function(){ return benchmarkObjects(10); })
+  .then(function(){ return benchmarkObjects(100); })
+  .then(function(){ return benchmarkStrings(100); })
+  .then(function(){ return benchmarkStrings(1000); })
+  .then(function(){ return benchmarkStrings(10000); });
