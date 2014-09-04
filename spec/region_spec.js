@@ -439,7 +439,7 @@ describe("gemfire.Region", function() {
         region.executeFunction("com.example.Nonexistent", function(error, results) {
           expect(error).not.toBeNull();
           expect(error.message).toEqual(
-            "gemfire::Exception: Execute::GET_FUNCTION_ATTRIBUTES: message from server could not be handled"
+            "gemfire::MessageException: Execute::GET_FUNCTION_ATTRIBUTES: message from server could not be handled"
           );
           expect(results).toBeUndefined();
           done();

@@ -308,11 +308,9 @@ void Region::AsyncExecuteFunction(uv_work_t * request) {
 
   try {
     baton->resultsPtr = executionPtr->execute(baton->functionName.c_str())->getResult();
-    baton->executionSucceded = true;
   }
   catch (gemfire::Exception &exception) {
-    baton->exceptionPtr = new gemfire::Exception(exception);
-    baton->executionSucceded = false;
+    baton->errorMessage = gemfireExceptionMessage(exception);
   }
 }
 
@@ -322,7 +320,7 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
   Local<Value> error;
   Local<Value> returnValue;
 
-  if (baton->executionSucceded) {
+  if (baton->errorMessage.empty()) {
     Handle<Array> resultsArray(v8ValueFromGemfire(baton->resultsPtr));
     error = NanNull();
 
@@ -343,7 +341,7 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
 
     returnValue = NanNew(resultsArray);
   } else {
-    error = NanError(gemfireExceptionMessage(*(baton->exceptionPtr)).c_str());
+    error = NanError(baton->errorMessage.c_str());
     returnValue = NanUndefined();
   }
 
