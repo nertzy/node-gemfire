@@ -95,8 +95,7 @@ class ExecuteFunctionBaton {
                                   Handle<Function> callback) :
         regionPtr(regionPtr),
         functionName(functionName),
-        functionArguments(functionArguments),
-        executionSucceded(false) {
+        functionArguments(functionArguments) {
       NanAssignPersistent(this->callback, callback);
     }
 
@@ -109,10 +108,8 @@ class ExecuteFunctionBaton {
     gemfire::CacheablePtr functionArguments;
     Persistent<Function> callback;
 
-    bool executionSucceded;
-
     gemfire::CacheableVectorPtr resultsPtr;
-    gemfire::ExceptionPtr exceptionPtr;
+    std::string errorMessage;
 };
 
 }  // namespace node_gemfire
