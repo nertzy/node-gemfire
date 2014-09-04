@@ -24,9 +24,10 @@ void Cache::Init(Handle<Object> exports) {
 
   NanSetPrototypeTemplate(cacheConstructorTemplate, "executeQuery",
       NanNew<FunctionTemplate>(Cache::ExecuteQuery)->GetFunction());
-
   NanSetPrototypeTemplate(cacheConstructorTemplate, "getRegion",
       NanNew<FunctionTemplate>(Cache::GetRegion)->GetFunction());
+  NanSetPrototypeTemplate(cacheConstructorTemplate, "inspect",
+      NanNew<FunctionTemplate>(Cache::Inspect)->GetFunction());
 
   exports->Set(NanNew("Cache"), cacheConstructorTemplate->GetFunction());
 }
@@ -154,6 +155,11 @@ NAN_METHOD(Cache::GetRegion) {
   Local<Value> regionHandle(NanMakeCallback(args.This(), regionGetRegionFunction, argc, argv));
 
   NanReturnValue(regionHandle);
+}
+
+NAN_METHOD(Cache::Inspect) {
+  NanScope();
+  NanReturnValue(NanNew("[Cache]"));
 }
 
 }  // namespace node_gemfire

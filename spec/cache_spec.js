@@ -247,4 +247,10 @@ describe("gemfire.Cache", function() {
       });
     });
   });
+
+  describe(".inspect", function() {
+    it("returns a user-friendly display string describing the cache", function() {
+      expect(factories.getCache().inspect()).toEqual('[Cache]');
+    });
+  });
 });
