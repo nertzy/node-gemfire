@@ -93,7 +93,7 @@ NAN_METHOD(Cache::ExecuteQuery) {
     try {
       selectResultsPtr = queryPtr->execute();
     }
-    catch(const QueryException & exception) {
+    catch(const gemfire::Exception & exception) {
       ThrowGemfireException(exception);
       NanReturnUndefined();
     }
@@ -107,13 +107,9 @@ void Cache::AsyncExecuteQuery(uv_work_t * request) {
 
   try {
     baton->selectResultsPtr = baton->queryPtr->execute();
-    baton->queryExceptionPtr = NULLPTR;
-    baton->querySucceeded = true;
   }
-  catch(const QueryException & exception) {
-    baton->selectResultsPtr = NULLPTR;
-    baton->queryExceptionPtr = new QueryException(exception);
-    baton->querySucceeded = false;
+  catch(const gemfire::Exception & exception) {
+    baton->errorMessage = gemfireExceptionMessage(exception);
   }
 }
 
@@ -125,11 +121,11 @@ void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
   Local<Value> error;
   Local<Value> returnValue;
 
-  if (baton->querySucceeded) {
+  if (baton->errorMessage.empty()) {
     error = NanNull();
     returnValue = NanNew(v8ValueFromGemfire(baton->selectResultsPtr));
   } else {
-    error = NanError(gemfireExceptionMessage(*(baton->queryExceptionPtr)).c_str());
+    error = NanError(baton->errorMessage.c_str());
     returnValue = NanUndefined();
   }
 
