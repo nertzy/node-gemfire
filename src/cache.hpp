@@ -26,6 +26,7 @@ class Cache : public node::ObjectWrap {
     static NAN_METHOD(New);
     static NAN_METHOD(ExecuteQuery);
     static NAN_METHOD(GetRegion);
+    static NAN_METHOD(Inspect);
     static void AsyncExecuteQuery(uv_work_t * request);
     static void AfterAsyncExecuteQuery(uv_work_t * request, int status);
 };
