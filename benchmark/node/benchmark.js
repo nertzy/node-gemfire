@@ -28,7 +28,7 @@ var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
 function putNObjects(n){
-  _.times(n, function(pair) {
+  _.times(n, function() {
     suffix++;
     region.put(gemfireKey + suffix, randomObject);
   });
@@ -44,7 +44,7 @@ var stringValueOptions = {
 var stringValue = randomString(stringValueOptions);
 
 function putNStrings(n){
-  _.times(n, function(pair) {
+  _.times(n, function() {
     suffix++;
     region.put(gemfireKey + suffix, stringValue);
   });
