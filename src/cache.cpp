@@ -45,7 +45,7 @@ NAN_METHOD(Cache::New) {
   CachePtr cachePtr;
   try {
     cachePtr = cacheFactory->create();
-  } catch(gemfire::CacheXmlException & exception) {
+  } catch(const gemfire::Exception & exception) {
     ThrowGemfireException(exception);
     NanReturnUndefined();
   }
