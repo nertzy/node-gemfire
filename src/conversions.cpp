@@ -98,7 +98,7 @@ gemfire::CacheableKeyPtr gemfireKeyFromV8(const Handle<Value> & v8Value, const C
   try {
     keyPtr = gemfireValueFromV8(v8Value, cachePtr);
   }
-  catch(ClassCastException & exception) {
+  catch(const ClassCastException & exception) {
     NanThrowError("Invalid GemFire key");
     return NULLPTR;
   }
@@ -126,7 +126,7 @@ Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
       try {
         pdxInstance->getField(key, value);
       }
-      catch(gemfire::IllegalStateException &exception) {
+      catch(const gemfire::IllegalStateException & exception) {
         // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
         // triggers an exception. We don't know a better way to detect that we are about to read in
         // an array, so for now we catch the exception and assume we are receiving an array.
