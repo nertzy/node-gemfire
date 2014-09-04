@@ -12,7 +12,7 @@ Persistent<FunctionTemplate> selectResultsConstructor;
 void SelectResults::Init(Handle<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
+  Local<FunctionTemplate> constructor(NanNew<FunctionTemplate>());
 
   constructor->SetClassName(NanNew("SelectResults"));
   constructor->InstanceTemplate()->SetInternalFieldCount(1);
@@ -30,7 +30,7 @@ Handle<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResults
 
   const unsigned int argc = 0;
   Handle<Value> argv[argc] = {};
-  Handle<Object> v8Object = selectResultsConstructor->GetFunction()->NewInstance(argc, argv);
+  Handle<Object> v8Object(selectResultsConstructor->GetFunction()->NewInstance(argc, argv));
 
   SelectResults * selectResults = new SelectResults(selectResultsPtr);
   selectResults->Wrap(v8Object);
@@ -42,11 +42,11 @@ NAN_METHOD(SelectResults::ToArray) {
   NanScope();
 
   SelectResults * selectResults = ObjectWrap::Unwrap<SelectResults>(args.This());
-  SelectResultsPtr selectResultsPtr = selectResults->selectResultsPtr;
+  SelectResultsPtr selectResultsPtr(selectResults->selectResultsPtr);
 
   unsigned int length = selectResultsPtr->size();
 
-  Local<Array> array = NanNew<Array>(length);
+  Local<Array> array(NanNew<Array>(length));
   for (unsigned int i = 0; i < length; i++) {
     array->Set(i, v8ValueFromGemfire((*selectResultsPtr)[i]));
   }
@@ -63,15 +63,15 @@ NAN_METHOD(SelectResults::Each) {
   }
 
   SelectResults * selectResults = ObjectWrap::Unwrap<SelectResults>(args.This());
-  SelectResultsPtr selectResultsPtr = selectResults->selectResultsPtr;
+  SelectResultsPtr selectResultsPtr(selectResults->selectResultsPtr);
 
-  SelectResultsIterator iterator = selectResultsPtr->getIterator();
-  Local<Function> callback = Local<Function>::Cast(args[0]);
+  SelectResultsIterator iterator(selectResultsPtr->getIterator());
+  Local<Function> callback(Local<Function>::Cast(args[0]));
 
   while (iterator.hasNext()) {
     const unsigned int argc = 1;
     Handle<Value> argv[argc] = { v8ValueFromGemfire(iterator.next()) };
-    Local<Value> regionHandle = NanMakeCallback(args.This(), callback, argc, argv);
+    Local<Value> regionHandle(NanMakeCallback(args.This(), callback, argc, argv));
   }
 
   NanReturnValue(args.This());
