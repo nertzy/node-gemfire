@@ -8,8 +8,6 @@ var region = cache.getRegion("exampleRegion");
 
 const Q = require("q");
 
-region.clear();
-
 console.log("node-gemfire version " + gemfire.version);
 console.log("GemFire version " + gemfire.gemfireVersion);
 
@@ -38,8 +36,9 @@ var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
 function benchmark(numberOfPuts, title, callback) {
-  var deferred = Q.defer();
+  region.clear();
 
+  var deferred = Q.defer();
   var start = microtime.now();
 
   callback(numberOfPuts).then(function(){
@@ -64,11 +63,15 @@ function putNValues(value) {
   var successes = 0;
 
   return function(iterationCount) {
-    function putCallback() {
-      successes++;
+    function putCallback(error) {
+      if(error) {
+        throw error;
+      } else {
+        successes++;
 
-      if(successes == iterationCount) {
-        deferred.resolve();
+        if(successes == iterationCount) {
+          deferred.resolve();
+        }
       }
     }
 
