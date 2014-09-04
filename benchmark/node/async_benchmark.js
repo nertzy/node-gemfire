@@ -64,16 +64,17 @@ function putNValues(value) {
     var deferred = Q.defer();
 
     var successes = 0;
+    function putCallback() {
+      successes++;
+
+      if(successes == iterationCount) {
+        deferred.resolve();
+      }
+    }
 
     for(var i = 0; i < iterationCount; i++) {
       suffix++;
-      region.put(gemfireKey + suffix, value, function() {
-        successes++;
-
-        if(successes == iterationCount) {
-          deferred.resolve();
-        }
-      });
+      region.put(gemfireKey + suffix, value, putCallback);
     }
 
     return deferred.promise;
