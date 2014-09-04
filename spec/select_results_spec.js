@@ -47,4 +47,10 @@ describe("SelectResults", function() {
       expect(callWithoutCallback).toThrow("You must pass a callback to each()");
     });
   });
+
+  describe(".inspect", function() {
+    it("returns a user-friendly display string describing the select results", function() {
+      expect(selectResults.inspect()).toEqual('[SelectResults size=3]');
+    });
+  });
 });

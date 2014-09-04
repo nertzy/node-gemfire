@@ -18,6 +18,7 @@ class SelectResults : public node::ObjectWrap {
   static Handle<Object> NewInstance(const gemfire::SelectResultsPtr & selectResultsPtr);
   static NAN_METHOD(ToArray);
   static NAN_METHOD(Each);
+  static NAN_METHOD(Inspect);
 
  private:
   gemfire::SelectResultsPtr selectResultsPtr;
