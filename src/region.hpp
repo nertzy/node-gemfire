@@ -83,6 +83,8 @@ class PutBaton {
     gemfire::RegionPtr regionPtr;
     gemfire::CacheableKeyPtr keyPtr;
     gemfire::CacheablePtr valuePtr;
+
+    std::string errorMessage;
 };
 
 class ExecuteFunctionBaton {

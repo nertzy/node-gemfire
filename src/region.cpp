@@ -104,10 +104,10 @@ NAN_METHOD(Region::Put) {
       Local<Value> argv[2] = { error, NanUndefined() };
       NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
     } else {
-      PutBaton * putBaton = new PutBaton(callback, regionPtr, keyPtr, valuePtr);
+      PutBaton * baton = new PutBaton(callback, regionPtr, keyPtr, valuePtr);
 
       uv_work_t * request = new uv_work_t();
-      request->data = reinterpret_cast<void *>(putBaton);
+      request->data = reinterpret_cast<void *>(baton);
 
       uv_queue_work(uv_default_loop(), request, region->AsyncPut, region->AfterAsyncPut);
     }
@@ -119,30 +119,49 @@ NAN_METHOD(Region::Put) {
       NanReturnUndefined();
     }
 
-    regionPtr->put(keyPtr, valuePtr);
+    try {
+      regionPtr->put(keyPtr, valuePtr);
+    }
+    catch (gemfire::Exception & exception) {
+      ThrowGemfireException(exception);
+      NanReturnUndefined();
+    }
     NanReturnValue(args[1]);
   }
 }
 
 void Region::AsyncPut(uv_work_t * request) {
-  PutBaton * putBaton = reinterpret_cast<PutBaton *>(request->data);
-  putBaton->regionPtr->put(putBaton->keyPtr, putBaton->valuePtr);
+  PutBaton * baton = reinterpret_cast<PutBaton *>(request->data);
+  try {
+    baton->regionPtr->put(baton->keyPtr, baton->valuePtr);
+  }
+  catch (gemfire::Exception & exception) {
+    baton->errorMessage = gemfireExceptionMessage(exception);
+  }
 }
 
 void Region::AfterAsyncPut(uv_work_t * request, int status) {
   NanScope();
 
-  PutBaton * putBaton = reinterpret_cast<PutBaton *>(request->data);
+  PutBaton * baton = reinterpret_cast<PutBaton *>(request->data);
 
-  Local<Value> error(NanNull());
-  Local<Value> returnValue(NanNew(v8ValueFromGemfire(putBaton->valuePtr)));
+  Local<Value> error;
+  Local<Value> returnValue;
+
+  if (baton->errorMessage.empty()) {
+    error = NanNull();
+    returnValue = NanNew(v8ValueFromGemfire(baton->valuePtr));
+  } else {
+    error = NanError(baton->errorMessage.c_str());
+    returnValue = NanUndefined();
+  }
 
   static const int argc = 2;
   Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), putBaton->callback, argc, argv);
+  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
 
   delete request;
-  delete putBaton;
+  delete baton;
 }
 
 NAN_METHOD(Region::Get) {
