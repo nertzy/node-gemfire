@@ -33,9 +33,6 @@ module.exports = function(grunt) {
         benchmarkNodeAsync: {
           command: runNode('benchmark/node/async_benchmark.js')
         },
-        benchmarkNodeAsyncString: {
-          command: runNode('benchmark/node/async_string_benchmark.js')
-        },
         benchmarkNodeOql: {
           command: runNode('benchmark/node/oql.js')
         },
@@ -121,7 +118,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
   grunt.registerTask('benchmark:node:async', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsync']);
-  grunt.registerTask('benchmark:node:async:string', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeAsyncString']);
   grunt.registerTask('benchmark:node:oql', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeOql']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
@@ -142,7 +138,6 @@ module.exports = function(grunt) {
   grunt.registerTask('benchmark', [
     'benchmark:node',
     'benchmark:node:async',
-    'benchmark:node:async:string',
     'benchmark:java'
   ]);
 
