@@ -23,35 +23,22 @@ var keyOptions = {
   special: false
 };
 
+var valueOptions = {
+  length: 15 * 1024,
+  numeric: true,
+  letter: true,
+  special: true
+};
+
 var randomObject = require('../data/randomObject.json');
+var stringValue = randomString(valueOptions);
 var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
-function putNValues(n, done){
-  var success = 0;
-
-  var i = 0;
-
-  _.times(n, function(pair) {
-    suffix++;
-    region.put(gemfireKey + suffix, randomObject, function(error){
-      if(error) {
-        throw error;
-      }
-
-      i++;
-
-      if(i == n) {
-        done();
-      }
-    } );
-  });
-}
-
-function benchmark(numberOfPuts, done){
+function benchmark(numberOfPuts, title, done, callback) {
   var start = microtime.now();
 
-  putNValues(numberOfPuts, function(){
+  callback(numberOfPuts, function(){
     var microseconds = microtime.now() - start;
     var seconds = (microseconds / 1000000);
 
@@ -59,16 +46,53 @@ function benchmark(numberOfPuts, done){
     var usecPerPut = Math.round(microseconds / numberOfPuts);
 
     console.log(
-      "(object) " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+      "(" + title + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
     );
 
     done();
   });
 }
 
-benchmark(1, function(){
-  benchmark(10, function () {
-    benchmark(100, function () {
+function putNValues(value) {
+  return function(n, done) {
+    var success = 0;
+
+    var i = 0;
+
+    _.times(n, function(pair) {
+      suffix++;
+      region.put(gemfireKey + suffix, value, function(error){
+        if(error) {
+          throw error;
+        }
+
+        i++;
+
+        if(i == n) {
+          done();
+        }
+      } );
+    });
+  };
+}
+
+function benchmarkObjects(numberOfPuts, done){
+  benchmark(numberOfPuts, "object", done, putNValues(randomObject));
+}
+
+function benchmarkStrings(numberOfPuts, done){
+  benchmark(numberOfPuts, "string", done, putNValues(stringValue));
+}
+
+benchmarkObjects(1, function(){
+  benchmarkObjects(10, function () {
+    benchmarkObjects(100, function () {
+      benchmarkStrings(100, function () {
+        benchmarkStrings(1000, function () {
+          benchmarkStrings(10000, function () {
+          });
+        });
+      });
     });
   });
 });
