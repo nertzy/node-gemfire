@@ -26,6 +26,16 @@ describe("gemfire.Region", function() {
       expect(getWithoutKey).toThrow("You must pass a key to get()");
     });
 
+    it("throws an error when passed keys that are not valid", function() {
+      expect(function() { region.get(null); }).toThrow("Invalid GemFire key");
+      expect(function() { region.get(undefined); }).toThrow("Invalid GemFire key");
+      expect(function() { region.get([]); }).toThrow("Invalid GemFire key");
+
+      expect(function() { region.put(null, "foo"); }).toThrow("Invalid GemFire key");
+      expect(function() { region.put(undefined, "foo"); }).toThrow("Invalid GemFire key");
+      expect(function() { region.put([], "foo"); }).toThrow("Invalid GemFire key");
+    });
+
     describe("async get", function() {
       beforeEach(function(){
         region.put('foo', 'bar');
