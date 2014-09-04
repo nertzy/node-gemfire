@@ -86,8 +86,13 @@ NAN_METHOD(Region::Put) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr = region->regionPtr;
   CachePtr cachePtr = regionPtr->getCache();
-  CacheableKeyPtr keyPtr = gemfireValueFromV8(args[0], cachePtr);
-  CacheablePtr valuePtr = gemfireValueFromV8(args[1], cachePtr);
+
+  CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
+  if (keyPtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
 
   if (args.Length() > 2 && args[2]->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(args[2]);
@@ -99,7 +104,7 @@ NAN_METHOD(Region::Put) {
       Local<Value> argv[2] = { error, NanUndefined() };
       NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
     } else {
-      PutBaton * putBaton = new PutBaton(callback, region->regionPtr, keyPtr, valuePtr);
+      PutBaton * putBaton = new PutBaton(callback, regionPtr, keyPtr, valuePtr);
 
       uv_work_t * request = new uv_work_t();
       request->data = reinterpret_cast<void *>(putBaton);
@@ -151,11 +156,14 @@ NAN_METHOD(Region::Get) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr = region->regionPtr;
 
-  CacheableKeyPtr keyPtr = gemfireValueFromV8(args[0], region->regionPtr->getCache());
+  CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], regionPtr->getCache()));
+  if (keyPtr == NULLPTR) {
+    NanReturnUndefined();
+  }
 
   if (args.Length() > 1 && args[1]->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(args[1]);
-    GetBaton * getBaton = new GetBaton(callback, region->regionPtr, keyPtr);
+    GetBaton * getBaton = new GetBaton(callback, regionPtr, keyPtr);
 
     uv_work_t * request = new uv_work_t();
     request->data = reinterpret_cast<void *>(getBaton);
@@ -208,17 +216,18 @@ NAN_METHOD(Region::ExecuteFunction) {
 
   Local<Value> lastArgument = args[v8ArgsLength - 1];
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr = region->regionPtr;
   std::string functionName(*NanUtf8String(args[0]));
   CacheablePtr functionArguments = NULLPTR;
 
   if (v8ArgsLength > 1 && !args[1]->IsFunction()) {
-    functionArguments = gemfireValueFromV8(args[1], region->regionPtr->getCache());
+    functionArguments = gemfireValueFromV8(args[1], regionPtr->getCache());
   }
 
   if (lastArgument->IsFunction()) {
     Local<Function> callback = Local<Function>::Cast(lastArgument);
 
-    ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(region->regionPtr,
+    ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(regionPtr,
                                                             functionName,
                                                             functionArguments,
                                                             callback);
@@ -233,7 +242,7 @@ NAN_METHOD(Region::ExecuteFunction) {
 
     NanReturnValue(args.This());
   } else {
-    ExecutionPtr executionPtr = FunctionService::onRegion(region->regionPtr);
+    ExecutionPtr executionPtr = FunctionService::onRegion(regionPtr);
     if (functionArguments != NULLPTR) {
       executionPtr = executionPtr->withArgs(functionArguments);
     }

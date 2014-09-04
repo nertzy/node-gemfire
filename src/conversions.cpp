@@ -93,6 +93,19 @@ PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object, const CachePt
   }
 }
 
+gemfire::CacheableKeyPtr gemfireKeyFromV8(const Handle<Value> & v8Value, const CachePtr & cachePtr) {
+  CacheableKeyPtr keyPtr;
+  try {
+    keyPtr = gemfireValueFromV8(v8Value, cachePtr);
+  }
+  catch(ClassCastException & exception) {
+    NanThrowError("Invalid GemFire key");
+    return NULLPTR;
+  }
+
+  return keyPtr;
+}
+
 Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
   try {
     NanScope();
