@@ -48,7 +48,7 @@ function putNValues(n, done){
   });
 }
 
-function benchmark(numberOfPuts){
+function benchmark(numberOfPuts, done){
   var start = microtime.now();
 
   putNValues(numberOfPuts, function(){
@@ -61,7 +61,14 @@ function benchmark(numberOfPuts){
     console.log(
       "(object) " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
     );
+
+    done();
   });
 }
 
-benchmark(10);
+benchmark(1, function(){
+  benchmark(10, function () {
+    benchmark(100, function () {
+    });
+  });
+});
