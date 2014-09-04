@@ -37,11 +37,11 @@ void Region::Init(Handle<Object> exports) {
 NAN_METHOD(Region::GetRegion) {
   NanScope();
 
-  Local<Object> cacheHandle = args[0]->ToObject();
+  Local<Object> cacheHandle(args[0]->ToObject());
 
   Cache * cache = ObjectWrap::Unwrap<Cache>(cacheHandle);
-  CachePtr cachePtr = cache->cachePtr;
-  RegionPtr regionPtr = cachePtr->getRegion(*NanAsciiString(args[1]));
+  CachePtr cachePtr(cache->cachePtr);
+  RegionPtr regionPtr(cachePtr->getRegion(*NanAsciiString(args[1])));
 
   if (regionPtr == NULLPTR) {
     NanReturnUndefined();
@@ -51,7 +51,7 @@ NAN_METHOD(Region::GetRegion) {
 
   const unsigned int argc = 0;
   Handle<Value> argv[] = {};
-  Local<Object> regionHandle = regionConstructor->GetFunction()->NewInstance(argc, argv);
+  Local<Object> regionHandle(regionConstructor->GetFunction()->NewInstance(argc, argv));
 
   region->Wrap(regionHandle);
 
@@ -62,7 +62,7 @@ NAN_METHOD(Region::Clear) {
   NanScope();
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
+  RegionPtr regionPtr(region->regionPtr);
   regionPtr->clear();
 
   NanReturnValue(NanTrue());
@@ -84,8 +84,8 @@ NAN_METHOD(Region::Put) {
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
-  CachePtr cachePtr = regionPtr->getCache();
+  RegionPtr regionPtr(region->regionPtr);
+  CachePtr cachePtr(regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
   if (keyPtr == NULLPTR) {
@@ -95,10 +95,10 @@ NAN_METHOD(Region::Put) {
   CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
 
   if (args.Length() > 2 && args[2]->IsFunction()) {
-    Local<Function> callback = Local<Function>::Cast(args[2]);
+    Local<Function> callback(Local<Function>::Cast(args[2]));
 
     if (valuePtr == NULLPTR) {
-      Local<Value> error = NanNew(unableToPutValueError(args[1]));
+      Local<Value> error(NanNew(unableToPutValueError(args[1])));
 
       static const int argc = 2;
       Local<Value> argv[2] = { error, NanUndefined() };
@@ -134,8 +134,8 @@ void Region::AfterAsyncPut(uv_work_t * request, int status) {
 
   PutBaton * putBaton = reinterpret_cast<PutBaton *>(request->data);
 
-  Local<Value> error = NanNull();
-  Local<Value> returnValue = NanNew(v8ValueFromGemfire(putBaton->valuePtr));
+  Local<Value> error(NanNull());
+  Local<Value> returnValue(NanNew(v8ValueFromGemfire(putBaton->valuePtr)));
 
   static const int argc = 2;
   Local<Value> argv[2] = { error, returnValue };
@@ -154,7 +154,7 @@ NAN_METHOD(Region::Get) {
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
+  RegionPtr regionPtr(region->regionPtr);
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], regionPtr->getCache()));
   if (keyPtr == NULLPTR) {
@@ -162,7 +162,7 @@ NAN_METHOD(Region::Get) {
   }
 
   if (args.Length() > 1 && args[1]->IsFunction()) {
-    Local<Function> callback = Local<Function>::Cast(args[1]);
+    Local<Function> callback(Local<Function>::Cast(args[1]));
     GetBaton * getBaton = new GetBaton(callback, regionPtr, keyPtr);
 
     uv_work_t * request = new uv_work_t();
@@ -172,7 +172,7 @@ NAN_METHOD(Region::Get) {
 
     NanReturnValue(args.This());
   } else {
-    CacheablePtr valuePtr = regionPtr->get(keyPtr);
+    CacheablePtr valuePtr(regionPtr->get(keyPtr));
     NanReturnValue(v8ValueFromGemfire(valuePtr));
   }
 }
@@ -187,7 +187,7 @@ void Region::AfterAsyncGet(uv_work_t * request, int status) {
 
   GetBaton * getBaton = reinterpret_cast<GetBaton *>(request->data);
 
-  Local<Value> returnValue = NanNew(v8ValueFromGemfire(getBaton->valuePtr));
+  Local<Value> returnValue(NanNew(v8ValueFromGemfire(getBaton->valuePtr)));
 
   Local<Value> error;
   if (returnValue->IsUndefined()) {
@@ -214,18 +214,18 @@ NAN_METHOD(Region::ExecuteFunction) {
     NanReturnUndefined();
   }
 
-  Local<Value> lastArgument = args[v8ArgsLength - 1];
+  Local<Value> lastArgument(args[v8ArgsLength - 1]);
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr = region->regionPtr;
+  RegionPtr regionPtr(region->regionPtr);
   std::string functionName(*NanUtf8String(args[0]));
-  CacheablePtr functionArguments = NULLPTR;
+  CacheablePtr functionArguments(NULLPTR);
 
   if (v8ArgsLength > 1 && !args[1]->IsFunction()) {
     functionArguments = gemfireValueFromV8(args[1], regionPtr->getCache());
   }
 
   if (lastArgument->IsFunction()) {
-    Local<Function> callback = Local<Function>::Cast(lastArgument);
+    Local<Function> callback(Local<Function>::Cast(lastArgument));
 
     ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(regionPtr,
                                                             functionName,
@@ -242,14 +242,14 @@ NAN_METHOD(Region::ExecuteFunction) {
 
     NanReturnValue(args.This());
   } else {
-    ExecutionPtr executionPtr = FunctionService::onRegion(regionPtr);
+    ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
     if (functionArguments != NULLPTR) {
       executionPtr = executionPtr->withArgs(functionArguments);
     }
 
     try {
-      ResultCollectorPtr resultCollectorPtr = executionPtr->execute(functionName.c_str());
-      CacheableVectorPtr resultsPtr = resultCollectorPtr->getResult();
+      ResultCollectorPtr resultCollectorPtr(executionPtr->execute(functionName.c_str()));
+      CacheableVectorPtr resultsPtr(resultCollectorPtr->getResult());
       NanReturnValue(v8ValueFromGemfire(resultsPtr));
     }
     catch (gemfire::Exception &exception) {
@@ -262,7 +262,7 @@ NAN_METHOD(Region::ExecuteFunction) {
 void Region::AsyncExecuteFunction(uv_work_t * request) {
   ExecuteFunctionBaton * baton = reinterpret_cast<ExecuteFunctionBaton *>(request->data);
 
-  ExecutionPtr executionPtr = FunctionService::onRegion(baton->regionPtr);
+  ExecutionPtr executionPtr(FunctionService::onRegion(baton->regionPtr));
 
   if (baton->functionArguments != NULLPTR) {
     executionPtr = executionPtr->withArgs(baton->functionArguments);
@@ -285,17 +285,17 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
   Local<Value> returnValue;
 
   if (baton->executionSucceded) {
-    Handle<Array> resultsArray = v8ValueFromGemfire(baton->resultsPtr);
+    Handle<Array> resultsArray(v8ValueFromGemfire(baton->resultsPtr));
     error = NanNull();
 
     unsigned int length = resultsArray->Length();
     if (length > 0) {
-      Handle<Value> lastResult = resultsArray->Get(length - 1);
+      Handle<Value> lastResult(resultsArray->Get(length - 1));
 
       if (lastResult->IsNativeError()) {
         error = NanNew(lastResult);
 
-        Local<Array> resultsExceptLast = NanNew<Array>(length - 1);
+        Local<Array> resultsExceptLast(NanNew<Array>(length - 1));
         for (unsigned int i = 0; i < length - 1; i++) {
           resultsExceptLast->Set(i, resultsArray->Get(i));
         }
@@ -311,8 +311,7 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
 
   const unsigned int argc = 2;
   Handle<Value> argv[argc] = { error, returnValue };
-  Local<Context> ctx = NanGetCurrentContext();
-  NanMakeCallback(ctx->Global(), baton->callback, argc, argv);
+  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
 
   delete request;
   delete baton;
