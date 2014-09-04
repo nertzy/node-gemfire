@@ -60,10 +60,10 @@ function benchmark(numberOfPuts, title, callback) {
 }
 
 function putNValues(value) {
-  return function(iterationCount) {
-    var deferred = Q.defer();
+  var deferred = Q.defer();
+  var successes = 0;
 
-    var successes = 0;
+  return function(iterationCount) {
     function putCallback() {
       successes++;
 
