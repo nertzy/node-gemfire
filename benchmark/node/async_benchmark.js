@@ -60,22 +60,21 @@ function benchmark(numberOfPuts, title, callback) {
 }
 
 function putNValues(value) {
-  return function(n) {
+  return function(iterationCount) {
     var deferred = Q.defer();
-    var success = 0;
 
-    var i = 0;
+    var successes = 0;
 
-    _.times(n, function(pair) {
+    for(var i = 0; i < iterationCount; i++) {
       suffix++;
       region.put(gemfireKey + suffix, value, function() {
-        i++;
+        successes++;
 
-        if(i == n) {
+        if(successes == iterationCount) {
           deferred.resolve();
         }
       });
-    });
+    }
 
     return deferred.promise;
   };
