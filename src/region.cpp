@@ -163,45 +163,64 @@ NAN_METHOD(Region::Get) {
 
   if (args.Length() > 1 && args[1]->IsFunction()) {
     Local<Function> callback(Local<Function>::Cast(args[1]));
-    GetBaton * getBaton = new GetBaton(callback, regionPtr, keyPtr);
+    GetBaton * baton = new GetBaton(callback, regionPtr, keyPtr);
 
     uv_work_t * request = new uv_work_t();
-    request->data = reinterpret_cast<void *>(getBaton);
+    request->data = reinterpret_cast<void *>(baton);
 
     uv_queue_work(uv_default_loop(), request, region->AsyncGet, region->AfterAsyncGet);
 
     NanReturnValue(args.This());
   } else {
-    CacheablePtr valuePtr(regionPtr->get(keyPtr));
+    CacheablePtr valuePtr;
+    try {
+      valuePtr = regionPtr->get(keyPtr);
+    }
+    catch (gemfire::Exception & exception) {
+      ThrowGemfireException(exception);
+      NanReturnUndefined();
+    }
+
     NanReturnValue(v8ValueFromGemfire(valuePtr));
   }
 }
 
 void Region::AsyncGet(uv_work_t * request) {
-  GetBaton * getBaton = reinterpret_cast<GetBaton *>(request->data);
-  getBaton->valuePtr = getBaton->regionPtr->get(getBaton->keyPtr);
+  GetBaton * baton = reinterpret_cast<GetBaton *>(request->data);
+  try {
+    baton->valuePtr = baton->regionPtr->get(baton->keyPtr);
+
+    if (baton->valuePtr == NULLPTR) {
+      baton->errorMessage = "Key not found in region.";
+    }
+  }
+  catch (gemfire::Exception & exception) {
+    baton->errorMessage = gemfireExceptionMessage(exception);
+  }
 }
 
 void Region::AfterAsyncGet(uv_work_t * request, int status) {
   NanScope();
 
-  GetBaton * getBaton = reinterpret_cast<GetBaton *>(request->data);
+  GetBaton * baton = reinterpret_cast<GetBaton *>(request->data);
 
-  Local<Value> returnValue(NanNew(v8ValueFromGemfire(getBaton->valuePtr)));
-
+  Local<Value> returnValue;
   Local<Value> error;
-  if (returnValue->IsUndefined()) {
-    error = NanError("Key not found in region.");
-  } else {
+
+  if (baton->errorMessage.empty())  {
+    returnValue = NanNew(v8ValueFromGemfire(baton->valuePtr));
     error = NanNull();
+  } else {
+    returnValue = NanUndefined();
+    error = NanError(baton->errorMessage.c_str());
   }
 
   static const int argc = 2;
   Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), getBaton->callback, argc, argv);
+  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
 
   delete request;
-  delete getBaton;
+  delete baton;
 }
 
 NAN_METHOD(Region::ExecuteFunction) {
