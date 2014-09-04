@@ -468,4 +468,10 @@ describe("gemfire.Region", function() {
       });
     });
   });
+
+  describe(".inspect", function() {
+    it("returns a user-friendly display string describing the region", function() {
+      expect(region.inspect()).toEqual('[Region name="exampleRegion"]');
+    });
+  });
 });
