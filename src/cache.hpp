@@ -4,6 +4,7 @@
 #include <nan.h>
 #include <node.h>
 #include <gfcpp/Cache.hpp>
+#include <string>
 
 using namespace v8;
 
@@ -43,9 +44,9 @@ class ExecuteQueryBaton {
 
     Persistent<Function> callback;
     gemfire::QueryPtr queryPtr;
+
     gemfire::SelectResultsPtr selectResultsPtr;
-    gemfire::ExceptionPtr queryExceptionPtr;
-    bool querySucceeded;
+    std::string errorMessage;
 };
 
 }  // namespace node_gemfire
