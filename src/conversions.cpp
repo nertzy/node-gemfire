@@ -50,7 +50,7 @@ Handle<String> v8StringFromWstring(const std::wstring & wideString) {
   }
   buffer[length] = 0;
 
-  Local<String> v8String = NanNew(buffer);
+  Local<String> v8String(NanNew(buffer));
   delete[] buffer;
 
   NanReturnValue(v8String);
@@ -63,21 +63,21 @@ PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object, const CachePt
     char pdxClassName[33];
     randomString(pdxClassName, 32);
 
-    PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName);
+    PdxInstanceFactoryPtr pdxInstanceFactory(cachePtr->createPdxInstanceFactory(pdxClassName));
 
-    Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
+    Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
     unsigned int length = v8Keys->Length();
 
     for (unsigned int i = 0; i < length; i++) {
-      Local<Value> v8Key = v8Keys->Get(i);
-      Local<Value> v8Value = v8Object->Get(v8Key);
+      Local<Value> v8Key(v8Keys->Get(i));
+      Local<Value> v8Value(v8Object->Get(v8Key));
 
       // Copy the key string since gemfire is going to clean it up for us
       String::Utf8Value v8String(v8Key);
       char * key = new char[v8String.length()+1];
       snprintf(key, v8String.length() + 1, "%s", *v8String);
 
-      CacheablePtr cacheablePtr = gemfireValueFromV8(v8Value, cachePtr);
+      CacheablePtr cacheablePtr(gemfireValueFromV8(v8Value, cachePtr));
       if (v8Value->IsArray()) {
         pdxInstanceFactory->writeObjectArray(key, cacheablePtr);
       } else {
@@ -110,13 +110,13 @@ Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
   try {
     NanScope();
 
-    CacheableStringArrayPtr gemfireKeys = pdxInstance->getFieldNames();
+    CacheableStringArrayPtr gemfireKeys(pdxInstance->getFieldNames());
 
     if (gemfireKeys == NULLPTR) {
       NanReturnValue(NanNew<Object>());
     }
 
-    Local<Object> v8Object = NanNew<Object>();
+    Local<Object> v8Object(NanNew<Object>());
     int length = gemfireKeys->length();
 
     for (int i = 0; i < length; i++) {
@@ -164,7 +164,7 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
 
     gemfireValuePtr = CacheableDate::create(timeSinceEpoch);
   } else if (v8Value->IsArray()) {
-    Handle<Array> v8Array = Handle<Array>::Cast(v8Value);
+    Handle<Array> v8Array(Handle<Array>::Cast(v8Value));
     unsigned int length = v8Array->Length();
 
     gemfireValuePtr = CacheableObjectArray::create();
@@ -214,10 +214,10 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     NanReturnValue(v8ValueFromGemfire((StructPtr) valuePtr));
   }
   if (typeId == GemfireTypeIds::CacheableObjectArray) {
-    CacheableObjectArrayPtr gemfireArray = (CacheableObjectArrayPtr) valuePtr;
+    CacheableObjectArrayPtr gemfireArray(valuePtr);
     unsigned int length = gemfireArray->length();
 
-    Handle<Array> v8Array = NanNew<Array>(length);
+    Handle<Array> v8Array(NanNew<Array>(length));
     for (unsigned int i = 0; i < length; i++) {
       v8Array->Set(i, v8ValueFromGemfire((*gemfireArray)[i]));
     }
@@ -252,7 +252,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   NanScope();
 
-  Local<Object> v8Object = NanNew<Object>();
+  Local<Object> v8Object(NanNew<Object>());
 
   unsigned int length = structPtr->length();
   for (unsigned int i = 0; i < length; i++) {
@@ -266,7 +266,7 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
 Handle<Object> v8ValueFromGemfire(const SelectResultsPtr & selectResultsPtr) {
   NanScope();
 
-  Handle<Object> selectResults = SelectResults::NewInstance(selectResultsPtr);
+  Handle<Object> selectResults(SelectResults::NewInstance(selectResultsPtr));
 
   NanReturnValue(selectResults);
 }
@@ -276,7 +276,7 @@ Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr) 
 
   unsigned int length = vectorPtr->size();
 
-  Local<Array> array = NanNew<Array>(length);
+  Local<Array> array(NanNew<Array>(length));
   for (unsigned int i = 0; i < length; i++) {
     array->Set(i, v8ValueFromGemfire((*vectorPtr)[i]));
   }

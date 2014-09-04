@@ -39,8 +39,9 @@ NAN_METHOD(Cache::New) {
     NanReturnUndefined();
   }
 
-  CacheFactoryPtr cacheFactory = CacheFactory::createCacheFactory()
-    ->set("cache-xml-file", *NanAsciiString(args[0]));
+  CacheFactoryPtr cacheFactory(
+      CacheFactory::createCacheFactory()
+          ->set("cache-xml-file", *NanAsciiString(args[0])));
 
   CachePtr cachePtr;
   try {
@@ -71,14 +72,14 @@ NAN_METHOD(Cache::ExecuteQuery) {
   }
 
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
-  CachePtr cachePtr = cache->cachePtr;
+  CachePtr cachePtr(cache->cachePtr);
 
-  QueryServicePtr queryServicePtr = cachePtr->getQueryService();
+  QueryServicePtr queryServicePtr(cachePtr->getQueryService());
   String::Utf8Value queryString(args[0]);
-  QueryPtr queryPtr = queryServicePtr->newQuery(*queryString);
+  QueryPtr queryPtr(queryServicePtr->newQuery(*queryString));
 
   if (args.Length() > 1 && args[1]->IsFunction()) {
-    Local<Function> callback = Local<Function>::Cast(args[1]);
+    Local<Function> callback(Local<Function>::Cast(args[1]));
 
     ExecuteQueryBaton * baton = new ExecuteQueryBaton(callback, queryPtr);
 
@@ -150,7 +151,7 @@ NAN_METHOD(Cache::GetRegion) {
 
   const unsigned int argc = 2;
   Local<Value> argv[argc] = { args.This(), args[0] };
-  Local<Value> regionHandle = NanMakeCallback(args.This(), regionGetRegionFunction, argc, argv);
+  Local<Value> regionHandle(NanMakeCallback(args.This(), regionGetRegionFunction, argc, argv));
 
   NanReturnValue(regionHandle);
 }
