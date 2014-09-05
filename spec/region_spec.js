@@ -1,6 +1,7 @@
 const childProcess = require('child_process');
 const factories = require('./support/factories.js');
 const _ = require("lodash");
+const util = require("util");
 
 const invalidKeys = [null, undefined, []];
 
@@ -66,8 +67,8 @@ describe("gemfire.Region", function() {
         });
       });
 
-      it("returns an error when passed keys that are not valid", function(done) {
-        _.each(invalidKeys, function(invalidKey) {
+      _.each(invalidKeys, function(invalidKey) {
+        it("returns an error when passed invalid key " + util.inspect(invalidKey), function(done) {
           region.get(invalidKey, function(error, value) {
             expect(error).not.toBeNull();
             expect(error.message).toEqual("Invalid GemFire key");
@@ -105,8 +106,8 @@ describe("gemfire.Region", function() {
         });
       });
 
-      it("returns an error when passed keys that are not valid", function(done) {
-        _.each(invalidKeys, function(invalidKey) {
+      _.each(invalidKeys, function(invalidKey) {
+        it("returns an error when passed invalid key " + util.inspect(invalidKey), function(done) {
           region.put(invalidKey, "foo", function(error, value) {
             expect(error).not.toBeNull();
             expect(error.message).toEqual("Invalid GemFire key");
