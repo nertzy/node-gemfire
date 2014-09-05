@@ -98,7 +98,7 @@ NAN_METHOD(Region::Put) {
     Local<Function> callback(Local<Function>::Cast(args[2]));
 
     if (keyPtr == NULLPTR) {
-      Local<Value> error(NanError("Invalid GemFire key"));
+      Local<Value> error(NanError("Invalid GemFire key."));
 
       static const int argc = 2;
       Local<Value> argv[2] = { error, NanUndefined() };
@@ -121,7 +121,7 @@ NAN_METHOD(Region::Put) {
     NanReturnValue(args.This());
   } else {
     if (keyPtr == NULLPTR) {
-      NanThrowError("Invalid GemFire key");
+      NanThrowError("Invalid GemFire key.");
       NanReturnUndefined();
     }
 
@@ -192,7 +192,7 @@ NAN_METHOD(Region::Get) {
     Local<Function> callback(Local<Function>::Cast(args[1]));
 
     if (keyPtr == NULLPTR) {
-      Local<Value> error(NanError("Invalid GemFire key"));
+      Local<Value> error(NanError("Invalid GemFire key."));
 
       static const int argc = 2;
       Local<Value> argv[2] = { error, NanUndefined() };
@@ -209,7 +209,7 @@ NAN_METHOD(Region::Get) {
     NanReturnValue(args.This());
   } else {
     if (keyPtr == NULLPTR) {
-      NanThrowError("Invalid GemFire key");
+      NanThrowError("Invalid GemFire key.");
       NanReturnUndefined();
     }
 
