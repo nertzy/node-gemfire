@@ -474,4 +474,10 @@ describe("gemfire.Region", function() {
       expect(region.inspect()).toEqual('[Region name="exampleRegion"]');
     });
   });
+
+  describe(".name", function() {
+    it("returns the name of the region", function() {
+      expect(region.name).toEqual("exampleRegion");
+    });
+  });
 });

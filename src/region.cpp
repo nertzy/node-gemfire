@@ -33,6 +33,8 @@ void Region::Init(Handle<Object> exports) {
   NanSetPrototypeTemplate(constructor, "inspect",
       NanNew<FunctionTemplate>(Region::Inspect)->GetFunction());
 
+  constructor->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
+
   NanAssignPersistent(regionConstructor, constructor);
 }
 
@@ -366,6 +368,15 @@ NAN_METHOD(Region::Inspect) {
   std::stringstream inspectStream;
   inspectStream << "[Region name=\"" << name << "\"]";
   NanReturnValue(NanNew(inspectStream.str().c_str()));
+}
+
+NAN_GETTER(Region::Name) {
+  NanScope();
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+
+  NanReturnValue(NanNew(regionPtr->getName()));
 }
 
 }  // namespace node_gemfire
