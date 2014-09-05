@@ -1,7 +1,6 @@
--I../NativeClient_Linux_64bit_7020_b6036/include
+-I../NativeClient_Linux_64bit_8000_b6169/include
 -I../gtest-1.7.0/include
--I/usr/local/Cellar/node/0.10.28/include/node
--I/usr/local/Cellar/node/0.10.30/include/node
+-I/usr/local/include/node
 -Inode_modules/nan
 -Isrc
 -std=c++0x
