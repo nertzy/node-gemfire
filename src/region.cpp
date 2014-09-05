@@ -28,6 +28,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Put)->GetFunction());
   NanSetPrototypeTemplate(constructor, "get",
       NanNew<FunctionTemplate>(Region::Get)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "remove",
+      NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
   NanSetPrototypeTemplate(constructor, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
   NanSetPrototypeTemplate(constructor, "inspect",
@@ -262,6 +264,32 @@ void Region::AfterAsyncGet(uv_work_t * request, int status) {
 
   delete request;
   delete baton;
+}
+
+NAN_METHOD(Region::Remove) {
+  NanScope();
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+  CachePtr cachePtr(regionPtr->getCache());
+
+  CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
+  if (keyPtr == NULLPTR) {
+    NanThrowError("Invalid GemFire key.");
+    NanReturnUndefined();
+  }
+
+  try {
+    regionPtr->destroy(keyPtr);
+  } catch (const gemfire::EntryNotFoundException & exception) {
+    NanThrowError("Key not found in region.");
+    NanReturnUndefined();
+  } catch (const gemfire::Exception & exception) {
+    ThrowGemfireException(exception);
+    NanReturnUndefined();
+  }
+
+  NanReturnValue(NanTrue());
 }
 
 NAN_METHOD(Region::ExecuteFunction) {
