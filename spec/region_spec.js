@@ -1,5 +1,8 @@
-var childProcess = require('child_process');
-var factories = require('./support/factories.js');
+const childProcess = require('child_process');
+const factories = require('./support/factories.js');
+const _ = require("lodash");
+
+const invalidKeys = [null, undefined, []];
 
 describe("gemfire.Region", function() {
   var region, cache;
@@ -27,13 +30,10 @@ describe("gemfire.Region", function() {
     });
 
     it("throws an error when passed keys that are not valid", function() {
-      expect(function() { region.get(null); }).toThrow("Invalid GemFire key");
-      expect(function() { region.get(undefined); }).toThrow("Invalid GemFire key");
-      expect(function() { region.get([]); }).toThrow("Invalid GemFire key");
-
-      expect(function() { region.put(null, "foo"); }).toThrow("Invalid GemFire key");
-      expect(function() { region.put(undefined, "foo"); }).toThrow("Invalid GemFire key");
-      expect(function() { region.put([], "foo"); }).toThrow("Invalid GemFire key");
+      _.each(invalidKeys, function(invalidKey) {
+        expect(function() { region.get(invalidKey); }).toThrow("Invalid GemFire key");
+        expect(function() { region.put(invalidKey, "foo"); }).toThrow("Invalid GemFire key");
+      });
     });
 
     describe("async get", function() {
@@ -65,6 +65,17 @@ describe("gemfire.Region", function() {
           done();
         });
       });
+
+      it("returns an error when passed keys that are not valid", function(done) {
+        _.each(invalidKeys, function(invalidKey) {
+          region.get(invalidKey, function(error, value) {
+            expect(error).not.toBeNull();
+            expect(error.message).toEqual("Invalid GemFire key");
+            expect(value).toBeUndefined();
+            done();
+          });
+        });
+      });
     });
 
     describe("async put", function() {
@@ -91,6 +102,17 @@ describe("gemfire.Region", function() {
           expect(error.message).toEqual("Unable to put value undefined");
           expect(value).toBeUndefined();
           done();
+        });
+      });
+
+      it("returns an error when passed keys that are not valid", function(done) {
+        _.each(invalidKeys, function(invalidKey) {
+          region.put(invalidKey, "foo", function(error, value) {
+            expect(error).not.toBeNull();
+            expect(error.message).toEqual("Invalid GemFire key");
+            expect(value).toBeUndefined();
+            done();
+          });
         });
       });
     });

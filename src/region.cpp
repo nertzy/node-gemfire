@@ -92,16 +92,18 @@ NAN_METHOD(Region::Put) {
   CachePtr cachePtr(regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
-  if (keyPtr == NULLPTR) {
-    NanReturnUndefined();
-  }
-
   CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
 
   if (args.Length() > 2 && args[2]->IsFunction()) {
     Local<Function> callback(Local<Function>::Cast(args[2]));
 
-    if (valuePtr == NULLPTR) {
+    if (keyPtr == NULLPTR) {
+      Local<Value> error(NanError("Invalid GemFire key"));
+
+      static const int argc = 2;
+      Local<Value> argv[2] = { error, NanUndefined() };
+      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
+    } else if (valuePtr == NULLPTR) {
       Local<Value> error(NanNew(unableToPutValueError(args[1])));
 
       static const int argc = 2;
@@ -118,6 +120,11 @@ NAN_METHOD(Region::Put) {
 
     NanReturnValue(args.This());
   } else {
+    if (keyPtr == NULLPTR) {
+      NanThrowError("Invalid GemFire key");
+      NanReturnUndefined();
+    }
+
     if (valuePtr == NULLPTR) {
       NanThrowError(unableToPutValueError(args[1]));
       NanReturnUndefined();
@@ -180,21 +187,32 @@ NAN_METHOD(Region::Get) {
   RegionPtr regionPtr(region->regionPtr);
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], regionPtr->getCache()));
-  if (keyPtr == NULLPTR) {
-    NanReturnUndefined();
-  }
 
   if (args.Length() > 1 && args[1]->IsFunction()) {
     Local<Function> callback(Local<Function>::Cast(args[1]));
-    GetBaton * baton = new GetBaton(callback, regionPtr, keyPtr);
 
-    uv_work_t * request = new uv_work_t();
-    request->data = reinterpret_cast<void *>(baton);
+    if (keyPtr == NULLPTR) {
+      Local<Value> error(NanError("Invalid GemFire key"));
 
-    uv_queue_work(uv_default_loop(), request, region->AsyncGet, region->AfterAsyncGet);
+      static const int argc = 2;
+      Local<Value> argv[2] = { error, NanUndefined() };
+      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
+    } else {
+      GetBaton * baton = new GetBaton(callback, regionPtr, keyPtr);
+
+      uv_work_t * request = new uv_work_t();
+      request->data = reinterpret_cast<void *>(baton);
+
+      uv_queue_work(uv_default_loop(), request, region->AsyncGet, region->AfterAsyncGet);
+    }
 
     NanReturnValue(args.This());
   } else {
+    if (keyPtr == NULLPTR) {
+      NanThrowError("Invalid GemFire key");
+      NanReturnUndefined();
+    }
+
     CacheablePtr valuePtr;
     try {
       valuePtr = regionPtr->get(keyPtr);

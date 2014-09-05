@@ -99,7 +99,6 @@ gemfire::CacheableKeyPtr gemfireKeyFromV8(const Handle<Value> & v8Value, const C
     keyPtr = gemfireValueFromV8(v8Value, cachePtr);
   }
   catch(const ClassCastException & exception) {
-    NanThrowError("Invalid GemFire key");
     return NULLPTR;
   }
 
