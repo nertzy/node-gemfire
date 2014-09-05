@@ -38,6 +38,8 @@ class Region : node::ObjectWrap {
     static void AfterAsyncPut(uv_work_t * request, int status);
     static void AsyncExecuteFunction(uv_work_t * request);
     static void AfterAsyncExecuteFunction(uv_work_t * request, int status);
+    static void AsyncRemove(uv_work_t * request);
+    static void AfterAsyncRemove(uv_work_t * request, int status);
 
  private:
     gemfire::RegionPtr regionPtr;
@@ -86,6 +88,27 @@ class PutBaton {
     gemfire::RegionPtr regionPtr;
     gemfire::CacheableKeyPtr keyPtr;
     gemfire::CacheablePtr valuePtr;
+
+    std::string errorMessage;
+};
+
+class RemoveBaton {
+ public:
+    RemoveBaton(Handle<Function> callback,
+             gemfire::RegionPtr regionPtr,
+             gemfire::CacheableKeyPtr keyPtr) :
+        regionPtr(regionPtr),
+        keyPtr(keyPtr) {
+      NanAssignPersistent(this->callback, callback);
+    }
+
+    ~RemoveBaton() {
+      NanDisposePersistent(callback);
+    }
+
+    Persistent<Function> callback;
+    gemfire::RegionPtr regionPtr;
+    gemfire::CacheableKeyPtr keyPtr;
 
     std::string errorMessage;
 };

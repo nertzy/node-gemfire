@@ -531,5 +531,43 @@ describe("gemfire.Region", function() {
         expect(function() { region.remove(invalidKey); }).toThrow("Invalid GemFire key.");
       });
     });
+
+    describe("async", function() {
+      it("removes the entry at the given key and passes true into the callback", function(done) {
+        region.put("foo", "bar");
+        expect(region.get("foo")).toEqual("bar");
+
+        region.remove("foo", function(error, result) {
+          expect(error).toBeNull();
+          expect(result).toBe(true);
+          done();
+        });
+      });
+
+      it("returns itself for chaining", function(done) {
+        region.put("foo", "bar");
+        expect(region.remove("foo", done)).toEqual(region);
+      });
+
+      it("passes an error to the callback if the entry is not present", function(done) {
+        region.remove("foo", function(error, result) {
+          expect(error).not.toBeNull();
+          expect(error.message).toEqual("Key not found in region.");
+          expect(result).toBeUndefined();
+          done();
+        });
+      });
+
+      _.each(invalidKeys, function(invalidKey) {
+        it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
+          region.remove(invalidKey, function(error, value) {
+            expect(error).not.toBeNull();
+            expect(error.message).toEqual("Invalid GemFire key.");
+            expect(value).toBeUndefined();
+            done();
+          });
+        });
+      });
+    });
   });
 });
