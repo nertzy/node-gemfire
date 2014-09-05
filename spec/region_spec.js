@@ -32,8 +32,8 @@ describe("gemfire.Region", function() {
 
     it("throws an error when passed keys that are not valid", function() {
       _.each(invalidKeys, function(invalidKey) {
-        expect(function() { region.get(invalidKey); }).toThrow("Invalid GemFire key");
-        expect(function() { region.put(invalidKey, "foo"); }).toThrow("Invalid GemFire key");
+        expect(function() { region.get(invalidKey); }).toThrow("Invalid GemFire key.");
+        expect(function() { region.put(invalidKey, "foo"); }).toThrow("Invalid GemFire key.");
       });
     });
 
@@ -71,7 +71,7 @@ describe("gemfire.Region", function() {
         it("returns an error when passed invalid key " + util.inspect(invalidKey), function(done) {
           region.get(invalidKey, function(error, value) {
             expect(error).not.toBeNull();
-            expect(error.message).toEqual("Invalid GemFire key");
+            expect(error.message).toEqual("Invalid GemFire key.");
             expect(value).toBeUndefined();
             done();
           });
@@ -110,7 +110,7 @@ describe("gemfire.Region", function() {
         it("returns an error when passed invalid key " + util.inspect(invalidKey), function(done) {
           region.put(invalidKey, "foo", function(error, value) {
             expect(error).not.toBeNull();
-            expect(error.message).toEqual("Invalid GemFire key");
+            expect(error.message).toEqual("Invalid GemFire key.");
             expect(value).toBeUndefined();
             done();
           });
