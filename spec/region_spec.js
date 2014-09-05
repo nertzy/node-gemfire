@@ -503,4 +503,33 @@ describe("gemfire.Region", function() {
       expect(region.name).toEqual("exampleRegion");
     });
   });
+
+  describe(".remove", function() {
+    it("removes the entry at the given key", function() {
+      region.put("foo", "bar");
+      expect(region.get("foo")).toEqual("bar");
+
+      region.remove("foo");
+      expect(region.get("foo")).toBeUndefined();
+    });
+
+    it("returns true when it removes an entry", function() {
+      region.put("foo", "bar");
+      expect(region.remove("foo")).toEqual(true);
+    });
+
+    it("throws an error if the entry is not present", function() {
+      function removeNonexistentEntry() {
+        region.remove("foo");
+      }
+
+      expect(removeNonexistentEntry).toThrow("Key not found in region.");
+    });
+
+    it("throws an error when passed keys that are not valid", function() {
+      _.each(invalidKeys, function(invalidKey) {
+        expect(function() { region.remove(invalidKey); }).toThrow("Invalid GemFire key.");
+      });
+    });
+  });
 });
