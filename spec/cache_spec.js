@@ -1,6 +1,7 @@
 var childProcess = require('child_process');
 const gemfire = require("./support/gemfire.js");
 const factories = require("./support/factories.js");
+const async = require("async");
 
 describe("gemfire.Cache", function() {
   afterEach(function(done) {
@@ -94,96 +95,139 @@ describe("gemfire.Cache", function() {
       region.clear();
     });
 
-    it("executes a query that can retrieve string results", function() {
-      region.put("string1", "a string");
-      region.put("string2", "another string");
-      region.put("string3", "a string");
+    it("executes a query that can retrieve string results", function(done) {
+      async.parallel(
+        [
+          function(callback) { region.put("string1", "a string", callback); },
+          function(callback) { region.put("string2", "another string", callback); },
+          function(callback) { region.put("string3", "a string", callback); },
+        ],
+        function(){
+          var query = "SELECT DISTINCT * FROM /exampleRegion";
 
-      var query = "SELECT DISTINCT * FROM /exampleRegion";
+          var results = cache.executeQuery(query).toArray();
 
-      var results = cache.executeQuery(query).toArray();
+          expect(results.length).toEqual(2);
 
-      expect(results.length).toEqual(2);
+          expect(results).toContain("a string");
+          expect(results).toContain("another string");
 
-      expect(results).toContain("a string");
-      expect(results).toContain("another string");
+          done();
+        }
+      );
     });
 
-    it("executes a query with an OQL predicate", function() {
-      region.put("string1", "a string");
-      region.put("string2", "another string");
+    it("executes a query with an OQL predicate", function(done) {
+      async.parallel(
+        [
+          function(callback) { region.put("string1", "a string", callback); },
+          function(callback) { region.put("string2", "another string", callback); },
+        ],
+        function() {
+          var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
+          var results = cache.executeQuery(query).toArray();
 
-      var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
+          expect(results.length).toEqual(1);
 
-      var results = cache.executeQuery(query).toArray();
+          expect(results).toContain("another string");
 
-      expect(results.length).toEqual(1);
-
-      expect(results).toContain("another string");
+          done();
+        }
+      );
     });
 
-    it("executes a query with a where clause on a field", function(){
+    it("executes a query with a where clause on a field", function(done){
       const object = { foo: 'bar' };
-      region.put("object", object);
-      region.put("other object", { foo: 'qux' });
-      region.put("empty", {});
 
-      const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
-      const results = cache.executeQuery(query).toArray();
+      async.parallel(
+        [
+          function(callback) { region.put("object", object, callback); },
+          function(callback) { region.put("other object", { foo: 'qux' }, callback); },
+          function(callback) { region.put("empty", {}, callback); },
+        ],
+        function() {
+          const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
+          const results = cache.executeQuery(query).toArray();
 
-      expect(results.length).toEqual(1);
-      expect(results).toContain(object);
+          expect(results.length).toEqual(1);
+          expect(results).toContain(object);
+
+          done();
+        }
+      );
     });
 
-    it("executes a query with a nested object", function() {
+    it("executes a query with a nested object", function(done) {
       const object1 = { foo: [{ bar: 'baz' }] };
-      region.put("object1", object1);
-      region.put("object2", { foo: [{ bar: 'qux' }] });
 
-      var query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
+      async.parallel(
+        [
+          function(callback) { region.put("object1", object1, callback); },
+          function(callback) { region.put("object2", { foo: [{ bar: 'qux' }] }, callback); },
+        ],
+        function(){
+          var query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
+          var results = cache.executeQuery(query).toArray();
 
-      var results = cache.executeQuery(query).toArray();
+          expect(results.length).toEqual(1);
+          expect(results).toContain(object1);
 
-      expect(results.length).toEqual(1);
-
-      expect(results).toContain(object1);
+          done();
+        }
+      );
     });
 
-    it("executes a query that returns a GemFire struct", function() {
-      region.put("object", { foo: 1, bar: 2, baz: 3 });
+    it("executes a query that returns a GemFire struct", function(done) {
+      region.put("object", { foo: 1, bar: 2, baz: 3 }, function(error) {
+        expect(error).toBeNull();
 
-      const query = "SELECT foo, bar FROM /exampleRegion";
-      const results = cache.executeQuery(query).toArray();
+        const query = "SELECT foo, bar FROM /exampleRegion";
+        const results = cache.executeQuery(query).toArray();
 
-      expect(results.length).toEqual(1);
-      expect(results[0]).toEqual({ foo: 1, bar: 2 });
+        expect(results.length).toEqual(1);
+        expect(results[0]).toEqual({ foo: 1, bar: 2 });
+
+        done();
+      });
     });
 
-    it("executes a query that can retrieve results of all types", function() {
-      region.put("a string", "a string");
-      region.put("an object", {"an": "object"});
+    it("executes a query that can retrieve results of all types", function(done) {
+      async.parallel(
+        [
+          function(callback) { region.put("a string", "a string", callback); },
+          function(callback) { region.put("an object", {"an": "object"}, callback); },
+        ],
+        function(){
+          var query = "SELECT DISTINCT * FROM /exampleRegion";
 
-      var query = "SELECT DISTINCT * FROM /exampleRegion";
+          var results = cache.executeQuery(query).toArray();
 
-      var results = cache.executeQuery(query).toArray();
+          expect(results.length).toEqual(2);
 
-      expect(results.length).toEqual(2);
+          expect(results).toContain({"an": "object"});
+          expect(results).toContain("a string");
 
-      expect(results).toContain({"an": "object"});
-      expect(results).toContain("a string");
+          done();
+        }
+      );
     });
 
     it("can search for wide strings", function(){
-      region.put("narrow string", "Japan");
-      region.put("wide string", "日本");
+      async.parallel(
+        [
+          function(callback) { region.put("narrow string", "Japan", callback); },
+          function(callback) { region.put("wide string", "日本", callback); },
+        ],
+        function(){
+          var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
+          var narrowResults = cache.executeQuery(narrowQuery).toArray();
+          expect(narrowResults).toEqual(["narrow string"]);
 
-      var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
-      var narrowResults = cache.executeQuery(narrowQuery).toArray();
-      expect(narrowResults).toEqual(["narrow string"]);
-
-      var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
-      var wideResults = cache.executeQuery(wideQuery).toArray();
-      expect(wideResults).toEqual(["wide string"]);
+          var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
+          var wideResults = cache.executeQuery(wideQuery).toArray();
+          expect(wideResults).toEqual(["wide string"]);
+        }
+      );
     });
 
     it("throws an error for invalid queries", function() {
@@ -217,15 +261,20 @@ describe("gemfire.Cache", function() {
       });
 
       it("supports async query execution when a callback is passed", function(done) {
-        region.put("narrow string", "Japan");
-        region.put("wide string", "日本");
-
-        var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
-        cache.executeQuery(wideQuery, function(error, results){
-          expect(error).toBeNull();
-          expect(results.toArray()).toEqual(["wide string"]);
-          done();
-        });
+        async.parallel(
+          [
+            function(callback) { region.put("narrow string", "Japan", callback); },
+            function(callback) { region.put("wide string", "日本", callback); }
+          ],
+          function() {
+            var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
+            cache.executeQuery(wideQuery, function(error, results){
+              expect(error).toBeNull();
+              expect(results.toArray()).toEqual(["wide string"]);
+              done();
+            });
+          }
+        );
       });
 
       it("passes an error to the callback for invalid queries", function(done) {

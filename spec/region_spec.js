@@ -84,41 +84,63 @@ describe("gemfire.Region", function() {
   });
 
   describe(".put", function() {
-    describe("async put", function() {
-      it("returns the region object to support chaining", function(done) {
-        var returnValue = region.put("foo", "bar", function(error, value) {
-          done();
-        });
+    it("throws an error when no key is passed", function() {
+      function putWithNoArgs() {
+        region.put();
+      }
 
-        expect(returnValue).toEqual(region);
+      expect(putWithNoArgs).toThrow("You must pass a key, value, and callback to put().");
+    });
+
+    it("throws an error when no value is passed", function() {
+      function putWithOnlyKey() {
+        region.put('foo');
+      }
+
+      expect(putWithOnlyKey).toThrow("You must pass a key, value, and callback to put().");
+
+    });
+
+    it("throws an error if a non-function is passed as the callback", function() {
+      function putWithNonFunctionCallback() {
+        region.put('foo', 'bar', 'not a function');
+      }
+
+      expect(putWithNonFunctionCallback).toThrow("You must pass a callback to put().");
+    });
+
+    it("returns the region object to support chaining", function(done) {
+      var returnValue = region.put("foo", "bar", function(error, value) {
+        done();
       });
 
-      xit("supports async put via a callback", function(done) {
-        region.put("foo", "bar", function(error, value) {
-          expect(error).toBeNull();
-          expect(value).toEqual("bar");
-          expect(region.get("foo")).toEqual("bar");
-          done();
-        });
-      });
+      expect(returnValue).toEqual(region);
+    });
 
-      it("returns an error when async put is called with an unsupported value", function(done) {
-        region.put("foo", undefined, function(error, value) {
+    it("passes the value to the callback", function(done) {
+      region.put("foo", "bar", function(error, value) {
+        expect(error).toBeNull();
+        expect(value).toEqual("bar");
+        done();
+      });
+    });
+
+    it("passes an error to the callback when called with an unsupported value", function(done) {
+      region.put("foo", undefined, function(error, value) {
+        expect(error).not.toBeNull();
+        expect(error.message).toEqual("Unable to put value undefined");
+        expect(value).toBeUndefined();
+        done();
+      });
+    });
+
+    _.each(invalidKeys, function(invalidKey) {
+      it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
+        region.put(invalidKey, "foo", function(error, value) {
           expect(error).not.toBeNull();
-          expect(error.message).toEqual("Unable to put value undefined");
+          expect(error.message).toEqual("Invalid GemFire key.");
           expect(value).toBeUndefined();
           done();
-        });
-      });
-
-      _.each(invalidKeys, function(invalidKey) {
-        it("returns an error when passed invalid key " + util.inspect(invalidKey), function(done) {
-          region.put(invalidKey, "foo", function(error, value) {
-            expect(error).not.toBeNull();
-            expect(error.message).toEqual("Invalid GemFire key.");
-            expect(value).toBeUndefined();
-            done();
-          });
         });
       });
     });
@@ -321,12 +343,31 @@ describe("gemfire.Region", function() {
       });
 
       it("stores and retrieves objects with boolean keys", function(done) {
-        region.put(true, "true key");
-        region.put(false, "false key");
-        region.put("true", "true string key");
-        region.put("false", "false string key");
-
         async.series([
+          function(callback) {
+            region.put(true, "true key", function(error) {
+              expect(error).toBeNull();
+              callback();
+            });
+          },
+          function(callback) {
+            region.put(false, "false key", function(error) {
+              expect(error).toBeNull();
+              callback();
+            });
+          },
+          function(callback) {
+            region.put("true", "true string key", function(error) {
+              expect(error).toBeNull();
+              callback();
+            });
+          },
+          function(callback) {
+            region.put("false", "false string key", function(error) {
+              expect(error).toBeNull();
+              callback();
+            });
+          },
           function(callback) {
             region.get(true, function(error, value) {
               expect(error).toBeNull();
@@ -357,14 +398,6 @@ describe("gemfire.Region", function() {
           },
         ], done);
       });
-    });
-
-    it("throws an error for unsupported values", function() {
-      function putUndefined(){
-        region.put("undefined", undefined);
-      }
-
-      expect(putUndefined).toThrow("Unable to put value undefined");
     });
 
     it("allows dynamic schema", function(done) {
@@ -440,21 +473,30 @@ describe("gemfire.Region", function() {
       expect(results).toEqual(["TestFunction succeeded."]);
     });
 
-    it("gives the function access to the region", function() {
+    it("gives the function access to the region", function(done) {
       const functionName = "io.pivotal.node_gemfire.SumRegion";
 
-      region.put("one", 1);
-      region.put("two", 2);
+      region.put("one", 1, function(error){
+        expect(error).toBeNull();
 
-      const anotherRegion = cache.getRegion("anotherRegion");
-      anotherRegion.clear();
-      anotherRegion.put("thousand", 1000);
+        region.put("two", 2, function(error){
+          expect(error).toBeNull();
 
-      var results = region.executeFunction(functionName);
-      expect(results).toEqual([3]);
+          const anotherRegion = cache.getRegion("anotherRegion");
+          anotherRegion.clear();
+          anotherRegion.put("thousand", 1000, function(){
+            expect(error).toBeNull();
 
-      results = anotherRegion.executeFunction(functionName);
-      expect(results).toEqual([1000]);
+            var results = region.executeFunction(functionName);
+            expect(results).toEqual([3]);
+
+            results = anotherRegion.executeFunction(functionName);
+            expect(results).toEqual([1000]);
+
+            done();
+          });
+        });
+      });
     });
 
     it("supports objects as input and output", function() {
@@ -597,9 +639,12 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("returns true when it removes an entry", function() {
-      region.put("foo", "bar");
-      expect(region.remove("foo")).toEqual(true);
+    it("returns true when it removes an entry", function(done) {
+      region.put("foo", "bar", function(error) {
+        expect(error).toBeNull();
+        expect(region.remove("foo")).toEqual(true);
+        done();
+      });
     });
 
     it("throws an error if the entry is not present", function() {
@@ -629,8 +674,10 @@ describe("gemfire.Region", function() {
       });
 
       it("returns itself for chaining", function(done) {
-        region.put("foo", "bar");
-        expect(region.remove("foo", done)).toEqual(region);
+        region.put("foo", "bar", function(error){
+          expect(error).toBeNull();
+          expect(region.remove("foo", done)).toEqual(region);
+        });
       });
 
       it("passes an error to the callback if the entry is not present", function(done) {
