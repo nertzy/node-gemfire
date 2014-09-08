@@ -181,7 +181,17 @@ NAN_METHOD(Region::Get) {
   NanScope();
 
   if (args.Length() < 1) {
-    NanThrowError("You must pass a key to get()");
+    NanThrowError("You must pass a key and callback to get().");
+    NanReturnUndefined();
+  }
+
+  if (args.Length() < 2) {
+    NanThrowError("You must pass a callback to get().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("The second argument to get() must be a callback.");
     NanReturnUndefined();
   }
 
@@ -190,42 +200,24 @@ NAN_METHOD(Region::Get) {
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], regionPtr->getCache()));
 
-  if (args.Length() > 1 && args[1]->IsFunction()) {
-    Local<Function> callback(Local<Function>::Cast(args[1]));
+  Local<Function> callback(Local<Function>::Cast(args[1]));
 
-    if (keyPtr == NULLPTR) {
-      Local<Value> error(NanError("Invalid GemFire key."));
+  if (keyPtr == NULLPTR) {
+    Local<Value> error(NanError("Invalid GemFire key."));
 
-      static const int argc = 2;
-      Local<Value> argv[2] = { error, NanUndefined() };
-      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
-    } else {
-      GetBaton * baton = new GetBaton(callback, regionPtr, keyPtr);
-
-      uv_work_t * request = new uv_work_t();
-      request->data = reinterpret_cast<void *>(baton);
-
-      uv_queue_work(uv_default_loop(), request, region->AsyncGet, region->AfterAsyncGet);
-    }
-
-    NanReturnValue(args.This());
+    static const int argc = 2;
+    Local<Value> argv[2] = { error, NanUndefined() };
+    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
   } else {
-    if (keyPtr == NULLPTR) {
-      NanThrowError("Invalid GemFire key.");
-      NanReturnUndefined();
-    }
+    GetBaton * baton = new GetBaton(callback, regionPtr, keyPtr);
 
-    CacheablePtr valuePtr;
-    try {
-      valuePtr = regionPtr->get(keyPtr);
-    }
-    catch (gemfire::Exception & exception) {
-      ThrowGemfireException(exception);
-      NanReturnUndefined();
-    }
+    uv_work_t * request = new uv_work_t();
+    request->data = reinterpret_cast<void *>(baton);
 
-    NanReturnValue(v8ValueFromGemfire(valuePtr));
+    uv_queue_work(uv_default_loop(), request, region->AsyncGet, region->AfterAsyncGet);
   }
+
+  NanReturnValue(args.This());
 }
 
 void Region::AsyncGet(uv_work_t * request) {
