@@ -628,75 +628,77 @@ describe("gemfire.Region", function() {
   });
 
   describe(".remove", function() {
+    it("throws an error if no key is given", function() {
+      function callNoArgs() {
+        region.remove();
+      }
+
+      expect(callNoArgs).toThrow("You must pass a key and a callback to remove().");
+    });
+
+    it("throws an error if no callback is given", function() {
+      function callNoCallback() {
+        region.remove('foo');
+      }
+
+      expect(callNoCallback).toThrow("You must pass a key and a callback to remove().");
+    });
+
+    it("throws an error if a non-function is passed as the callback", function() {
+      function callNoCallback() {
+        region.remove('foo', 'not a function');
+      }
+
+      expect(callNoCallback).toThrow("You must pass a function as the callback to remove().");
+    });
+
     it("removes the entry at the given key", function(done) {
       region.put("foo", "bar", function(error){
         expect(error).toBeNull();
-        region.remove("foo");
-        region.get("foo", function(error) {
-          expect(error).not.toBeNull();
+        region.remove("foo", function(error) {
+          expect(error).toBeNull();
+          region.get("foo", function(error) {
+            expect(error).not.toBeNull();
+            done();
+          });
+        });
+      });
+    });
+
+    it("removes the entry at the given key and passes true into the callback", function(done) {
+      region.put("foo", "bar", function(error){
+        expect(error).toBeNull();
+        region.remove("foo", function(error, result) {
+          expect(error).toBeNull();
+          expect(result).toBe(true);
           done();
         });
       });
     });
 
-    it("returns true when it removes an entry", function(done) {
-      region.put("foo", "bar", function(error) {
+    it("returns itself for chaining", function(done) {
+      region.put("foo", "bar", function(error){
         expect(error).toBeNull();
-        expect(region.remove("foo")).toEqual(true);
+        expect(region.remove("foo", done)).toEqual(region);
+      });
+    });
+
+    it("passes an error to the callback if the entry is not present", function(done) {
+      region.remove("foo", function(error, result) {
+        expect(error).not.toBeNull();
+        expect(error.message).toEqual("Key not found in region.");
+        expect(result).toBeUndefined();
         done();
       });
     });
 
-    it("throws an error if the entry is not present", function() {
-      function removeNonexistentEntry() {
-        region.remove("foo");
-      }
-
-      expect(removeNonexistentEntry).toThrow("Key not found in region.");
-    });
-
-    it("throws an error when passed keys that are not valid", function() {
-      _.each(invalidKeys, function(invalidKey) {
-        expect(function() { region.remove(invalidKey); }).toThrow("Invalid GemFire key.");
-      });
-    });
-
-    describe("async", function() {
-      it("removes the entry at the given key and passes true into the callback", function(done) {
-        region.put("foo", "bar", function(error){
-          expect(error).toBeNull();
-          region.remove("foo", function(error, result) {
-            expect(error).toBeNull();
-            expect(result).toBe(true);
-            done();
-          });
-        });
-      });
-
-      it("returns itself for chaining", function(done) {
-        region.put("foo", "bar", function(error){
-          expect(error).toBeNull();
-          expect(region.remove("foo", done)).toEqual(region);
-        });
-      });
-
-      it("passes an error to the callback if the entry is not present", function(done) {
-        region.remove("foo", function(error, result) {
+    _.each(invalidKeys, function(invalidKey) {
+      it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
+        region.remove(invalidKey, function(error, value) {
           expect(error).not.toBeNull();
-          expect(error.message).toEqual("Key not found in region.");
-          expect(result).toBeUndefined();
+          expect(error.message).toEqual("Invalid GemFire key.");
+          expect(value).toBeUndefined();
           done();
-        });
-      });
-
-      _.each(invalidKeys, function(invalidKey) {
-        it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
-          region.remove(invalidKey, function(error, value) {
-            expect(error).not.toBeNull();
-            expect(error.message).toEqual("Invalid GemFire key.");
-            expect(value).toBeUndefined();
-            done();
-          });
         });
       });
     });

@@ -245,49 +245,40 @@ void Region::AfterAsyncGet(uv_work_t * request, int status) {
 NAN_METHOD(Region::Remove) {
   NanScope();
 
+  if (args.Length() < 2) {
+    NanThrowError("You must pass a key and a callback to remove().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to remove().");
+    NanReturnUndefined();
+  }
+
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
   CachePtr cachePtr(regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
 
-  if (args.Length() > 1 && args[1]->IsFunction()) {
-    Local<Function> callback(Local<Function>::Cast(args[1]));
+  Local<Function> callback(Local<Function>::Cast(args[1]));
 
-    if (keyPtr == NULLPTR) {
-      Local<Value> error(NanError("Invalid GemFire key."));
+  if (keyPtr == NULLPTR) {
+    Local<Value> error(NanError("Invalid GemFire key."));
 
-      static const int argc = 2;
-      Local<Value> argv[2] = { error, NanUndefined() };
-      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
-    } else {
-      RemoveBaton * baton = new RemoveBaton(callback, regionPtr, keyPtr);
-
-      uv_work_t * request = new uv_work_t();
-      request->data = reinterpret_cast<void *>(baton);
-
-      uv_queue_work(uv_default_loop(), request, region->AsyncRemove, region->AfterAsyncRemove);
-    }
-
-    NanReturnValue(args.This());
+    static const int argc = 2;
+    Local<Value> argv[2] = { error, NanUndefined() };
+    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
   } else {
-    if (keyPtr == NULLPTR) {
-      NanThrowError("Invalid GemFire key.");
-      NanReturnUndefined();
-    }
+    RemoveBaton * baton = new RemoveBaton(callback, regionPtr, keyPtr);
 
-    try {
-      regionPtr->destroy(keyPtr);
-    } catch (const gemfire::EntryNotFoundException & exception) {
-      NanThrowError("Key not found in region.");
-      NanReturnUndefined();
-    } catch (const gemfire::Exception & exception) {
-      ThrowGemfireException(exception);
-      NanReturnUndefined();
-    }
+    uv_work_t * request = new uv_work_t();
+    request->data = reinterpret_cast<void *>(baton);
 
-    NanReturnValue(NanTrue());
+    uv_queue_work(uv_default_loop(), request, region->AsyncRemove, region->AfterAsyncRemove);
   }
+
+  NanReturnValue(args.This());
 }
 
 void Region::AsyncRemove(uv_work_t * request) {
