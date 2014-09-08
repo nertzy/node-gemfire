@@ -34,7 +34,7 @@ describe("gemfire.Cache", function() {
       });
     }
 
-    it("throws an exception if the file is not found", function(done) {
+    it("throws an error if the file is not found", function(done) {
       var expectedMessage = 'I/O warning : failed to load external entity "/bad/path.xml"';
       expectExternalFailure("missing_xml_file", done, expectedMessage);
     });
@@ -103,16 +103,18 @@ describe("gemfire.Cache", function() {
           function(callback) { region.put("string3", "a string", callback); },
         ],
         function(){
-          var query = "SELECT DISTINCT * FROM /exampleRegion";
+          const query = "SELECT DISTINCT * FROM /exampleRegion";
 
-          var results = cache.executeQuery(query).toArray();
+          cache.executeQuery(query, function(error, response) {
+            expect(error).toBeNull();
+            const results = response.toArray();
 
-          expect(results.length).toEqual(2);
+            expect(results.length).toEqual(2);
+            expect(results).toContain("a string");
+            expect(results).toContain("another string");
 
-          expect(results).toContain("a string");
-          expect(results).toContain("another string");
-
-          done();
+            done();
+          });
         }
       );
     });
@@ -124,14 +126,17 @@ describe("gemfire.Cache", function() {
           function(callback) { region.put("string2", "another string", callback); },
         ],
         function() {
-          var query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
-          var results = cache.executeQuery(query).toArray();
+          const query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
 
-          expect(results.length).toEqual(1);
+          cache.executeQuery(query, function(error, response) {
+            expect(error).toBeNull();
+            const results = response.toArray();
 
-          expect(results).toContain("another string");
+            expect(results.length).toEqual(1);
+            expect(results).toContain("another string");
 
-          done();
+            done();
+          });
         }
       );
     });
@@ -147,12 +152,17 @@ describe("gemfire.Cache", function() {
         ],
         function() {
           const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
-          const results = cache.executeQuery(query).toArray();
 
-          expect(results.length).toEqual(1);
-          expect(results).toContain(object);
+          cache.executeQuery(query, function(error, response) {
+            expect(error).toBeNull();
 
-          done();
+            const results = response.toArray();
+
+            expect(results.length).toEqual(1);
+            expect(results).toContain(object);
+
+            done();
+          });
         }
       );
     });
@@ -166,13 +176,18 @@ describe("gemfire.Cache", function() {
           function(callback) { region.put("object2", { foo: [{ bar: 'qux' }] }, callback); },
         ],
         function(){
-          var query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
-          var results = cache.executeQuery(query).toArray();
+          const query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
 
-          expect(results.length).toEqual(1);
-          expect(results).toContain(object1);
+          cache.executeQuery(query, function(error,response) {
+            expect(error).toBeNull();
 
-          done();
+            const results = response.toArray();
+
+            expect(results.length).toEqual(1);
+            expect(results).toContain(object1);
+
+            done();
+          });
         }
       );
     });
@@ -182,12 +197,16 @@ describe("gemfire.Cache", function() {
         expect(error).toBeNull();
 
         const query = "SELECT foo, bar FROM /exampleRegion";
-        const results = cache.executeQuery(query).toArray();
 
-        expect(results.length).toEqual(1);
-        expect(results[0]).toEqual({ foo: 1, bar: 2 });
+        cache.executeQuery(query, function(error, response){
+          expect(error).toBeNull();
+          const results = response.toArray();
 
-        done();
+          expect(results.length).toEqual(1);
+          expect(results[0]).toEqual({ foo: 1, bar: 2 });
+
+          done();
+        });
       });
     });
 
@@ -198,49 +217,48 @@ describe("gemfire.Cache", function() {
           function(callback) { region.put("an object", {"an": "object"}, callback); },
         ],
         function(){
-          var query = "SELECT DISTINCT * FROM /exampleRegion";
+          const query = "SELECT DISTINCT * FROM /exampleRegion";
 
-          var results = cache.executeQuery(query).toArray();
+          cache.executeQuery(query, function(error, response) {
+            expect(error).toBeNull();
+            const results = response.toArray();
 
-          expect(results.length).toEqual(2);
+            expect(results.length).toEqual(2);
+            expect(results).toContain({"an": "object"});
+            expect(results).toContain("a string");
 
-          expect(results).toContain({"an": "object"});
-          expect(results).toContain("a string");
-
-          done();
+            done();
+          });
         }
       );
     });
 
-    it("can search for wide strings", function(){
-      async.parallel(
+    it("can search for wide strings", function(done){
+      async.series(
         [
           function(callback) { region.put("narrow string", "Japan", callback); },
           function(callback) { region.put("wide string", "日本", callback); },
+          function(callback) {
+            const narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
+            cache.executeQuery(narrowQuery, function(error, response){
+              expect(error).toBeNull();
+              const results = response.toArray();
+              expect(results).toEqual(["narrow string"]);
+              callback();
+            });
+          },
+          function(callback) {
+            const wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
+            cache.executeQuery(wideQuery, function(error, response){
+              expect(error).toBeNull();
+              const results = response.toArray();
+              expect(results).toEqual(["wide string"]);
+              callback();
+            });
+          },
         ],
-        function(){
-          var narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
-          var narrowResults = cache.executeQuery(narrowQuery).toArray();
-          expect(narrowResults).toEqual(["narrow string"]);
-
-          var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
-          var wideResults = cache.executeQuery(wideQuery).toArray();
-          expect(wideResults).toEqual(["wide string"]);
-        }
+        done
       );
-    });
-
-    it("throws an error for invalid queries", function() {
-      var exception;
-
-      try {
-        cache.executeQuery("INVALID;");
-      } catch(e) {
-        exception = e;
-      }
-
-      expect(exception).toBeDefined();
-      expect(exception.message).toMatch(/gemfire::QueryException/);
     });
 
     it("throws an error when no query is passed", function() {
@@ -248,51 +266,40 @@ describe("gemfire.Cache", function() {
         cache.executeQuery();
       }
 
-      expect(callWithoutQuery).toThrow("You must pass a query string to executeQuery()");
+      expect(callWithoutQuery).toThrow("You must pass a query string and callback to executeQuery().");
     });
 
-    describe("asynchronous API", function() {
-      it("returns the cache for chaining", function(done) {
-        var query = "SELECT DISTINCT * FROM /exampleRegion;";
-        var returnValue = cache.executeQuery(query, function(error, results) {
-          done();
-        });
-        expect(returnValue).toEqual(cache);
+    it("throws an exception if you don't pass a callback", function(){
+      function callWithoutCallback() {
+        cache.executeQuery("SELECT * FROM /exampleRegion");
+      }
+
+      expect(callWithoutCallback).toThrow("You must pass a callback to executeQuery().");
+    });
+
+    it("throws an exception if you pass a non-function as the callback", function(){
+      function callWithNonCallback() {
+        cache.executeQuery("SELECT * FROM /exampleRegion", "Not a callback");
+      }
+
+      expect(callWithNonCallback).toThrow("You must pass a function as the callback to executeQuery().");
+    });
+
+    it("returns the cache for chaining", function(done) {
+      var query = "SELECT DISTINCT * FROM /exampleRegion;";
+      var returnValue = cache.executeQuery(query, function(error, results) {
+        done();
       });
+      expect(returnValue).toEqual(cache);
+    });
 
-      it("supports async query execution when a callback is passed", function(done) {
-        async.parallel(
-          [
-            function(callback) { region.put("narrow string", "Japan", callback); },
-            function(callback) { region.put("wide string", "日本", callback); }
-          ],
-          function() {
-            var wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
-            cache.executeQuery(wideQuery, function(error, results){
-              expect(error).toBeNull();
-              expect(results.toArray()).toEqual(["wide string"]);
-              done();
-            });
-          }
-        );
-      });
+    it("passes an error to the callback for invalid queries", function(done) {
+      var exception;
 
-      it("passes an error to the callback for invalid queries", function(done) {
-        var exception;
-
-        cache.executeQuery("INVALID;", function(error, results) {
-          expect(error.message).toMatch(/gemfire::QueryException/);
-          expect(results).toBeUndefined();
-          done();
-        });
-      });
-
-      it("throws an error for missing queries", function() {
-        function callWithoutQuery() {
-          cache.executeQuery(function(){});
-        }
-
-        expect(callWithoutQuery).toThrow("You must pass a query string to executeQuery()");
+      cache.executeQuery("INVALID;", function(error, results) {
+        expect(error.message).toMatch(/gemfire::QueryException/);
+        expect(results).toBeUndefined();
+        done();
       });
     });
   });

@@ -68,7 +68,17 @@ NAN_METHOD(Cache::ExecuteQuery) {
   NanScope();
 
   if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowError("You must pass a query string to executeQuery()");
+    NanThrowError("You must pass a query string and callback to executeQuery().");
+    NanReturnUndefined();
+  }
+
+  if (args.Length() < 2) {
+    NanThrowError("You must pass a callback to executeQuery().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to executeQuery().");
     NanReturnUndefined();
   }
 
@@ -79,29 +89,16 @@ NAN_METHOD(Cache::ExecuteQuery) {
   String::Utf8Value queryString(args[0]);
   QueryPtr queryPtr(queryServicePtr->newQuery(*queryString));
 
-  if (args.Length() > 1 && args[1]->IsFunction()) {
-    Local<Function> callback(Local<Function>::Cast(args[1]));
+  Local<Function> callback(Local<Function>::Cast(args[1]));
 
-    ExecuteQueryBaton * baton = new ExecuteQueryBaton(callback, queryPtr);
+  ExecuteQueryBaton * baton = new ExecuteQueryBaton(callback, queryPtr);
 
-    uv_work_t * request = new uv_work_t();
-    request->data = reinterpret_cast<void *>(baton);
+  uv_work_t * request = new uv_work_t();
+  request->data = reinterpret_cast<void *>(baton);
 
-    uv_queue_work(uv_default_loop(), request, cache->AsyncExecuteQuery, cache->AfterAsyncExecuteQuery);
+  uv_queue_work(uv_default_loop(), request, cache->AsyncExecuteQuery, cache->AfterAsyncExecuteQuery);
 
-    NanReturnValue(args.This());
-  } else {
-    SelectResultsPtr selectResultsPtr;
-    try {
-      selectResultsPtr = queryPtr->execute();
-    }
-    catch(const gemfire::Exception & exception) {
-      ThrowGemfireException(exception);
-      NanReturnUndefined();
-    }
-
-    NanReturnValue(v8ValueFromGemfire(selectResultsPtr));
-  }
+  NanReturnValue(args.This());
 }
 
 void Cache::AsyncExecuteQuery(uv_work_t * request) {
