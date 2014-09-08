@@ -327,49 +327,48 @@ NAN_METHOD(Region::ExecuteFunction) {
     NanReturnUndefined();
   }
 
-  Local<Value> lastArgument(args[v8ArgsLength - 1]);
+  if (v8ArgsLength == 1) {
+    NanThrowError("You must pass a callback to executeFunction().");
+    NanReturnUndefined();
+  }
+
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
-  std::string functionName(*NanUtf8String(args[0]));
-  CacheablePtr functionArguments(NULLPTR);
 
-  if (v8ArgsLength > 1 && !args[1]->IsFunction()) {
-    functionArguments = gemfireValueFromV8(args[1], regionPtr->getCache());
-  }
+  CacheablePtr functionArguments;
+  Local<Function> callback;
 
-  if (lastArgument->IsFunction()) {
-    Local<Function> callback(Local<Function>::Cast(lastArgument));
-
-    ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(regionPtr,
-                                                            functionName,
-                                                            functionArguments,
-                                                            callback);
-
-    uv_work_t * request = new uv_work_t();
-    request->data = reinterpret_cast<void *>(baton);
-
-    uv_queue_work(uv_default_loop(),
-                  request,
-                  region->AsyncExecuteFunction,
-                  region->AfterAsyncExecuteFunction);
-
-    NanReturnValue(args.This());
+  if (args[1]->IsFunction()) {
+    functionArguments = NULLPTR;
+    callback = Local<Function>::Cast(args[1]);
   } else {
-    ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
-    if (functionArguments != NULLPTR) {
-      executionPtr = executionPtr->withArgs(functionArguments);
-    }
-
-    try {
-      ResultCollectorPtr resultCollectorPtr(executionPtr->execute(functionName.c_str()));
-      CacheableVectorPtr resultsPtr(resultCollectorPtr->getResult());
-      NanReturnValue(v8ValueFromGemfire(resultsPtr));
-    }
-    catch (gemfire::Exception &exception) {
-      ThrowGemfireException(exception);
+    if (v8ArgsLength == 2) {
+      NanThrowError("You must pass a callback to executeFunction().");
+      NanReturnUndefined();
+    } else if (!args[2]->IsFunction()) {
+      NanThrowError("You must pass a function as the callback to executeFunction().");
       NanReturnUndefined();
     }
+    functionArguments = gemfireValueFromV8(args[1], regionPtr->getCache());
+    callback = Local<Function>::Cast(args[2]);
   }
+
+  std::string functionName(*NanUtf8String(args[0]));
+
+  ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(regionPtr,
+                                                          functionName,
+                                                          functionArguments,
+                                                          callback);
+
+  uv_work_t * request = new uv_work_t();
+  request->data = reinterpret_cast<void *>(baton);
+
+  uv_queue_work(uv_default_loop(),
+                request,
+                region->AsyncExecuteFunction,
+                region->AfterAsyncExecuteFunction);
+
+  NanReturnValue(args.This());
 }
 
 void Region::AsyncExecuteFunction(uv_work_t * request) {
