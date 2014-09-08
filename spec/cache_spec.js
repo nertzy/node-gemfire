@@ -39,7 +39,7 @@ describe("gemfire.Cache", function() {
       expectExternalFailure("missing_xml_file", done, expectedMessage);
     });
 
-    it("throws an exception if setReadSerialized not set to true", function(done) {
+    it("throws an error if setReadSerialized not set to true", function(done) {
       var expectedMessage = "<pdx read-serialized='true' /> must be set in your cache xml";
       expectExternalFailure("not_pdx_read_serialized", done, expectedMessage);
     });
@@ -48,7 +48,7 @@ describe("gemfire.Cache", function() {
       expectExternalSuccess("correct_xml_file", done);
     });
 
-    it("throws an exception if there are no parameters", function(done) {
+    it("throws an error if there are no parameters", function(done) {
       expectExternalFailure("no_parameters", done, "Cache constructor requires a path to an XML configuration file as its first argument.");
     });
   });
@@ -269,7 +269,7 @@ describe("gemfire.Cache", function() {
       expect(callWithoutQuery).toThrow("You must pass a query string and callback to executeQuery().");
     });
 
-    it("throws an exception if you don't pass a callback", function(){
+    it("throws an error if you don't pass a callback", function(){
       function callWithoutCallback() {
         cache.executeQuery("SELECT * FROM /exampleRegion");
       }
@@ -277,7 +277,7 @@ describe("gemfire.Cache", function() {
       expect(callWithoutCallback).toThrow("You must pass a callback to executeQuery().");
     });
 
-    it("throws an exception if you pass a non-function as the callback", function(){
+    it("throws an error if you pass a non-function as the callback", function(){
       function callWithNonCallback() {
         cache.executeQuery("SELECT * FROM /exampleRegion", "Not a callback");
       }

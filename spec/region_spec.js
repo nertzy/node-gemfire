@@ -528,35 +528,35 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("throws an exception when no function name is passed in", function(){
+    it("throws an error when no function name is passed in", function(){
       function callWithoutArgs() {
         region.executeFunction();
       }
       expect(callWithoutArgs).toThrow("You must provide the name of a function to execute.");
     });
 
-    it("throws an exception when no callback is passed in", function(){
+    it("throws an error when no callback is passed in", function(){
       function callWithoutCallback() {
         region.executeFunction(testFunctionName);
       }
       expect(callWithoutCallback).toThrow("You must pass a callback to executeFunction().");
     });
 
-    it("throws an exception when no callback is passed in, but arguments are", function(){
+    it("throws an error when no callback is passed in, but arguments are", function(){
       function callWithoutCallback() {
         region.executeFunction(testFunctionName, ["arguments"]);
       }
       expect(callWithoutCallback).toThrow("You must pass a callback to executeFunction().");
     });
 
-    it("throws an exception when a non-function is passed as the callback", function(){
+    it("throws an error when a non-function is passed as the callback", function(){
       function callWithNonFunction() {
         region.executeFunction(testFunctionName, ["arguments"], "not a function");
       }
       expect(callWithNonFunction).toThrow("You must pass a function as the callback to executeFunction().");
     });
 
-    it("throws an exception when no function name is passed in, but a callback is", function() {
+    it("throws an error when no function name is passed in, but a callback is", function() {
       function callWithoutArgs() {
         region.executeFunction(function(){});
       }
