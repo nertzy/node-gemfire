@@ -9,14 +9,17 @@ describe("SelectResults", function() {
 
     region.clear();
 
-    async.series([
+    async.parallel([
       function(callback) { region.put("1", "one", callback); },
       function(callback) { region.put("2", "two", callback); },
       function(callback) { region.put("3", "three", callback); },
     ],
     function() {
-      selectResults = cache.executeQuery("SELECT * FROM /exampleRegion");
-      done();
+      cache.executeQuery("SELECT * FROM /exampleRegion", function(error, response){
+        expect(error).toBeNull();
+        selectResults = response;
+        done();
+      });
     });
   });
 
