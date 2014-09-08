@@ -84,8 +84,13 @@ Handle<Value> unableToPutValueError(Handle<Value> v8Value) {
 NAN_METHOD(Region::Put) {
   NanScope();
 
-  if (args.Length() < 2) {
-    NanThrowError("put must be called with a key and a value");
+  if (args.Length() < 3) {
+    NanThrowError("You must pass a key, value, and callback to put().");
+    NanReturnUndefined();
+  }
+
+  if (!args[2]->IsFunction()) {
+    NanThrowError("You must pass a callback to put().");
     NanReturnUndefined();
   }
 
@@ -96,51 +101,30 @@ NAN_METHOD(Region::Put) {
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
   CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
 
-  if (args.Length() > 2 && args[2]->IsFunction()) {
-    Local<Function> callback(Local<Function>::Cast(args[2]));
+  Local<Function> callback(Local<Function>::Cast(args[2]));
 
-    if (keyPtr == NULLPTR) {
-      Local<Value> error(NanError("Invalid GemFire key."));
+  if (keyPtr == NULLPTR) {
+    Local<Value> error(NanError("Invalid GemFire key."));
 
-      static const int argc = 2;
-      Local<Value> argv[2] = { error, NanUndefined() };
-      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
-    } else if (valuePtr == NULLPTR) {
-      Local<Value> error(NanNew(unableToPutValueError(args[1])));
+    static const int argc = 2;
+    Local<Value> argv[2] = { error, NanUndefined() };
+    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
+  } else if (valuePtr == NULLPTR) {
+    Local<Value> error(NanNew(unableToPutValueError(args[1])));
 
-      static const int argc = 2;
-      Local<Value> argv[2] = { error, NanUndefined() };
-      NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
-    } else {
-      PutBaton * baton = new PutBaton(callback, regionPtr, keyPtr, valuePtr);
-
-      uv_work_t * request = new uv_work_t();
-      request->data = reinterpret_cast<void *>(baton);
-
-      uv_queue_work(uv_default_loop(), request, region->AsyncPut, region->AfterAsyncPut);
-    }
-
-    NanReturnValue(args.This());
+    static const int argc = 2;
+    Local<Value> argv[2] = { error, NanUndefined() };
+    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
   } else {
-    if (keyPtr == NULLPTR) {
-      NanThrowError("Invalid GemFire key.");
-      NanReturnUndefined();
-    }
+    PutBaton * baton = new PutBaton(callback, regionPtr, keyPtr, valuePtr);
 
-    if (valuePtr == NULLPTR) {
-      NanThrowError(unableToPutValueError(args[1]));
-      NanReturnUndefined();
-    }
+    uv_work_t * request = new uv_work_t();
+    request->data = reinterpret_cast<void *>(baton);
 
-    try {
-      regionPtr->put(keyPtr, valuePtr);
-    }
-    catch (gemfire::Exception & exception) {
-      ThrowGemfireException(exception);
-      NanReturnUndefined();
-    }
-    NanReturnValue(args[1]);
+    uv_queue_work(uv_default_loop(), request, region->AsyncPut, region->AfterAsyncPut);
   }
+
+  NanReturnValue(args.This());
 }
 
 void Region::AsyncPut(uv_work_t * request) {

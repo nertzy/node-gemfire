@@ -1,16 +1,23 @@
+const async = require('async');
 const cache = require("./support/factories.js").getCache();
 
 describe("SelectResults", function() {
   var selectResults;
 
-  beforeEach(function() {
+  beforeEach(function(done) {
     const region = cache.getRegion('exampleRegion');
-    region.clear();
-    region.put("1", "one");
-    region.put("2", "two");
-    region.put("3", "three");
 
-    selectResults = cache.executeQuery("SELECT * FROM /exampleRegion");
+    region.clear();
+
+    async.series([
+      function(callback) { region.put("1", "one", callback); },
+      function(callback) { region.put("2", "two", callback); },
+      function(callback) { region.put("3", "three", callback); },
+    ],
+    function() {
+      selectResults = cache.executeQuery("SELECT * FROM /exampleRegion");
+      done();
+    });
   });
 
   describe("toArray", function() {
