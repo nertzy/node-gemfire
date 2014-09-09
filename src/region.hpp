@@ -46,31 +46,6 @@ class Region : node::ObjectWrap {
     Persistent<Object> cacheHandle;
 };
 
-class ExecuteFunctionBaton {
- public:
-    explicit ExecuteFunctionBaton(gemfire::RegionPtr regionPtr,
-                                  std::string functionName,
-                                  gemfire::CacheablePtr functionArguments,
-                                  Handle<Function> callback) :
-        regionPtr(regionPtr),
-        functionName(functionName),
-        functionArguments(functionArguments) {
-      NanAssignPersistent(this->callback, callback);
-    }
-
-    ~ExecuteFunctionBaton() {
-      NanDisposePersistent(callback);
-    }
-
-    gemfire::RegionPtr regionPtr;
-    std::string functionName;
-    gemfire::CacheablePtr functionArguments;
-    Persistent<Function> callback;
-
-    gemfire::CacheableVectorPtr resultsPtr;
-    std::string errorMessage;
-};
-
 }  // namespace node_gemfire
 
 #define __REGION_HPP__
