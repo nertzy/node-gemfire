@@ -30,6 +30,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Get)->GetFunction());
   NanSetPrototypeTemplate(constructor, "remove",
       NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "query",
+      NanNew<FunctionTemplate>(Region::Query)->GetFunction());
   NanSetPrototypeTemplate(constructor, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
   NanSetPrototypeTemplate(constructor, "inspect",
@@ -402,6 +404,59 @@ NAN_GETTER(Region::Name) {
   RegionPtr regionPtr(region->regionPtr);
 
   NanReturnValue(NanNew(regionPtr->getName()));
+}
+
+class QueryWorker : public NanAsyncWorker {
+ public:
+  QueryWorker(
+      RegionPtr regionPtr,
+      std::string queryPredicate,
+      NanCallback * callback) :
+    NanAsyncWorker(callback),
+    regionPtr(regionPtr),
+    queryPredicate(queryPredicate) {}
+
+  void Execute() {
+    try {
+      selectResultsPtr = regionPtr->query(queryPredicate.c_str());
+    } catch(const gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    static const int argc = 2;
+    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(selectResultsPtr)) };
+    callback->Call(argc, argv);
+  }
+
+  RegionPtr regionPtr;
+  std::string queryPredicate;
+  SelectResultsPtr selectResultsPtr;
+};
+
+NAN_METHOD(Region::Query) {
+  NanScope();
+
+  if (args.Length() < 2) {
+    NanThrowError("You must pass a query predicate string and a callback to query().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to query().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
+  std::string queryPredicate(*NanUtf8String(args[0]));
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
+
+  QueryWorker * worker = new QueryWorker(region->regionPtr, queryPredicate, callback);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnUndefined();
 }
 
 }  // namespace node_gemfire

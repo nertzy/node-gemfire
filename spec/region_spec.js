@@ -692,4 +692,58 @@ describe("gemfire.Region", function() {
       });
     });
   });
+
+  describe(".query", function() {
+    it("passes the results into the callback for the passed-in predicate", function(done) {
+      async.series([
+        function (callback) { region.put("key1", 1, callback); },
+        function (callback) { region.put("key2", 2, callback); },
+        function (callback) { region.put("key3", 3, callback); },
+        function (callback) {
+          region.query("this > 1", function(error, response) {
+            expect(error).toBeFalsy();
+            const results = response.toArray();
+
+            expect(results.length).toEqual(2);
+            expect(results).toContain(2);
+            expect(results).toContain(3);
+
+            callback();
+          });
+        },
+      ], done);
+    });
+
+    it("requires a query predicate string", function() {
+      function queryWithoutPredicate(){
+        region.query();
+      }
+
+      expect(queryWithoutPredicate).toThrow("You must pass a query predicate string and a callback to query().");
+    });
+
+    it("requires a callback", function() {
+      function queryWithoutCallback(){
+        region.query("true");
+      }
+
+      expect(queryWithoutCallback).toThrow("You must pass a query predicate string and a callback to query().");
+    });
+
+    it("requires the callback to be a function", function() {
+      function queryWithNonCallback(){
+        region.query("true", "not a function");
+      }
+
+      expect(queryWithNonCallback).toThrow("You must pass a function as the callback to query().");
+    });
+
+    it("passes along errors from an invalid query", function(done) {
+      region.query("Invalid query", function(error, response) {
+        expect(error).toBeTruthy();
+        expect(error.message).toMatch(/gemfire::QueryException/);
+        done();
+      });
+    });
+  });
 });

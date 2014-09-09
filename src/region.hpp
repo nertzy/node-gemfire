@@ -28,6 +28,7 @@ class Region : node::ObjectWrap {
   static NAN_METHOD(Get);
   static NAN_METHOD(Remove);
   static NAN_METHOD(ExecuteFunction);
+  static NAN_METHOD(Query);
   static NAN_METHOD(Inspect);
   static NAN_GETTER(Name);
 
