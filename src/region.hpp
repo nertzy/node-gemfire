@@ -2,10 +2,8 @@
 
 #include <v8.h>
 #include <nan.h>
-#include <gfcpp/Region.hpp>
 #include <node.h>
-#include <string>
-#include "cache.hpp"
+#include <gfcpp/Region.hpp>
 
 using namespace v8;
 
