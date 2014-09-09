@@ -64,6 +64,36 @@ NAN_METHOD(Cache::New) {
   NanReturnValue(args.This());
 }
 
+class ExecuteQueryWorker : public NanAsyncWorker {
+ public:
+  ExecuteQueryWorker(QueryPtr queryPtr,
+                     NanCallback * callback) :
+      NanAsyncWorker(callback),
+      queryPtr(queryPtr) {}
+
+  void Execute() {
+    try {
+      selectResultsPtr = queryPtr->execute();
+    }
+    catch(const gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    static const int argc = 2;
+    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(selectResultsPtr)) };
+    callback->Call(argc, argv);
+  }
+
+  QueryPtr queryPtr;
+  SelectResultsPtr selectResultsPtr;
+};
+
+QueryPtr Cache::newQuery(char * queryString) {
+  return cachePtr->getQueryService()->newQuery(queryString);
+}
+
 NAN_METHOD(Cache::ExecuteQuery) {
   NanScope();
 
@@ -83,57 +113,14 @@ NAN_METHOD(Cache::ExecuteQuery) {
   }
 
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
-  CachePtr cachePtr(cache->cachePtr);
+  QueryPtr queryPtr(cache->newQuery(*(NanUtf8String(args[0]))));
 
-  QueryServicePtr queryServicePtr(cachePtr->getQueryService());
-  String::Utf8Value queryString(args[0]);
-  QueryPtr queryPtr(queryServicePtr->newQuery(*queryString));
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
 
-  Local<Function> callback(Local<Function>::Cast(args[1]));
-
-  ExecuteQueryBaton * baton = new ExecuteQueryBaton(callback, queryPtr);
-
-  uv_work_t * request = new uv_work_t();
-  request->data = reinterpret_cast<void *>(baton);
-
-  uv_queue_work(uv_default_loop(), request, cache->AsyncExecuteQuery, cache->AfterAsyncExecuteQuery);
+  ExecuteQueryWorker * worker = new ExecuteQueryWorker(queryPtr, callback);
+  NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
-}
-
-void Cache::AsyncExecuteQuery(uv_work_t * request) {
-  ExecuteQueryBaton * baton = reinterpret_cast<ExecuteQueryBaton *>(request->data);
-
-  try {
-    baton->selectResultsPtr = baton->queryPtr->execute();
-  }
-  catch(const gemfire::Exception & exception) {
-    baton->errorMessage = gemfireExceptionMessage(exception);
-  }
-}
-
-void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
-  NanScope();
-
-  ExecuteQueryBaton * baton = reinterpret_cast<ExecuteQueryBaton *>(request->data);
-
-  Local<Value> error;
-  Local<Value> returnValue;
-
-  if (baton->errorMessage.empty()) {
-    error = NanUndefined();
-    returnValue = NanNew(v8ValueFromGemfire(baton->selectResultsPtr));
-  } else {
-    error = NanError(baton->errorMessage.c_str());
-    returnValue = NanUndefined();
-  }
-
-  static const int argc = 2;
-  Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
-
-  delete request;
-  delete baton;
 }
 
 NAN_METHOD(Cache::GetRegion) {
