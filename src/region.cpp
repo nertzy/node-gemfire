@@ -32,6 +32,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
   NanSetPrototypeTemplate(constructor, "query",
       NanNew<FunctionTemplate>(Region::Query)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "selectValue",
+      NanNew<FunctionTemplate>(Region::SelectValue)->GetFunction());
   NanSetPrototypeTemplate(constructor, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
   NanSetPrototypeTemplate(constructor, "inspect",
@@ -456,7 +458,60 @@ NAN_METHOD(Region::Query) {
   QueryWorker * worker = new QueryWorker(region->regionPtr, queryPredicate, callback);
   NanAsyncQueueWorker(worker);
 
-  NanReturnUndefined();
+  NanReturnValue(args.This());
+}
+
+class SelectValueWorker : public NanAsyncWorker {
+ public:
+  SelectValueWorker(
+      RegionPtr regionPtr,
+      std::string queryPredicate,
+      NanCallback * callback) :
+    NanAsyncWorker(callback),
+    regionPtr(regionPtr),
+    queryPredicate(queryPredicate) {}
+
+  void Execute() {
+    try {
+      resultPtr = regionPtr->selectValue(queryPredicate.c_str());
+    } catch(const gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    static const int argc = 2;
+    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(resultPtr)) };
+    callback->Call(argc, argv);
+  }
+
+  RegionPtr regionPtr;
+  std::string queryPredicate;
+  CacheablePtr resultPtr;
+};
+
+NAN_METHOD(Region::SelectValue) {
+  NanScope();
+
+  if (args.Length() < 2) {
+    NanThrowError("You must pass a query predicate string and a callback to selectValue().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to selectValue().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
+  std::string queryPredicate(*NanUtf8String(args[0]));
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
+
+  SelectValueWorker * worker = new SelectValueWorker(region->regionPtr, queryPredicate, callback);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnValue(args.This());
 }
 
 }  // namespace node_gemfire
