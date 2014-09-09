@@ -6,7 +6,7 @@ var gemfire = require('../..');
 var cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 var region = cache.getRegion("exampleRegion");
 
-region.clear();
+const Q = require("q");
 
 console.log("node-gemfire version " + gemfire.version);
 console.log("GemFire version " + gemfire.gemfireVersion);
@@ -23,65 +23,79 @@ var keyOptions = {
   special: false
 };
 
-var randomObject = require('../data/randomObject.json');
-var gemfireKey = randomString(keyOptions);
-
-var suffix = 0;
-function putNObjects(n){
-  _.times(n, function() {
-    suffix++;
-    region.put(gemfireKey + suffix, randomObject);
-  });
-}
-
-var stringValueOptions = {
+var valueOptions = {
   length: 15 * 1024,
   numeric: true,
   letter: true,
   special: true
 };
 
-var stringValue = randomString(stringValueOptions);
+var randomObject = require('../data/randomObject.json');
+var stringValue = randomString(valueOptions);
+var gemfireKey = randomString(keyOptions);
 
-function putNStrings(n){
-  _.times(n, function() {
-    suffix++;
-    region.put(gemfireKey + suffix, stringValue);
-  });
-}
+var suffix = 0;
+function benchmark(numberOfPuts, title, callback) {
+  region.clear();
 
-function benchmark(numberOfPuts, typeName, callback) {
+  var deferred = Q.defer();
   var start = microtime.now();
 
-  callback();
+  callback(numberOfPuts).then(function(){
+    var microseconds = microtime.now() - start;
+    var seconds = (microseconds / 1000000);
 
-  var microseconds = microtime.now() - start;
-  var seconds = (microseconds / 1000000);
+    var putsPerSecond = Math.round(numberOfPuts / seconds);
+    var usecPerPut = Math.round(microseconds / numberOfPuts);
 
-  var putsPerSecond = Math.round(numberOfPuts / seconds);
-  var usecPerPut = Math.round(microseconds / numberOfPuts);
+    console.log(
+      "(" + title + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+    );
 
-  console.log(
-    "(" + typeName + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
-  );
+    deferred.resolve();
+  });
+
+  return deferred.promise;
+}
+
+function putNValues(value) {
+  var deferred = Q.defer();
+  var successes = 0;
+
+  return function(iterationCount) {
+    function putCallback(error) {
+      if(error) {
+        throw error;
+      } else {
+        successes++;
+
+        if(successes == iterationCount) {
+          deferred.resolve();
+        }
+      }
+    }
+
+    for(var i = 0; i < iterationCount; i++) {
+      suffix++;
+      region.put(gemfireKey + suffix, value, putCallback);
+    }
+
+    return deferred.promise;
+  };
 }
 
 function benchmarkObjects(numberOfPuts){
-  benchmark(numberOfPuts, "object", function () {
-    putNObjects(numberOfPuts);
-  });
+  return benchmark(numberOfPuts, "object", putNValues(randomObject));
 }
 
 function benchmarkStrings(numberOfPuts){
-  benchmark(numberOfPuts, "string", function () {
-    putNStrings(numberOfPuts);
-  });
+  return benchmark(numberOfPuts, "string", putNValues(stringValue));
 }
 
-_.each([1, 10], function(numberOfPuts){
-  benchmarkObjects(numberOfPuts);
-});
-
-_.each([100, 1000, 10000], function(numberOfPuts){
-  benchmarkStrings(numberOfPuts);
-});
+Q()
+  .then(function(){ return benchmarkObjects(1); })
+  .then(function(){ return benchmarkObjects(10); })
+  .then(function(){ return benchmarkObjects(100); })
+  .then(function(){ return benchmarkStrings(100); })
+  .then(function(){ return benchmarkStrings(1000); })
+  .then(function(){ return benchmarkStrings(10000); });
