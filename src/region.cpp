@@ -408,9 +408,10 @@ NAN_GETTER(Region::Name) {
   NanReturnValue(NanNew(regionPtr->getName()));
 }
 
-class QueryWorker : public NanAsyncWorker {
+template <typename T>
+class AbstractQueryWorker : public NanAsyncWorker {
  public:
-  QueryWorker(
+  AbstractQueryWorker(
       RegionPtr regionPtr,
       std::string queryPredicate,
       NanCallback * callback) :
@@ -418,23 +419,32 @@ class QueryWorker : public NanAsyncWorker {
     regionPtr(regionPtr),
     queryPredicate(queryPredicate) {}
 
-  void Execute() {
-    try {
-      selectResultsPtr = regionPtr->query(queryPredicate.c_str());
-    } catch(const gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
-  }
-
   void HandleOKCallback() {
     static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(selectResultsPtr)) };
+    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(resultPtr)) };
     callback->Call(argc, argv);
   }
 
   RegionPtr regionPtr;
   std::string queryPredicate;
-  SelectResultsPtr selectResultsPtr;
+  T resultPtr;
+};
+
+class QueryWorker : public AbstractQueryWorker<SelectResultsPtr> {
+ public:
+  QueryWorker(
+      RegionPtr regionPtr,
+      std::string queryPredicate,
+      NanCallback * callback) :
+    AbstractQueryWorker<SelectResultsPtr>(regionPtr, queryPredicate, callback) {}
+
+  void Execute() {
+    try {
+      resultPtr = regionPtr->query(queryPredicate.c_str());
+    } catch(const gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
 };
 
 NAN_METHOD(Region::Query) {
@@ -461,15 +471,13 @@ NAN_METHOD(Region::Query) {
   NanReturnValue(args.This());
 }
 
-class SelectValueWorker : public NanAsyncWorker {
+class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
  public:
   SelectValueWorker(
       RegionPtr regionPtr,
       std::string queryPredicate,
       NanCallback * callback) :
-    NanAsyncWorker(callback),
-    regionPtr(regionPtr),
-    queryPredicate(queryPredicate) {}
+    AbstractQueryWorker<CacheablePtr>(regionPtr, queryPredicate, callback) {}
 
   void Execute() {
     try {
@@ -478,16 +486,6 @@ class SelectValueWorker : public NanAsyncWorker {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
     }
   }
-
-  void HandleOKCallback() {
-    static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(resultPtr)) };
-    callback->Call(argc, argv);
-  }
-
-  RegionPtr regionPtr;
-  std::string queryPredicate;
-  CacheablePtr resultPtr;
 };
 
 NAN_METHOD(Region::SelectValue) {
