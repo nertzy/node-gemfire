@@ -121,7 +121,7 @@ void Cache::AfterAsyncExecuteQuery(uv_work_t * request, int status) {
   Local<Value> returnValue;
 
   if (baton->errorMessage.empty()) {
-    error = NanNull();
+    error = NanUndefined();
     returnValue = NanNew(v8ValueFromGemfire(baton->selectResultsPtr));
   } else {
     error = NanError(baton->errorMessage.c_str());

@@ -112,7 +112,7 @@ class PutWorker : public NanAsyncWorker {
 
   void HandleOKCallback() {
     static const int argc = 2;
-    Local<Value> argv[2] = { NanNull(), NanNew(v8ValueFromGemfire(valuePtr)) };
+    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(valuePtr)) };
     callback->Call(argc, argv);
   }
 
@@ -181,7 +181,7 @@ class GetWorker : public NanAsyncWorker {
 
   void HandleOKCallback() {
     static const int argc = 2;
-    Local<Value> argv[argc] = { NanNull(), NanNew(v8ValueFromGemfire(valuePtr)) };
+    Local<Value> argv[argc] = { NanUndefined(), NanNew(v8ValueFromGemfire(valuePtr)) };
     callback->Call(argc, argv);
   }
 
@@ -355,7 +355,7 @@ void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
 
   if (baton->errorMessage.empty()) {
     Handle<Array> resultsArray(v8ValueFromGemfire(baton->resultsPtr));
-    error = NanNull();
+    error = NanUndefined();
 
     unsigned int length = resultsArray->Length();
     if (length > 0) {
