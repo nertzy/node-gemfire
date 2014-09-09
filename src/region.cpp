@@ -74,12 +74,52 @@ NAN_METHOD(Region::Clear) {
   NanReturnValue(NanTrue());
 }
 
-Handle<Value> unableToPutValueError(Handle<Value> v8Value) {
-  NanScope();
+std::string unableToPutValueError(Handle<Value> v8Value) {
   std::stringstream errorMessageStream;
   errorMessageStream << "Unable to put value " << *String::Utf8Value(v8Value->ToDetailString());
-  NanReturnValue(NanError(errorMessageStream.str().c_str()));
+  return errorMessageStream.str();
 }
+
+class PutWorker : public NanAsyncWorker {
+ public:
+  PutWorker(
+    RegionPtr regionPtr,
+    CacheableKeyPtr keyPtr,
+    CacheablePtr valuePtr,
+    NanCallback * callback) :
+      NanAsyncWorker(callback),
+      regionPtr(regionPtr),
+      keyPtr(keyPtr),
+      valuePtr(valuePtr) {}
+
+  void Execute() {
+    if (keyPtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire key.");
+      return;
+    }
+
+    try {
+      regionPtr->put(keyPtr, valuePtr);
+    } catch (gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void Fail(std::string errorMessage) {
+    SetErrorMessage(errorMessage.c_str());
+    WorkComplete();
+  }
+
+  void HandleOKCallback() {
+    static const int argc = 2;
+    Local<Value> argv[2] = { NanNull(), NanNew(v8ValueFromGemfire(valuePtr)) };
+    callback->Call(argc, argv);
+  }
+
+  RegionPtr regionPtr;
+  CacheableKeyPtr keyPtr;
+  CacheablePtr valuePtr;
+};
 
 NAN_METHOD(Region::Put) {
   NanScope();
@@ -100,65 +140,17 @@ NAN_METHOD(Region::Put) {
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
   CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
+  NanCallback * callback = new NanCallback(args[2].As<Function>());
 
-  Local<Function> callback(Local<Function>::Cast(args[2]));
+  PutWorker * putWorker = new PutWorker(regionPtr, keyPtr, valuePtr, callback);
 
-  if (keyPtr == NULLPTR) {
-    Local<Value> error(NanError("Invalid GemFire key."));
-
-    static const int argc = 2;
-    Local<Value> argv[2] = { error, NanUndefined() };
-    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
-  } else if (valuePtr == NULLPTR) {
-    Local<Value> error(NanNew(unableToPutValueError(args[1])));
-
-    static const int argc = 2;
-    Local<Value> argv[2] = { error, NanUndefined() };
-    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
+  if (valuePtr == NULLPTR) {
+    putWorker->Fail(unableToPutValueError(args[1]));
   } else {
-    PutBaton * baton = new PutBaton(callback, regionPtr, keyPtr, valuePtr);
-
-    uv_work_t * request = new uv_work_t();
-    request->data = reinterpret_cast<void *>(baton);
-
-    uv_queue_work(uv_default_loop(), request, region->AsyncPut, region->AfterAsyncPut);
+    NanAsyncQueueWorker(putWorker);
   }
 
   NanReturnValue(args.This());
-}
-
-void Region::AsyncPut(uv_work_t * request) {
-  PutBaton * baton = reinterpret_cast<PutBaton *>(request->data);
-  try {
-    baton->regionPtr->put(baton->keyPtr, baton->valuePtr);
-  }
-  catch (gemfire::Exception & exception) {
-    baton->errorMessage = gemfireExceptionMessage(exception);
-  }
-}
-
-void Region::AfterAsyncPut(uv_work_t * request, int status) {
-  NanScope();
-
-  PutBaton * baton = reinterpret_cast<PutBaton *>(request->data);
-
-  Local<Value> error;
-  Local<Value> returnValue;
-
-  if (baton->errorMessage.empty()) {
-    error = NanNull();
-    returnValue = NanNew(v8ValueFromGemfire(baton->valuePtr));
-  } else {
-    error = NanError(baton->errorMessage.c_str());
-    returnValue = NanUndefined();
-  }
-
-  static const int argc = 2;
-  Local<Value> argv[2] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
-
-  delete request;
-  delete baton;
 }
 
 class GetWorker : public NanAsyncWorker {
