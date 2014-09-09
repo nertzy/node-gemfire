@@ -644,23 +644,22 @@ describe("gemfire.Region", function() {
 
     it("removes the entry at the given key", function(done) {
       region.put("foo", "bar", function(error){
-        expect(error).toBeNull();
+        expect(error).toBeFalsy();
         region.remove("foo", function(error) {
-          expect(error).toBeNull();
+          expect(error).toBeFalsy();
           region.get("foo", function(error) {
-            expect(error).not.toBeNull();
+            expect(error).toBeTruthy();
             done();
           });
         });
       });
     });
 
-    it("removes the entry at the given key and passes true into the callback", function(done) {
+    it("passes no error when it succeeds", function(done) {
       region.put("foo", "bar", function(error){
-        expect(error).toBeNull();
+        expect(error).toBeFalsy();
         region.remove("foo", function(error, result) {
-          expect(error).toBeNull();
-          expect(result).toBe(true);
+          expect(error).toBeFalsy();
           done();
         });
       });

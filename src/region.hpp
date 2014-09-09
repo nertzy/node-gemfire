@@ -46,27 +46,6 @@ class Region : node::ObjectWrap {
     Persistent<Object> cacheHandle;
 };
 
-class RemoveBaton {
- public:
-    RemoveBaton(Handle<Function> callback,
-             gemfire::RegionPtr regionPtr,
-             gemfire::CacheableKeyPtr keyPtr) :
-        regionPtr(regionPtr),
-        keyPtr(keyPtr) {
-      NanAssignPersistent(this->callback, callback);
-    }
-
-    ~RemoveBaton() {
-      NanDisposePersistent(callback);
-    }
-
-    Persistent<Function> callback;
-    gemfire::RegionPtr regionPtr;
-    gemfire::CacheableKeyPtr keyPtr;
-
-    std::string errorMessage;
-};
-
 class ExecuteFunctionBaton {
  public:
     explicit ExecuteFunctionBaton(gemfire::RegionPtr regionPtr,
