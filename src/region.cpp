@@ -14,36 +14,6 @@ namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
 
-void Region::Init(Handle<Object> exports) {
-  NanScope();
-
-  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
-
-  constructor->SetClassName(NanNew("Region"));
-  constructor->InstanceTemplate()->SetInternalFieldCount(1);
-
-  NanSetPrototypeTemplate(constructor, "clear",
-      NanNew<FunctionTemplate>(Region::Clear)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "put",
-      NanNew<FunctionTemplate>(Region::Put)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "get",
-      NanNew<FunctionTemplate>(Region::Get)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "remove",
-      NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "query",
-      NanNew<FunctionTemplate>(Region::Query)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "selectValue",
-      NanNew<FunctionTemplate>(Region::SelectValue)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "executeFunction",
-      NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "inspect",
-      NanNew<FunctionTemplate>(Region::Inspect)->GetFunction());
-
-  constructor->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
-
-  NanAssignPersistent(regionConstructor, constructor);
-}
-
 NAN_METHOD(Region::GetRegion) {
   NanScope();
 
@@ -445,31 +415,11 @@ class QueryWorker : public AbstractQueryWorker<SelectResultsPtr> {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
     }
   }
+
+  static std::string name() {
+    return "query()";
+  }
 };
-
-NAN_METHOD(Region::Query) {
-  NanScope();
-
-  if (args.Length() < 2) {
-    NanThrowError("You must pass a query predicate string and a callback to query().");
-    NanReturnUndefined();
-  }
-
-  if (!args[1]->IsFunction()) {
-    NanThrowError("You must pass a function as the callback to query().");
-    NanReturnUndefined();
-  }
-
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-
-  std::string queryPredicate(*NanUtf8String(args[0]));
-  NanCallback * callback = new NanCallback(args[1].As<Function>());
-
-  QueryWorker * worker = new QueryWorker(region->regionPtr, queryPredicate, callback);
-  NanAsyncQueueWorker(worker);
-
-  NanReturnValue(args.This());
-}
 
 class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
  public:
@@ -486,18 +436,27 @@ class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
     }
   }
+
+  static std::string name() {
+    return "selectValue()";
+  }
 };
 
-NAN_METHOD(Region::SelectValue) {
+template<typename T>
+NAN_METHOD(Region::Query) {
   NanScope();
 
   if (args.Length() < 2) {
-    NanThrowError("You must pass a query predicate string and a callback to selectValue().");
+    std::stringstream errorStream;
+    errorStream << "You must pass a query predicate string and a callback to " << T::name() << ".";
+    NanThrowError(errorStream.str().c_str());
     NanReturnUndefined();
   }
 
   if (!args[1]->IsFunction()) {
-    NanThrowError("You must pass a function as the callback to selectValue().");
+    std::stringstream errorStream;
+    errorStream << "You must pass a function as the callback to " << T::name() << ".";
+    NanThrowError(errorStream.str().c_str());
     NanReturnUndefined();
   }
 
@@ -506,10 +465,40 @@ NAN_METHOD(Region::SelectValue) {
   std::string queryPredicate(*NanUtf8String(args[0]));
   NanCallback * callback = new NanCallback(args[1].As<Function>());
 
-  SelectValueWorker * worker = new SelectValueWorker(region->regionPtr, queryPredicate, callback);
+  T * worker = new T(region->regionPtr, queryPredicate, callback);
   NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
+}
+
+void Region::Init(Handle<Object> exports) {
+  NanScope();
+
+  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
+
+  constructor->SetClassName(NanNew("Region"));
+  constructor->InstanceTemplate()->SetInternalFieldCount(1);
+
+  NanSetPrototypeTemplate(constructor, "clear",
+      NanNew<FunctionTemplate>(Region::Clear)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "put",
+      NanNew<FunctionTemplate>(Region::Put)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "get",
+      NanNew<FunctionTemplate>(Region::Get)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "remove",
+      NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "query",
+      NanNew<FunctionTemplate>(Region::Query<QueryWorker>)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "selectValue",
+      NanNew<FunctionTemplate>(Region::Query<SelectValueWorker>)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "executeFunction",
+      NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "inspect",
+      NanNew<FunctionTemplate>(Region::Inspect)->GetFunction());
+
+  constructor->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
+
+  NanAssignPersistent(regionConstructor, constructor);
 }
 
 }  // namespace node_gemfire
