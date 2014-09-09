@@ -221,6 +221,35 @@ NAN_METHOD(Region::Get) {
   NanReturnValue(args.This());
 }
 
+class RemoveWorker : public NanAsyncWorker {
+ public:
+  RemoveWorker(
+      RegionPtr regionPtr,
+      CacheableKeyPtr keyPtr,
+      NanCallback * callback) :
+    NanAsyncWorker(callback),
+    regionPtr(regionPtr),
+    keyPtr(keyPtr) {}
+
+  void Execute() {
+    if (keyPtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire key.");
+      return;
+    }
+
+    try {
+      regionPtr->destroy(keyPtr);
+    } catch (const EntryNotFoundException & exception) {
+      SetErrorMessage("Key not found in region.");
+    } catch (const gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  RegionPtr regionPtr;
+  CacheableKeyPtr keyPtr;
+};
+
 NAN_METHOD(Region::Remove) {
   NanScope();
 
@@ -239,61 +268,12 @@ NAN_METHOD(Region::Remove) {
   CachePtr cachePtr(regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
 
-  Local<Function> callback(Local<Function>::Cast(args[1]));
-
-  if (keyPtr == NULLPTR) {
-    Local<Value> error(NanError("Invalid GemFire key."));
-
-    static const int argc = 2;
-    Local<Value> argv[2] = { error, NanUndefined() };
-    NanMakeCallback(NanGetCurrentContext()->Global(), callback, argc, argv);
-  } else {
-    RemoveBaton * baton = new RemoveBaton(callback, regionPtr, keyPtr);
-
-    uv_work_t * request = new uv_work_t();
-    request->data = reinterpret_cast<void *>(baton);
-
-    uv_queue_work(uv_default_loop(), request, region->AsyncRemove, region->AfterAsyncRemove);
-  }
+  RemoveWorker * worker = new RemoveWorker(regionPtr, keyPtr, callback);
+  NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
-}
-
-void Region::AsyncRemove(uv_work_t * request) {
-  RemoveBaton * baton = reinterpret_cast<RemoveBaton *>(request->data);
-
-  try {
-    baton->regionPtr->destroy(baton->keyPtr);
-  } catch (const gemfire::EntryNotFoundException & exception) {
-    baton->errorMessage = "Key not found in region.";
-  } catch (const gemfire::Exception & exception) {
-    baton->errorMessage = gemfireExceptionMessage(exception);
-  }
-}
-
-void Region::AfterAsyncRemove(uv_work_t * request, int status) {
-  NanScope();
-
-  RemoveBaton * baton = reinterpret_cast<RemoveBaton *>(request->data);
-
-  Local<Value> returnValue;
-  Local<Value> error;
-
-  if (baton->errorMessage.empty()) {
-    returnValue = NanTrue();
-    error = NanNull();
-  } else {
-    returnValue = NanUndefined();
-    error = NanError(baton->errorMessage.c_str());
-  }
-
-  static const unsigned int argc = 2;
-  Handle<Value> argv[argc] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
-
-  delete request;
-  delete baton;
 }
 
 NAN_METHOD(Region::ExecuteFunction) {
