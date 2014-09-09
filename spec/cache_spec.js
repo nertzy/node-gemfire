@@ -29,7 +29,7 @@ describe("gemfire.Cache", function() {
 
     function expectExternalFailure(name, done, message){
       runExternalTest(name, done, function(error, stdout, stderr) {
-        expect(error).not.toBeNull();
+        expect(error).toBeTruthy();
         expect(stderr).toContain(message);
       });
     }
@@ -106,7 +106,7 @@ describe("gemfire.Cache", function() {
           const query = "SELECT DISTINCT * FROM /exampleRegion";
 
           cache.executeQuery(query, function(error, response) {
-            expect(error).toBeNull();
+            expect(error).toBeFalsy();
             const results = response.toArray();
 
             expect(results.length).toEqual(2);
@@ -129,7 +129,7 @@ describe("gemfire.Cache", function() {
           const query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
 
           cache.executeQuery(query, function(error, response) {
-            expect(error).toBeNull();
+            expect(error).toBeFalsy();
             const results = response.toArray();
 
             expect(results.length).toEqual(1);
@@ -154,7 +154,7 @@ describe("gemfire.Cache", function() {
           const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
 
           cache.executeQuery(query, function(error, response) {
-            expect(error).toBeNull();
+            expect(error).toBeFalsy();
 
             const results = response.toArray();
 
@@ -179,7 +179,7 @@ describe("gemfire.Cache", function() {
           const query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
 
           cache.executeQuery(query, function(error,response) {
-            expect(error).toBeNull();
+            expect(error).toBeFalsy();
 
             const results = response.toArray();
 
@@ -194,12 +194,12 @@ describe("gemfire.Cache", function() {
 
     it("executes a query that returns a GemFire struct", function(done) {
       region.put("object", { foo: 1, bar: 2, baz: 3 }, function(error) {
-        expect(error).toBeNull();
+        expect(error).toBeFalsy();
 
         const query = "SELECT foo, bar FROM /exampleRegion";
 
         cache.executeQuery(query, function(error, response){
-          expect(error).toBeNull();
+          expect(error).toBeFalsy();
           const results = response.toArray();
 
           expect(results.length).toEqual(1);
@@ -220,7 +220,7 @@ describe("gemfire.Cache", function() {
           const query = "SELECT DISTINCT * FROM /exampleRegion";
 
           cache.executeQuery(query, function(error, response) {
-            expect(error).toBeNull();
+            expect(error).toBeFalsy();
             const results = response.toArray();
 
             expect(results.length).toEqual(2);
@@ -241,7 +241,7 @@ describe("gemfire.Cache", function() {
           function(callback) {
             const narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
             cache.executeQuery(narrowQuery, function(error, response){
-              expect(error).toBeNull();
+              expect(error).toBeFalsy();
               const results = response.toArray();
               expect(results).toEqual(["narrow string"]);
               callback();
@@ -250,7 +250,7 @@ describe("gemfire.Cache", function() {
           function(callback) {
             const wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
             cache.executeQuery(wideQuery, function(error, response){
-              expect(error).toBeNull();
+              expect(error).toBeFalsy();
               const results = response.toArray();
               expect(results).toEqual(["wide string"]);
               callback();

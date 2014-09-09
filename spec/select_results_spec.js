@@ -16,7 +16,7 @@ describe("SelectResults", function() {
     ],
     function() {
       cache.executeQuery("SELECT * FROM /exampleRegion", function(error, response){
-        expect(error).toBeNull();
+        expect(error).toBeFalsy();
         selectResults = response;
         done();
       });
