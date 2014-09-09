@@ -804,4 +804,64 @@ describe("gemfire.Region", function() {
       expect(region.selectValue("true", function(){})).toEqual(region);
     });
   });
+
+  describe(".existsValue", function() {
+    it("passes the result into the callback for the passed-in predicate", function(done) {
+      async.series([
+        function (callback) { region.put("key1", { foo: 1 }, callback); },
+        function (callback) { region.put("key2", { foo: 2 }, callback); },
+        function (callback) { region.put("key3", { foo: 3 }, callback); },
+        function (callback) {
+          region.existsValue("foo = 2", function(error, result) {
+            expect(error).toBeFalsy();
+            expect(result).toEqual(true);
+            callback();
+          });
+        },
+        function (callback) {
+          region.existsValue("foo = 4", function(error, result) {
+            expect(error).toBeFalsy();
+            expect(result).toEqual(false);
+            callback();
+          });
+        },
+      ], done);
+    });
+
+    it("requires a query predicate string", function() {
+      function queryWithoutPredicate(){
+        region.existsValue();
+      }
+
+      expect(queryWithoutPredicate).toThrow("You must pass a query predicate string and a callback to existsValue().");
+    });
+
+    it("requires a callback", function() {
+      function queryWithoutCallback(){
+        region.existsValue("true");
+      }
+
+      expect(queryWithoutCallback).toThrow("You must pass a query predicate string and a callback to existsValue().");
+    });
+
+    it("requires the callback to be a function", function() {
+      function queryWithNonCallback(){
+        region.existsValue("true", "not a function");
+      }
+
+      expect(queryWithNonCallback).toThrow("You must pass a function as the callback to existsValue().");
+    });
+
+    it("passes along errors from an invalid query", function(done) {
+      region.existsValue("Invalid query", function(error, response) {
+        expect(error).toBeTruthy();
+        expect(error.message).toMatch(/gemfire::QueryException/);
+        done();
+      });
+    });
+
+    it("returns the region for chaining", function() {
+      expect(region.existsValue("true", function(){})).toEqual(region);
+    });
+  });
 });

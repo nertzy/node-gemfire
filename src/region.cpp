@@ -442,6 +442,27 @@ class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
   }
 };
 
+class ExistsValueWorker : public AbstractQueryWorker<bool> {
+ public:
+  ExistsValueWorker(
+      RegionPtr regionPtr,
+      std::string queryPredicate,
+      NanCallback * callback) :
+    AbstractQueryWorker<bool>(regionPtr, queryPredicate, callback) {}
+
+  void Execute() {
+    try {
+      resultPtr = regionPtr->existsValue(queryPredicate.c_str());
+    } catch(const gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  static std::string name() {
+    return "existsValue()";
+  }
+};
+
 template<typename T>
 NAN_METHOD(Region::Query) {
   NanScope();
@@ -491,6 +512,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Query<QueryWorker>)->GetFunction());
   NanSetPrototypeTemplate(constructor, "selectValue",
       NanNew<FunctionTemplate>(Region::Query<SelectValueWorker>)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "existsValue",
+      NanNew<FunctionTemplate>(Region::Query<ExistsValueWorker>)->GetFunction());
   NanSetPrototypeTemplate(constructor, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
   NanSetPrototypeTemplate(constructor, "inspect",
