@@ -13,29 +13,29 @@ namespace node_gemfire {
 
 class Region : node::ObjectWrap {
  public:
-    explicit Region(Handle<Object> cacheHandle,
-                    gemfire::RegionPtr regionPtr) :
-        regionPtr(regionPtr) {
+  Region(Handle<Object> cacheHandle,
+         gemfire::RegionPtr regionPtr) :
+    regionPtr(regionPtr) {
       NanAssignPersistent(this->cacheHandle, cacheHandle);
     }
 
-    ~Region() {
-      NanDisposePersistent(cacheHandle);
-    }
+  ~Region() {
+    NanDisposePersistent(cacheHandle);
+  }
 
-    static void Init(Handle<Object> exports);
-    static NAN_METHOD(GetRegion);
-    static NAN_METHOD(Clear);
-    static NAN_METHOD(Put);
-    static NAN_METHOD(Get);
-    static NAN_METHOD(Remove);
-    static NAN_METHOD(ExecuteFunction);
-    static NAN_METHOD(Inspect);
-    static NAN_GETTER(Name);
+  static void Init(Handle<Object> exports);
+  static NAN_METHOD(GetRegion);
+  static NAN_METHOD(Clear);
+  static NAN_METHOD(Put);
+  static NAN_METHOD(Get);
+  static NAN_METHOD(Remove);
+  static NAN_METHOD(ExecuteFunction);
+  static NAN_METHOD(Inspect);
+  static NAN_GETTER(Name);
 
  private:
-    gemfire::RegionPtr regionPtr;
-    Persistent<Object> cacheHandle;
+  gemfire::RegionPtr regionPtr;
+  Persistent<Object> cacheHandle;
 };
 
 }  // namespace node_gemfire
