@@ -75,7 +75,10 @@ module.exports = function(grunt) {
           command: "cpplint.py --verbose=1 --linelength=110 --extensions=cpp,hpp src/*"
         },
         console: {
-          command: runNode("bin/console.js")
+          command: runNode("bin/console.js"),
+          options: {
+            stdinRawMode: true
+          }
         },
         cppUnitTests: {
           command: runNode("spec/cpp/runner.js")
