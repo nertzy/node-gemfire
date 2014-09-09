@@ -283,4 +283,9 @@ Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr) 
   NanReturnValue(array);
 }
 
+Handle<Boolean> v8ValueFromGemfire(bool value) {
+  NanScope();
+  NanReturnValue(NanNew(value));
+}
+
 }  // namespace node_gemfire

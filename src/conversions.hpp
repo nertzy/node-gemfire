@@ -21,6 +21,7 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
 Handle<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
 Handle<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
 Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
+Handle<Boolean> v8ValueFromGemfire(bool value);
 
 }  // namespace node_gemfire
 
