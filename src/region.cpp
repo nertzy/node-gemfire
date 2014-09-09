@@ -169,29 +169,27 @@ class GetWorker : public NanAsyncWorker {
       NanAsyncWorker(callback),
       regionPtr(regionPtr),
       keyPtr(keyPtr) {}
-  ~GetWorker() {}
 
   void Execute() {
+    if (keyPtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire key.");
+      return;
+    }
+
     try {
       valuePtr = regionPtr->get(keyPtr);
-
-      if (valuePtr == NULLPTR) {
-        SetErrorMessage("Key not found in region.");
-      }
-    }
-    catch (gemfire::Exception & exception) {
+    } catch (gemfire::Exception & exception) {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+
+    if (valuePtr == NULLPTR) {
+      SetErrorMessage("Key not found in region.");
     }
   }
 
   void HandleOKCallback() {
-    NanScope();
-
-    Local<Value> error(NanNull());
-    Local<Value> returnValue(NanNew(v8ValueFromGemfire(valuePtr)));
-
     static const int argc = 2;
-    Local<Value> argv[argc] = { error, returnValue };
+    Local<Value> argv[argc] = { NanNull(), NanNew(v8ValueFromGemfire(valuePtr)) };
     callback->Call(argc, argv);
   }
 
@@ -203,12 +201,14 @@ class GetWorker : public NanAsyncWorker {
 NAN_METHOD(Region::Get) {
   NanScope();
 
-  if (args.Length() < 1) {
+  unsigned int argsLength = args.Length();
+
+  if (argsLength == 0) {
     NanThrowError("You must pass a key and callback to get().");
     NanReturnUndefined();
   }
 
-  if (args.Length() < 2) {
+  if (argsLength == 1) {
     NanThrowError("You must pass a callback to get().");
     NanReturnUndefined();
   }
@@ -220,21 +220,11 @@ NAN_METHOD(Region::Get) {
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
-
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], regionPtr->getCache()));
 
-  Local<Function> callbackFunction = args[1].As<Function>();
-
-  if (keyPtr == NULLPTR) {
-    Local<Value> error(NanError("Invalid GemFire key."));
-
-    static const int argc = 2;
-    Local<Value> argv[2] = { error, NanUndefined() };
-    NanMakeCallback(NanGetCurrentContext()->Global(), callbackFunction, argc, argv);
-  } else {
-    NanCallback * callback = new NanCallback(callbackFunction);
-    NanAsyncQueueWorker(new GetWorker(callback, regionPtr, keyPtr));
-  }
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
+  GetWorker * getWorker = new GetWorker(callback, regionPtr, keyPtr);
+  NanAsyncQueueWorker(getWorker);
 
   NanReturnValue(args.This());
 }
