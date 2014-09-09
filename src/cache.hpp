@@ -4,7 +4,6 @@
 #include <nan.h>
 #include <node.h>
 #include <gfcpp/Cache.hpp>
-#include <string>
 
 using namespace v8;
 
