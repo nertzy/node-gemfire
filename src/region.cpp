@@ -276,6 +276,65 @@ NAN_METHOD(Region::Remove) {
   NanReturnValue(args.This());
 }
 
+class ExecuteFunctionWorker : public NanAsyncWorker {
+ public:
+  ExecuteFunctionWorker(
+      gemfire::RegionPtr regionPtr,
+      std::string functionName,
+      gemfire::CacheablePtr functionArguments,
+      NanCallback * callback) :
+    NanAsyncWorker(callback),
+    regionPtr(regionPtr),
+    functionName(functionName),
+    functionArguments(functionArguments) {}
+
+  void Execute() {
+    ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
+
+    if (functionArguments != NULLPTR) {
+      executionPtr = executionPtr->withArgs(functionArguments);
+    }
+
+    try {
+      resultsPtr = executionPtr->execute(functionName.c_str())->getResult();
+    }
+    catch (gemfire::Exception &exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    Local<Value> error(NanUndefined());
+    Local<Value> returnValue;
+
+    Handle<Array> resultsArray(v8ValueFromGemfire(resultsPtr));
+
+    unsigned int length = resultsArray->Length();
+    if (length > 0) {
+      Handle<Value> lastResult(resultsArray->Get(length - 1));
+
+      if (lastResult->IsNativeError()) {
+        error = NanNew(lastResult);
+
+        Local<Array> resultsExceptLast(NanNew<Array>(length - 1));
+        for (unsigned int i = 0; i < length - 1; i++) {
+          resultsExceptLast->Set(i, resultsArray->Get(i));
+        }
+        resultsArray = resultsExceptLast;
+      }
+    }
+
+    const unsigned int argc = 2;
+    Handle<Value> argv[argc] = { error, NanNew(resultsArray) };
+    callback->Call(argc, argv);
+  }
+
+  RegionPtr regionPtr;
+  std::string functionName;
+  CacheablePtr functionArguments;
+  CacheableVectorPtr resultsPtr;
+};
+
 NAN_METHOD(Region::ExecuteFunction) {
   NanScope();
 
@@ -295,11 +354,11 @@ NAN_METHOD(Region::ExecuteFunction) {
   RegionPtr regionPtr(region->regionPtr);
 
   CacheablePtr functionArguments;
-  Local<Function> callback;
+  NanCallback * callback;
 
   if (args[1]->IsFunction()) {
     functionArguments = NULLPTR;
-    callback = Local<Function>::Cast(args[1]);
+    callback = new NanCallback(args[1].As<Function>());
   } else {
     if (v8ArgsLength == 2) {
       NanThrowError("You must pass a callback to executeFunction().");
@@ -308,82 +367,19 @@ NAN_METHOD(Region::ExecuteFunction) {
       NanThrowError("You must pass a function as the callback to executeFunction().");
       NanReturnUndefined();
     }
+
     functionArguments = gemfireValueFromV8(args[1], regionPtr->getCache());
-    callback = Local<Function>::Cast(args[2]);
+    callback = new NanCallback(args[2].As<Function>());
   }
 
   std::string functionName(*NanUtf8String(args[0]));
 
-  ExecuteFunctionBaton * baton = new ExecuteFunctionBaton(regionPtr,
-                                                          functionName,
-                                                          functionArguments,
-                                                          callback);
+  ExecuteFunctionWorker * worker =
+    new ExecuteFunctionWorker(regionPtr, functionName, functionArguments, callback);
 
-  uv_work_t * request = new uv_work_t();
-  request->data = reinterpret_cast<void *>(baton);
-
-  uv_queue_work(uv_default_loop(),
-                request,
-                region->AsyncExecuteFunction,
-                region->AfterAsyncExecuteFunction);
+  NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
-}
-
-void Region::AsyncExecuteFunction(uv_work_t * request) {
-  ExecuteFunctionBaton * baton = reinterpret_cast<ExecuteFunctionBaton *>(request->data);
-
-  ExecutionPtr executionPtr(FunctionService::onRegion(baton->regionPtr));
-
-  if (baton->functionArguments != NULLPTR) {
-    executionPtr = executionPtr->withArgs(baton->functionArguments);
-  }
-
-  try {
-    baton->resultsPtr = executionPtr->execute(baton->functionName.c_str())->getResult();
-  }
-  catch (gemfire::Exception &exception) {
-    baton->errorMessage = gemfireExceptionMessage(exception);
-  }
-}
-
-void Region::AfterAsyncExecuteFunction(uv_work_t * request, int status) {
-  ExecuteFunctionBaton * baton = reinterpret_cast<ExecuteFunctionBaton *>(request->data);
-
-  Local<Value> error;
-  Local<Value> returnValue;
-
-  if (baton->errorMessage.empty()) {
-    Handle<Array> resultsArray(v8ValueFromGemfire(baton->resultsPtr));
-    error = NanUndefined();
-
-    unsigned int length = resultsArray->Length();
-    if (length > 0) {
-      Handle<Value> lastResult(resultsArray->Get(length - 1));
-
-      if (lastResult->IsNativeError()) {
-        error = NanNew(lastResult);
-
-        Local<Array> resultsExceptLast(NanNew<Array>(length - 1));
-        for (unsigned int i = 0; i < length - 1; i++) {
-          resultsExceptLast->Set(i, resultsArray->Get(i));
-        }
-        resultsArray = resultsExceptLast;
-      }
-    }
-
-    returnValue = NanNew(resultsArray);
-  } else {
-    error = NanError(baton->errorMessage.c_str());
-    returnValue = NanUndefined();
-  }
-
-  const unsigned int argc = 2;
-  Handle<Value> argv[argc] = { error, returnValue };
-  NanMakeCallback(NanGetCurrentContext()->Global(), baton->callback, argc, argv);
-
-  delete request;
-  delete baton;
 }
 
 NAN_METHOD(Region::Inspect) {
