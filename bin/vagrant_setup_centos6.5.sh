@@ -48,9 +48,9 @@ test -e /usr/local/bin/grunt || /usr/local/bin/npm install -g grunt-cli
 
 if [ ! -e /usr/bin/javac ]; then
   if [ ! -e /project/tmp/$JAVA_RPM_FILENAME ]; then
-    wget --no-verbose -O /tmp/$JAVA_RPM_FILENAME --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $JAVA_RPM_URL
+    wget --no-verbose -O /project/tmp/$JAVA_RPM_FILENAME --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $JAVA_RPM_URL
   fi
-  rpm -ivh /tmp/$JAVA_RPM_FILENAME
+  rpm -ivh /project/tmp/$JAVA_RPM_FILENAME
 fi
 
 sh -c "cat > /etc/profile.d/gfcpp.sh" <<'EOF'
