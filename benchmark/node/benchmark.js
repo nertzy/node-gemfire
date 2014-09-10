@@ -1,19 +1,16 @@
-var randomString = require('random-string');
-var _ = require('lodash');
-var microtime = require("microtime");
+const randomString = require('random-string');
+const _ = require('lodash');
+const microtime = require("microtime");
+const async = require('async');
 
-var gemfire = require('../..');
-var cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
-var region = cache.getRegion("exampleRegion");
-
-const Q = require("q");
+const gemfire = require('../..');
+const cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
+const region = cache.getRegion("exampleRegion");
 
 console.log("node-gemfire version " + gemfire.version);
 console.log("GemFire version " + gemfire.gemfireVersion);
 
-function smokeTest() {
-  var deferred = Q.defer();
-
+function smokeTest(callback) {
   region.put('smoke', { test: 'value' }, function(error){
     if(error) {
       throw error;
@@ -28,11 +25,9 @@ function smokeTest() {
         throw "Smoke test failed.";
       }
 
-      deferred.resolve();
+      callback();
     });
   });
-
-  return deferred.promise;
 }
 
 var keyOptions = {
@@ -54,34 +49,33 @@ var stringValue = randomString(valueOptions);
 var gemfireKey = randomString(keyOptions);
 
 var suffix = 0;
-function benchmark(numberOfPuts, title, callback) {
+function benchmark(numberOfPuts, title, functionToTest, callback) {
   region.clear();
 
-  var deferred = Q.defer();
   var start = microtime.now();
 
-  callback(numberOfPuts).then(function(){
-    var microseconds = microtime.now() - start;
-    var seconds = (microseconds / 1000000);
+  async.series([
+    function(next) { functionToTest(numberOfPuts, next); },
+    function(next) {
+      var microseconds = microtime.now() - start;
+      var seconds = (microseconds / 1000000);
 
-    var putsPerSecond = Math.round(numberOfPuts / seconds);
-    var usecPerPut = Math.round(microseconds / numberOfPuts);
+      var putsPerSecond = Math.round(numberOfPuts / seconds);
+      var usecPerPut = Math.round(microseconds / numberOfPuts);
 
-    console.log(
-      "(" + title + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
-    );
+      console.log(
+        "(" + title + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+      );
 
-    deferred.resolve();
-  });
-
-  return deferred.promise;
+      next();
+    }
+  ], callback);
 }
 
 function putNValues(value) {
-  var deferred = Q.defer();
   var successes = 0;
 
-  return function(iterationCount) {
+  return function(iterationCount, callback) {
     function putCallback(error) {
       if(error) {
         throw error;
@@ -89,7 +83,7 @@ function putNValues(value) {
         successes++;
 
         if(successes == iterationCount) {
-          deferred.resolve();
+          callback();
         }
       }
     }
@@ -98,26 +92,24 @@ function putNValues(value) {
       suffix++;
       region.put(gemfireKey + suffix, value, putCallback);
     }
-
-    return deferred.promise;
   };
 }
 
-function benchmarkStrings(numberOfPuts){
-  return benchmark(numberOfPuts, "string", putNValues(stringValue));
+function benchmarkStrings(numberOfPuts, callback){
+  return benchmark(numberOfPuts, "string", putNValues(stringValue), callback);
 }
 
-function benchmarkSimpleObjects(numberOfPuts){
-  return benchmark(numberOfPuts, "simple object", putNValues({ foo: stringValue }));
+function benchmarkSimpleObjects(numberOfPuts, callback){
+  return benchmark(numberOfPuts, "simple object", putNValues({ foo: stringValue }), callback);
 }
 
-function benchmarkComplexObjects(numberOfPuts){
-  return benchmark(numberOfPuts, "complex object", putNValues(randomObject));
+function benchmarkComplexObjects(numberOfPuts, callback){
+  return benchmark(numberOfPuts, "complex object", putNValues(randomObject), callback);
 }
 
-Q()
-  .then(function(){ return smokeTest(); })
-  .then(function(){ return benchmarkStrings(10000); })
-  .then(function(){ return benchmarkSimpleObjects(1000); })
-  .then(function(){ return benchmarkComplexObjects(100); })
-  .done();
+async.series([
+  function(next){ return smokeTest(next); },
+  function(next){ return benchmarkStrings(10000, next); },
+  function(next){ return benchmarkSimpleObjects(1000, next); },
+  function(next){ return benchmarkComplexObjects(100, next); }
+]);
