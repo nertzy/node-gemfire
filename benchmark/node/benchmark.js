@@ -103,20 +103,21 @@ function putNValues(value) {
   };
 }
 
-function benchmarkObjects(numberOfPuts){
-  return benchmark(numberOfPuts, "object", putNValues(randomObject));
-}
-
 function benchmarkStrings(numberOfPuts){
   return benchmark(numberOfPuts, "string", putNValues(stringValue));
 }
 
+function benchmarkSimpleObjects(numberOfPuts){
+  return benchmark(numberOfPuts, "simple object", putNValues({ foo: stringValue }));
+}
+
+function benchmarkComplexObjects(numberOfPuts){
+  return benchmark(numberOfPuts, "complex object", putNValues(randomObject));
+}
+
 Q()
   .then(function(){ return smokeTest(); })
-  .then(function(){ return benchmarkObjects(1); })
-  .then(function(){ return benchmarkObjects(10); })
-  .then(function(){ return benchmarkObjects(100); })
-  .then(function(){ return benchmarkStrings(100); })
-  .then(function(){ return benchmarkStrings(1000); })
   .then(function(){ return benchmarkStrings(10000); })
+  .then(function(){ return benchmarkSimpleObjects(1000); })
+  .then(function(){ return benchmarkComplexObjects(100); })
   .done();
