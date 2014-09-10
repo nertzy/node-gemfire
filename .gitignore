@@ -7,7 +7,7 @@ lib-cov
 *.pid
 *.gz
 *.core.*
-callgrind.out.*
+callgrind.*
 
 pids
 logs
