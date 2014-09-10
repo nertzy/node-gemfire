@@ -11,9 +11,28 @@ const Q = require("q");
 console.log("node-gemfire version " + gemfire.version);
 console.log("GemFire version " + gemfire.gemfireVersion);
 
-region.put('smoke', { test: 'value' });
-if(JSON.stringify(region.get('smoke')) !== JSON.stringify({ test: 'value' })) {
-  throw "Smoke test failed.";
+function smokeTest() {
+  var deferred = Q.defer();
+
+  region.put('smoke', { test: 'value' }, function(error){
+    if(error) {
+      throw error;
+    }
+
+    region.get('smoke', function(error, value) {
+      if(error) {
+        throw error;
+      }
+
+      if(JSON.stringify(value) !== JSON.stringify({ test: 'value' })) {
+        throw "Smoke test failed.";
+      }
+
+      deferred.resolve();
+    });
+  });
+
+  return deferred.promise;
 }
 
 var keyOptions = {
@@ -93,9 +112,11 @@ function benchmarkStrings(numberOfPuts){
 }
 
 Q()
+  .then(function(){ return smokeTest(); })
   .then(function(){ return benchmarkObjects(1); })
   .then(function(){ return benchmarkObjects(10); })
   .then(function(){ return benchmarkObjects(100); })
   .then(function(){ return benchmarkStrings(100); })
   .then(function(){ return benchmarkStrings(1000); })
-  .then(function(){ return benchmarkStrings(10000); });
+  .then(function(){ return benchmarkStrings(10000); })
+  .done();
