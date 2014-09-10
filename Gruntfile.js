@@ -6,9 +6,16 @@ module.exports = function(grunt) {
   var ensureLocatorRunning = 'test -e tmp/gemfire/locator/vf.gf.locator.pid && ps ax | grep `cat tmp/gemfire/locator/vf.gf.locator.pid` | grep -qv grep && echo "Locator already running..." || (' + startLocator + ')';
 
   var nodeCommand = "node";
+  var postNodeCommand;
 
   function runNode(args) {
-    return(function() { return nodeCommand + " " + args; });
+    return(function() {
+      var command = nodeCommand + " " + args;
+      if(postNodeCommand) {
+        command = command + " && " + postNodeCommand;
+      }
+      return command;
+    });
   }
 
   grunt.initConfig(
@@ -132,6 +139,12 @@ module.exports = function(grunt) {
   grunt.registerTask('callgrind', function() {
     grunt.log.writeln('Running with callgrind...');
     nodeCommand = "valgrind --tool=callgrind node";
+  });
+
+  grunt.registerTask('gperftools', function() {
+    grunt.log.writeln('Running with gperftools profiler...');
+    nodeCommand = "LD_PRELOAD=/usr/lib64/libprofiler.so CPUPROFILE=tmp/cpuprofiler.out CPUPROFILE_FREQUENCY=100 CPUPROFILE_REALTIME=1 node";
+    postNodeCommand = "pprof --callgrind `which node` tmp/cpuprofiler.out > callgrind.gperftools.out.$$";
   });
 
   grunt.registerTask('benchmark', [
