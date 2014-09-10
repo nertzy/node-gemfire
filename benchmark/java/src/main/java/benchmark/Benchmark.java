@@ -11,13 +11,14 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Benchmark {
     public static final int NANOSECONDS_IN_A_MILLISECOND = 1000 * 1000;
     static int KEY_SIZE = 8;
     static int VALUE_SIZE = 15 * 1024;
     static int NUMBER_OF_ITEMS = 10000;
+    private static String testString;
+    private static String simpleObject;
     private static String randomObject;
 
     public static void main(String[] args){
@@ -35,6 +36,8 @@ public class Benchmark {
             throw new RuntimeException("Smoke test failed");
         }
 
+        testString = RandomStringUtils.randomAlphanumeric(VALUE_SIZE);
+        simpleObject = "{ \"foo\": \"" + testString + "\" }";
         try {
             randomObject = FileUtils.readFileToString(new File("../data/randomObject.json"));
         } catch (Exception e) {
@@ -46,17 +49,25 @@ public class Benchmark {
 
         System.out.println("Warming up the JVM...");
         //warm up the JVM
-        benchmarkPut(region, keys);
-        benchmarkGet(region, keys);
+        benchmarkStringPut(region, keys, testString);
+        benchmarkObjectPut(region, keys, simpleObject);
+        benchmarkObjectPut(region, keys, randomObject);
+
         region.clear();
+        System.out.println("Benchmarking string put...");
+        ArrayList<Double> stringPutResults = benchmarkStringPut(region, keys, testString);
 
-        System.out.println("Benchmarking put...");
-        ArrayList<Double> putResults = benchmarkPut(region, keys);
-        System.out.println("Benchmarking get...");
-        ArrayList<Double> getResults = benchmarkGet(region, keys);
+        region.clear();
+        System.out.println("Benchmarking simple object put...");
+        ArrayList<Double> simpleObjectPutResults = benchmarkObjectPut(region, keys, simpleObject);
 
-        writeData("Put", putResults);
-        writeData("Get", getResults);
+        region.clear();
+        System.out.println("Benchmarking complex object put...");
+        ArrayList<Double> complexObjectPutResults = benchmarkObjectPut(region, keys, randomObject);
+
+        writeData("String put", stringPutResults);
+        writeData("Simple object put", simpleObjectPutResults);
+        writeData("Complex object put", complexObjectPutResults);
 
         cache.close();
     }
@@ -71,17 +82,14 @@ public class Benchmark {
         return keys;
     }
 
-    private static ArrayList<Double> benchmarkPut(Region region, ArrayList<String> keys) {
+    private static ArrayList<Double> benchmarkStringPut(Region region, ArrayList<String> keys, String value) {
         ArrayList<Double> results = new ArrayList<Double>();
         Long lastNanoTime;
 
         for(Object key : keys) {
             lastNanoTime = System.nanoTime();
 
-            String json = randomObject;
-            PdxInstance pdxInstance = JSONFormatter.fromJSON(json);
-
-            region.put(key, pdxInstance);
+            region.put(key, value);
 
             results.add((double)(System.nanoTime() - lastNanoTime));
         }
@@ -89,13 +97,17 @@ public class Benchmark {
         return results;
     }
 
-    private static ArrayList<Double> benchmarkGet(Region region, ArrayList<String> keys) {
+    private static ArrayList<Double> benchmarkObjectPut(Region region, ArrayList<String> keys, String json) {
         ArrayList<Double> results = new ArrayList<Double>();
         Long lastNanoTime;
 
         for(Object key : keys) {
             lastNanoTime = System.nanoTime();
-            JSONFormatter.toJSON((PdxInstance) region.get(key));
+
+            PdxInstance pdxInstance = JSONFormatter.fromJSON(json);
+
+            region.put(key, pdxInstance);
+
             results.add((double)(System.nanoTime() - lastNanoTime));
         }
 
