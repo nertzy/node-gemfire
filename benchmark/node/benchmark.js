@@ -73,25 +73,19 @@ function benchmark(numberOfPuts, title, functionToTest, callback) {
 }
 
 function putNValues(value) {
-  var successes = 0;
-
   return function(iterationCount, callback) {
-    function putCallback(error) {
-      if(error) {
-        throw error;
-      } else {
-        successes++;
-
-        if(successes == iterationCount) {
-          callback();
-        }
-      }
-    }
-
-    for(var i = 0; i < iterationCount; i++) {
+    async.times(iterationCount, function(n, done) {
       suffix++;
-      region.put(gemfireKey + suffix, value, putCallback);
-    }
+      region.put(gemfireKey + suffix, value, function(error) {
+        if(error) {
+          throw error;
+        }
+
+        done();
+      });
+    }, function(error, results) {
+      callback();
+    });
   };
 }
 
