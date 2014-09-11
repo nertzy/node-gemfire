@@ -57,9 +57,9 @@ std::string unableToPutValueError(Handle<Value> v8Value) {
 class PutWorker : public NanAsyncWorker {
  public:
   PutWorker(
-    RegionPtr regionPtr,
-    CacheableKeyPtr keyPtr,
-    CacheablePtr valuePtr,
+    const RegionPtr & regionPtr,
+    const CacheableKeyPtr & keyPtr,
+    const CacheablePtr & valuePtr,
     NanCallback * callback) :
       NanAsyncWorker(callback),
       regionPtr(regionPtr),
@@ -130,8 +130,8 @@ NAN_METHOD(Region::Put) {
 class GetWorker : public NanAsyncWorker {
  public:
   GetWorker(NanCallback * callback,
-           RegionPtr regionPtr,
-           CacheableKeyPtr keyPtr) :
+           const RegionPtr & regionPtr,
+           const CacheableKeyPtr & keyPtr) :
       NanAsyncWorker(callback),
       regionPtr(regionPtr),
       keyPtr(keyPtr) {}
@@ -318,8 +318,8 @@ NAN_METHOD(Region::PutAll) {
 class RemoveWorker : public NanAsyncWorker {
  public:
   RemoveWorker(
-      RegionPtr regionPtr,
-      CacheableKeyPtr keyPtr,
+      const RegionPtr & regionPtr,
+      const CacheableKeyPtr & keyPtr,
       NanCallback * callback) :
     NanAsyncWorker(callback),
     regionPtr(regionPtr),
@@ -373,9 +373,9 @@ NAN_METHOD(Region::Remove) {
 class ExecuteFunctionWorker : public NanAsyncWorker {
  public:
   ExecuteFunctionWorker(
-      gemfire::RegionPtr regionPtr,
-      std::string functionName,
-      gemfire::CacheablePtr functionArguments,
+      const RegionPtr & regionPtr,
+      const std::string & functionName,
+      const CacheablePtr & functionArguments,
       NanCallback * callback) :
     NanAsyncWorker(callback),
     regionPtr(regionPtr),
@@ -502,8 +502,8 @@ template <typename T>
 class AbstractQueryWorker : public NanAsyncWorker {
  public:
   AbstractQueryWorker(
-      RegionPtr regionPtr,
-      std::string queryPredicate,
+      const RegionPtr & regionPtr,
+      const std::string & queryPredicate,
       NanCallback * callback) :
     NanAsyncWorker(callback),
     regionPtr(regionPtr),
@@ -523,8 +523,8 @@ class AbstractQueryWorker : public NanAsyncWorker {
 class QueryWorker : public AbstractQueryWorker<SelectResultsPtr> {
  public:
   QueryWorker(
-      RegionPtr regionPtr,
-      std::string queryPredicate,
+      const RegionPtr & regionPtr,
+      const std::string & queryPredicate,
       NanCallback * callback) :
     AbstractQueryWorker<SelectResultsPtr>(regionPtr, queryPredicate, callback) {}
 
@@ -544,8 +544,8 @@ class QueryWorker : public AbstractQueryWorker<SelectResultsPtr> {
 class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
  public:
   SelectValueWorker(
-      RegionPtr regionPtr,
-      std::string queryPredicate,
+      const RegionPtr & regionPtr,
+      const std::string & queryPredicate,
       NanCallback * callback) :
     AbstractQueryWorker<CacheablePtr>(regionPtr, queryPredicate, callback) {}
 
@@ -565,8 +565,8 @@ class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
 class ExistsValueWorker : public AbstractQueryWorker<bool> {
  public:
   ExistsValueWorker(
-      RegionPtr regionPtr,
-      std::string queryPredicate,
+      const RegionPtr & regionPtr,
+      const std::string & queryPredicate,
       NanCallback * callback) :
     AbstractQueryWorker<bool>(regionPtr, queryPredicate, callback) {}
 
