@@ -35,6 +35,10 @@ region.put('foo', { bar: ['baz', 'qux'] }, function(error, value) { console.log(
 
 region.get('foo', function(error, value) { console.log("get: ", value); });
 
+region.getAll(['foo'], function(error, response) {
+  // response == {'foo': { bar: ['baz', 'qux']} }
+});
+
 cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, results){
   console.log("executeQuery: ", results.toArray());
 
