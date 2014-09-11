@@ -105,6 +105,17 @@ gemfire::CacheableKeyPtr gemfireKeyFromV8(const Handle<Value> & v8Value, const C
   return keyPtr;
 }
 
+gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Handle<Array> & v8Value,
+                                          const gemfire::CachePtr & cachePtr) {
+  VectorOfCacheableKeyPtr vectorPtr(new VectorOfCacheableKey());
+
+  for (unsigned int i = 0; i < v8Value->Length(); i++) {
+    vectorPtr->push_back(gemfireKeyFromV8(v8Value->Get(i), cachePtr));
+  }
+
+  return vectorPtr;
+}
+
 Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
   try {
     NanScope();
@@ -257,6 +268,22 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   for (unsigned int i = 0; i < length; i++) {
     v8Object->Set(NanNew(structPtr->getFieldName(i)),
                   v8ValueFromGemfire((*structPtr)[i]));
+  }
+
+  NanReturnValue(v8Object);
+}
+
+Handle<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr) {
+  NanScope();
+
+  Handle<Object> v8Object(NanNew<Object>());
+
+  for (HashMapOfCacheable::Iterator i = hashMapPtr->begin(); i != hashMapPtr->end(); i++) {
+    CacheablePtr keyPtr(i.first());
+    CacheablePtr valuePtr(i.second());
+
+    v8Object->Set(v8ValueFromGemfire(keyPtr),
+        v8ValueFromGemfire(valuePtr));
   }
 
   NanReturnValue(v8Object);

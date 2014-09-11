@@ -864,4 +864,70 @@ describe("gemfire.Region", function() {
       expect(region.existsValue("true", function(){})).toEqual(region);
     });
   });
+
+  describe(".getAll", function() {
+    it("passes the results as an array to the callback", function(done) {
+      async.series([
+        function(next) { region.put('key1', 'value1', next); },
+        function(next) { region.put('key2', 'value2', next); },
+        function(next) { region.put('key3', 'value3', next); },
+        function(next) {
+          region.getAll(['key1', 'key3'], function(error, response){
+            expect(error).toBeFalsy();
+
+            expect(response.key1).toEqual('value1');
+            expect(response.key2).toEqual(undefined);
+            expect(response.key3).toEqual('value3');
+
+            next();
+          });
+        }
+      ], done);
+    });
+
+    it("returns the region for chaining", function() {
+      expect(region.getAll(['key'], function(){})).toEqual(region);
+    });
+
+    it("requires a keys argument", function() {
+      function callWithNoArgs() {
+        region.getAll();
+      }
+
+      expect(callWithNoArgs).toThrow("You must pass an array of keys and a callback to getAll().");
+    });
+
+    it("requires a callback", function() {
+      function callWithNoCallback() {
+        region.getAll(['foo']);
+      }
+
+      expect(callWithNoCallback).toThrow("You must pass a callback to getAll().");
+    });
+
+    it("requires the callback to be a function", function() {
+      function callWithNonFunction() {
+        region.getAll(['foo'], 'not a function');
+      }
+
+      expect(callWithNonFunction).toThrow("You must pass a function as the callback to getAll().");
+    });
+
+    it("requires the keys argument to be an array", function() {
+      function callWithNonArray() {
+        region.getAll('not an array', function (){});
+      }
+
+      expect(callWithNonArray).toThrow("You must pass an array of keys and a callback to getAll().");
+    });
+
+    it("passes an empty object to the callback when provided with no keys", function(done){
+      region.getAll([], function(error, response) {
+        expect(error).toBeFalsy();
+        expect(response).toEqual({});
+
+        done();
+      });
+    });
+  });
 });

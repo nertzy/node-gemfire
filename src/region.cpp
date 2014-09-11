@@ -195,6 +195,74 @@ NAN_METHOD(Region::Get) {
   NanReturnValue(args.This());
 }
 
+class GetAllWorker : public NanAsyncWorker {
+ public:
+  GetAllWorker(
+      const RegionPtr & regionPtr,
+      const VectorOfCacheableKeyPtr & gemfireKeysPtr,
+      NanCallback * callback) :
+    NanAsyncWorker(callback),
+    regionPtr(regionPtr),
+    gemfireKeysPtr(gemfireKeysPtr) {}
+
+  void Execute() {
+    resultsPtr = new HashMapOfCacheable();
+
+    if (gemfireKeysPtr->size() == 0) {
+      return;
+    }
+
+    try {
+      regionPtr->getAll(*gemfireKeysPtr, resultsPtr, NULLPTR);
+    } catch (gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    static const int argc = 2;
+
+    Handle<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(resultsPtr) };
+    callback->Call(argc, argv);
+  }
+
+ private:
+  RegionPtr regionPtr;
+  VectorOfCacheableKeyPtr gemfireKeysPtr;
+  HashMapOfCacheablePtr resultsPtr;
+};
+
+NAN_METHOD(Region::GetAll) {
+  NanScope();
+
+  if (args.Length() == 0 || !args[0]->IsArray()) {
+    NanThrowError("You must pass an array of keys and a callback to getAll().");
+    NanReturnUndefined();
+  }
+
+  if (args.Length() == 1) {
+    NanThrowError("You must pass a callback to getAll().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to getAll().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+
+  VectorOfCacheableKeyPtr gemfireKeysPtr(
+      gemfireKeysFromV8(Handle<Array>::Cast(args[0]), regionPtr->getCache()));
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
+
+  GetAllWorker * worker = new GetAllWorker(regionPtr, gemfireKeysPtr, callback);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnValue(args.This());
+}
+
 class RemoveWorker : public NanAsyncWorker {
  public:
   RemoveWorker(
@@ -506,6 +574,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Put)->GetFunction());
   NanSetPrototypeTemplate(constructor, "get",
       NanNew<FunctionTemplate>(Region::Get)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "getAll",
+      NanNew<FunctionTemplate>(Region::GetAll)->GetFunction());
   NanSetPrototypeTemplate(constructor, "remove",
       NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
   NanSetPrototypeTemplate(constructor, "query",
