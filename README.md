@@ -31,16 +31,50 @@ var gemfire = require('gemfire');
 var cache = new gemfire.Cache('config/cache.xml');
 var region = cache.getRegion('myRegion');
 
-region.put('foo', { bar: ['baz', 'qux'] }, function(error, value) { console.log("put: ", value); });
-
-region.get('foo', function(error, value) { console.log("get: ", value); });
-
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.getAll(['key1', 'key2'], function(error, response) {
-    // response == { key1: 'value1', key2: 'value2' } }
+//
+// put && get
+//
+region.put('foo', { bar: ['baz', 'qux'] }, function(error) { 
+  region.get('foo', function(error, value) {
+    console.log(value); // => { bar: ['baz', 'qux'] }
   });
 });
 
+
+//
+//  putAll & getAll
+//
+region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
+  region.getAll(['key1', 'key2'], function(error, response) {
+    console.log(response); // => { key1: 'value1', key2: 'value2' }
+  });
+});
+
+//
+//  putAll & query
+//
+region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
+  region.query("this like 'value%'", function(error, response) {
+    console.log(response.toArray()); // => [ 'value1', 'value2' ]
+  });
+});
+
+//
+//  putAll & existsValue
+//
+region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
+  region.existsValue("this = 'value1'", function(error, response) {
+    console.log(response); // => true
+  });
+
+  region.existsValue("this = 'something that does not exist'", function(error, response) {
+    console.log(response); // => false
+  });
+});
+
+//
+//  executeQuery
+//
 cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, results){
   console.log("executeQuery: ", results.toArray());
 
@@ -49,10 +83,16 @@ cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, resu
   });
 });
 
+//
+//  executeFunction
+//
 region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"], function(error, results){
   console.log("executeFunction MyJavaFunction: ", results);
 });
 
+//
+//  clear
+//
 region.clear();
 ```
 
