@@ -110,7 +110,11 @@ gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Handle<Array> & v8Value
   VectorOfCacheableKeyPtr vectorPtr(new VectorOfCacheableKey());
 
   for (unsigned int i = 0; i < v8Value->Length(); i++) {
-    vectorPtr->push_back(gemfireKeyFromV8(v8Value->Get(i), cachePtr));
+    CacheableKeyPtr keyPtr = gemfireKeyFromV8(v8Value->Get(i), cachePtr);
+
+    if (keyPtr != NULLPTR) {
+      vectorPtr->push_back(keyPtr);
+    }
   }
 
   return vectorPtr;

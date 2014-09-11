@@ -929,5 +929,14 @@ describe("gemfire.Region", function() {
         done();
       });
     });
+
+    it("ignores null keys", function(done) {
+      region.getAll([null], function(error, response) {
+        expect(error).toBeFalsy();
+        expect(response).toEqual({});
+
+        done();
+      });
+    });
   });
 });
