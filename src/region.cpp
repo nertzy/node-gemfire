@@ -263,6 +263,58 @@ NAN_METHOD(Region::GetAll) {
   NanReturnValue(args.This());
 }
 
+class PutAllWorker : public NanAsyncWorker {
+ public:
+  PutAllWorker(
+      const RegionPtr & regionPtr,
+      const HashMapOfCacheablePtr & hashMapPtr,
+      NanCallback * callback) :
+    NanAsyncWorker(callback),
+    regionPtr(regionPtr),
+    hashMapPtr(hashMapPtr) {}
+
+  void Execute() {
+    try {
+      regionPtr->putAll(*hashMapPtr);
+    } catch (gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+ private:
+  RegionPtr regionPtr;
+  HashMapOfCacheablePtr hashMapPtr;
+};
+
+NAN_METHOD(Region::PutAll) {
+  NanScope();
+
+  if (args.Length() == 0 || !args[0]->IsObject()) {
+    NanThrowError("You must pass an object and a callback to putAll().");
+    NanReturnUndefined();
+  }
+
+  if (args.Length() == 1) {
+    NanThrowError("You must pass a callback to putAll().");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to putAll().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+
+  HashMapOfCacheablePtr hashMapPtr(gemfireHashMapFromV8(args[0]->ToObject(), regionPtr->getCache()));
+
+  NanCallback * callback = new NanCallback(args[1].As<Function>());
+  PutAllWorker * worker = new PutAllWorker(regionPtr, hashMapPtr, callback);
+  NanAsyncQueueWorker(worker);
+  NanReturnValue(args.This());
+}
+
 class RemoveWorker : public NanAsyncWorker {
  public:
   RemoveWorker(
@@ -576,6 +628,8 @@ void Region::Init(Handle<Object> exports) {
       NanNew<FunctionTemplate>(Region::Get)->GetFunction());
   NanSetPrototypeTemplate(constructor, "getAll",
       NanNew<FunctionTemplate>(Region::GetAll)->GetFunction());
+  NanSetPrototypeTemplate(constructor, "putAll",
+      NanNew<FunctionTemplate>(Region::PutAll)->GetFunction());
   NanSetPrototypeTemplate(constructor, "remove",
       NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
   NanSetPrototypeTemplate(constructor, "query",
