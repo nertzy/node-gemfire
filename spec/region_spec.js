@@ -865,6 +865,74 @@ describe("gemfire.Region", function() {
     });
   });
 
+  describe(".putAll", function() {
+    it("sets multiple values at once", function(done) {
+      async.series([
+        function(next) {
+          region.putAll({ key1: 'foo', key2: 'bar' }, next);
+        },
+        function(next) {
+          region.get('key1', function(error, value) {
+            expect(error).toBeFalsy();
+            expect(value).toEqual('foo');
+
+            next();
+          });
+        },
+        function(next) {
+          region.get('key2', function(error, value) {
+            expect(error).toBeFalsy();
+            expect(value).toEqual('bar');
+
+            next();
+          });
+        },
+      ], done);
+    });
+
+    it("returns the region for chaining", function() {
+      expect(region.putAll({ key: 'value' }, function(){})).toEqual(region);
+    });
+
+    it("requires a map argument", function() {
+      function callWithNoArgs() {
+        region.putAll();
+      }
+
+      expect(callWithNoArgs).toThrow("You must pass an object and a callback to putAll().");
+    });
+
+    it("requires a callback", function() {
+      function callWithNoCallback() {
+        region.putAll({ foo: 'foo' });
+      }
+
+      expect(callWithNoCallback).toThrow("You must pass a callback to putAll().");
+    });
+
+    it("requires the callback to be a function", function() {
+      function callWithNonFunction() {
+        region.putAll({ foo: 'foo' }, 'this thing is not a function');
+      }
+
+      expect(callWithNonFunction).toThrow("You must pass a function as the callback to putAll().");
+    });
+
+    it("requires the object argument to be an object", function() {
+      function callWithNull() {
+        region.putAll(null, function (){});
+      }
+
+      function callWithString() {
+        region.putAll('foobar', function (){});
+      }
+
+      errorMessage = "You must pass an object and a callback to putAll().";
+      expect(callWithNull).toThrow(errorMessage);
+      expect(callWithString).toThrow(errorMessage);
+    });
+  });
+
   describe(".getAll", function() {
     it("passes the results as an array to the callback", function(done) {
       async.series([

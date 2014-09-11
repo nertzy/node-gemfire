@@ -277,6 +277,25 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   NanReturnValue(v8Object);
 }
 
+gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Handle<Object> & v8Object,
+                                           const gemfire::CachePtr & cachePtr) {
+  HashMapOfCacheablePtr hashMapPtr(new HashMapOfCacheable());
+
+  Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
+  unsigned int length = v8Keys->Length();
+
+  for (unsigned int i = 0; i < length; i++) {
+    Handle<Value> v8Key(v8Keys->Get(i));
+
+    CacheablePtr keyPtr(gemfireValueFromV8(v8Key, cachePtr));
+    CacheablePtr valuePtr(gemfireValueFromV8(v8Object->Get(v8Key), cachePtr));
+
+    hashMapPtr->insert(keyPtr, valuePtr);
+  }
+
+  return hashMapPtr;
+}
+
 Handle<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr) {
   NanScope();
 

@@ -13,10 +13,14 @@ gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
 gemfire::PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
+
 gemfire::CacheableKeyPtr gemfireKeyFromV8(const Handle<Value> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
 gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Handle<Array> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
+
+gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Handle<Object> & v8Object,
+                                           const gemfire::CachePtr & cachePtr);
 
 Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
