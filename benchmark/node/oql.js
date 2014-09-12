@@ -1,6 +1,7 @@
 const randomString = require('random-string');
 const _ = require('lodash');
 const microtime = require("microtime");
+const async = require('async');
 
 const gemfire = require('../..');
 const cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
@@ -52,33 +53,42 @@ WHERE is_defined(a.phoneNumbers) \
     SELECT n.number FROM a.phoneNumbers n)";
 console.log("query: ", query);
 
-function executeQuery() {
-  cache.executeQuery(query);
+function executeQuery(callback) {
+  cache.executeQuery(query, callback);
 }
 
 const queryCount = 10;
-function benchmark(recordCount) {
+function benchmark(recordCount, callback) {
   region.clear();
-  region.executeFunction("io.pivotal.node_gemfire.BulkPut", [baseObject, 1]);
-  region.executeFunction("io.pivotal.node_gemfire.BulkPut", [otherObject, recordCount - 1]);
+  region.executeFunction("io.pivotal.node_gemfire.BulkPut", [baseObject, 1], function(){});
+  region.executeFunction("io.pivotal.node_gemfire.BulkPut", [otherObject, recordCount - 1], function(){});
 
   const start = microtime.now();
 
-  _.times(queryCount, function() {
-    executeQuery();
+  async.times(queryCount, function(n, done) {
+    executeQuery(done);
+  }, function(error, results) {
+    const microseconds = microtime.now() - start;
+    const seconds = (microseconds / 1000000);
+
+    const queriesPerSecond = Math.round(queryCount / seconds);
+    const usecPerPut = Math.round(microseconds / queryCount);
+
+    console.log(
+      "" + recordCount + " records: ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
+    );
+
+    callback();
   });
-
-  const microseconds = microtime.now() - start;
-  const seconds = (microseconds / 1000000);
-
-  const queriesPerSecond = Math.round(queryCount / seconds);
-  const usecPerPut = Math.round(microseconds / queryCount);
-
-  console.log(
-    "" + recordCount + " records: ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
-  );
 }
 
-_.each([10, 20, 50, 100, 200, 500, 1000, 2000, 5000], function(recordCount) {
-  benchmark(recordCount);
-});
+async.series([
+  function(next){ benchmark(10, next); },
+  function(next){ benchmark(20, next); },
+  function(next){ benchmark(100, next); },
+  function(next){ benchmark(200, next); },
+  function(next){ benchmark(500, next); },
+  function(next){ benchmark(1000, next); },
+  function(next){ benchmark(2000, next); },
+  function(next){ benchmark(5000, next); }
+]);
