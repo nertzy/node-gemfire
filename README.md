@@ -6,13 +6,13 @@ NodeJS client for Pivotal GemFire
 ## Supported platforms
 
 * CentOS 6.5
-* Other 64-bit Linux platforms probably work.
+* Other 64-bit Linux platforms may work.
 
 ## Installation
 
 ### Prerequisites
 
-1. Download and install the GemFire 7.0.2 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
+1. Download and install the GemFire 8.0.0 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
 2. Set the environment variables described by the [GemFire Native Client installation instructions](http://gemfire.docs.pivotal.io/latest/userguide/index.html#gemfire_nativeclient/introduction/install-overview.html) for your platform.
 
 ### Installing the NPM package
@@ -24,57 +24,19 @@ $ cd /my/node/project
 $ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save pivotal/node-gemfire
 ```
 
-## Usage example
+## Usage examples:
+
+For an example cache.xml, see [here](https://github.com/pivotal/node-gemfire/blob/master/benchmark/xml/BenchmarkClient.xml).
 
 ```javascript
 var gemfire = require('gemfire');
+
+//
+//  Cache
+//
 var cache = new gemfire.Cache('config/cache.xml');
-var region = cache.getRegion('myRegion');
 
-//
-// put && get
-//
-region.put('foo', { bar: ['baz', 'qux'] }, function(error) { 
-  region.get('foo', function(error, value) {
-    console.log(value); // => { bar: ['baz', 'qux'] }
-  });
-});
-
-
-//
-//  putAll & getAll
-//
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.getAll(['key1', 'key2'], function(error, response) {
-    console.log(response); // => { key1: 'value1', key2: 'value2' }
-  });
-});
-
-//
-//  putAll & query
-//
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.query("this like 'value%'", function(error, response) {
-    console.log(response.toArray()); // => [ 'value1', 'value2' ]
-  });
-});
-
-//
-//  putAll & existsValue
-//
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.existsValue("this = 'value1'", function(error, response) {
-    console.log(response); // => true
-  });
-
-  region.existsValue("this = 'something that does not exist'", function(error, response) {
-    console.log(response); // => false
-  });
-});
-
-//
 //  executeQuery
-//
 cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, results){
   console.log("executeQuery: ", results.toArray());
 
@@ -84,16 +46,53 @@ cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, resu
 });
 
 //
-//  executeFunction
+// Region
 //
+var region = cache.getRegion('myRegion');
+
+// put & get
+region.put('foo', { bar: ['baz', 'qux'] }, function(error) { 
+  region.get('foo', function(error, value) {
+    console.log(value); // => { bar: ['baz', 'qux'] }
+  });
+});
+
+//  putAll & getAll
+region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
+  region.getAll(['key1', 'key2'], function(error, response) {
+    console.log(response); // => { key1: 'value1', key2: 'value2' }
+  });
+});
+
+//  putAll & query
+region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
+  region.query("this like 'value%'", function(error, response) {
+    console.log(response.toArray()); // => [ 'value1', 'value2' ]
+  });
+});
+
+//  putAll & existsValue
+region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
+
+  // exists
+  region.existsValue("this = 'value1'", function(error, response) {
+    console.log(response); // => true
+  });
+
+  // does not exist
+  region.existsValue("this = 'something that does not exist'", function(error, response) {
+    console.log(response); // => false
+  });
+});
+
+//  executeFunction
 region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"], function(error, results){
   console.log("executeFunction MyJavaFunction: ", results);
 });
 
-//
 //  clear
-//
 region.clear();
+
 ```
 
 ## Development
