@@ -149,9 +149,12 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark', [
     'benchmark:node',
-    'benchmark:java'
+    'benchmark:java',
+    'benchmark:node:oql',
   ]);
 
   grunt.registerTask('default', ['build', 'test', 'lint']);
+
+  grunt.registerTask('ci', ['default', 'benchmark']);
 };
 
