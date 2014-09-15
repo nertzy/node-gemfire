@@ -57,7 +57,7 @@ function executeQuery(callback) {
   cache.executeQuery(query, callback);
 }
 
-const queryCount = 10;
+const queryCount = 4;
 function benchmark(recordCount, callback) {
   region.clear();
   region.executeFunction("io.pivotal.node_gemfire.BulkPut", [baseObject, 1], function(){});
