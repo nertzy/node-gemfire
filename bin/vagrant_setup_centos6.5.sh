@@ -63,3 +63,26 @@ EOF
 
 wget --no-verbose https://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py -O /usr/local/bin/cpplint.py
 chmod +x /usr/local/bin/cpplint.py
+
+if [ ! -e /project/tmp/gppfs-0.2 ]; then
+  if [ ! -e /project/tmp/gppfs-0.2.tar.bz2 ]; then
+    wget --no-verbose -O /project/tmp/gppfs-0.2.tar.bz2 http://www.joachim-reichel.de/software/gppfs/gppfs-0.2.tar.bz2
+  fi
+  cd /project/tmp
+  tar jxf gppfs-0.2.tar.bz2
+fi
+
+sh -c "cat > /home/vagrant/.gdbinit" <<'EOF'
+python
+import sys
+
+sys.path.insert (0, '/vagrant/tmp/gppfs-0.2')
+import stlport.printers
+stlport.printers.register_stlport_printers (None)
+
+# see the python module for a description of these options
+# stlport.printers.stlport_version           = 5.2
+# stlport.printers.print_vector_with_indices = False
+
+end
+EOF
