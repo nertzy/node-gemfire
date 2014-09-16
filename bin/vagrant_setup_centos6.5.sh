@@ -29,6 +29,7 @@ if [ ! -e /usr/bin/gemfire ]; then
 fi
 
 cp /opt/pivotal/gemfire/Pivotal_GemFire_800/lib/gemfire.jar /vagrant/tmp/gemfire.jar
+cp /opt/pivotal/gemfire/Pivotal_GemFire_800/lib/antlr.jar /vagrant/tmp/antlr.jar
 
 if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
   if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
