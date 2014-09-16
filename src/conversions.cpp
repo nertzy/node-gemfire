@@ -2,7 +2,9 @@
 #include <nan.h>
 #include <v8.h>
 #include <gfcpp/GemfireCppCache.hpp>
+#include <string>
 #include <sstream>
+#include <set>
 #include "conversions.hpp"
 #include "exceptions.hpp"
 #include "select_results.hpp"
@@ -12,17 +14,47 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-void randomString(char * str, const unsigned int length) {
-  static const char alphanum[] =
-    "0123456789"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz";
+std::string getClassName(const Handle<Object> & v8Object) {
+  Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
 
-  for (unsigned int i = 0; i < length; ++i) {
-    str[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+  std::set<std::string> fieldNames;
+  unsigned int length = v8Keys->Length();
+  for (unsigned int i = 0; i < length; i++) {
+    Local<Value> v8Key = v8Keys->Get(i);
+    NanUtf8String utf8FieldName(v8Key);
+    char * fieldName = *utf8FieldName;
+    unsigned int size = utf8FieldName.Size();
+
+    std::stringstream fullFieldName;
+
+    for (unsigned int i = 0; i < size - 1; i++) {
+      char fieldNameChar = fieldName[i];
+      switch (fieldNameChar) {
+        case ',':
+        case '[':
+        case ']':
+        case '\\':
+          fullFieldName << "\\";
+      }
+      fullFieldName << fieldNameChar;
+    }
+
+    Local<Value> v8Value = v8Object->Get(v8Key);
+    if (v8Value->IsArray() && !v8Value->IsString()) {
+      fullFieldName << "[]";
+    }
+    fullFieldName << ",";
+
+    fieldNames.insert(fullFieldName.str());
   }
 
-  str[length] = 0;
+  std::stringstream className;
+  className << "JSON: ";
+  for (std::set<std::string>::iterator i = fieldNames.begin(); i != fieldNames.end(); ++i) {
+    className << *i;
+  }
+
+  return className.str();
 }
 
 std::wstring wstringFromV8String(const Handle<String> & v8String) {
@@ -60,10 +92,8 @@ PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object, const CachePt
   try {
     NanScope();
 
-    char pdxClassName[33];
-    randomString(pdxClassName, 32);
-
-    PdxInstanceFactoryPtr pdxInstanceFactory(cachePtr->createPdxInstanceFactory(pdxClassName));
+    std::string pdxClassName = getClassName(v8Object);
+    PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName.c_str());
 
     Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
     unsigned int length = v8Keys->Length();

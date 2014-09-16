@@ -403,6 +403,13 @@ describe("gemfire.Region", function() {
     it("allows dynamic schema", function(done) {
       async.series([
         function(callback) { region.put('foo', {}, callback); },
+        function(callback) {
+          region.get('foo', function(error, value) {
+            expect(error).toBeFalsy();
+            expect(value).toEqual({});
+            callback();
+          });
+        },
         function(callback) { region.put('foo', { baz: 'qux' }, callback); },
         function(callback) {
           region.get('foo', function(error, value) {
