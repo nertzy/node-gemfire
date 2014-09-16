@@ -28,6 +28,8 @@ if [ ! -e /usr/bin/gemfire ]; then
   rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
 fi
 
+cp /opt/pivotal/gemfire/Pivotal_GemFire_800/lib/gemfire.jar /vagrant/tmp/gemfire.jar
+
 if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
   if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
     wget --no-verbose -O /project/tmp/$NATIVE_CLIENT_FILENAME $S3_PREFIX$NATIVE_CLIENT_FILENAME
