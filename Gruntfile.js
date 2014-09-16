@@ -136,7 +136,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('server:deploy', ['newer:shell:buildTestFunction', 'newer:shell:deployTestFunction']);
 
-  grunt.registerTask('release', ['default', 'shell:release']);
+  grunt.registerTask('release', ['ci', 'shell:release']);
 
   grunt.registerTask('valgrind', function() {
     grunt.log.writeln('Running with valgrind...');
