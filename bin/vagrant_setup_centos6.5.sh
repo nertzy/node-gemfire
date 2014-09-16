@@ -61,5 +61,5 @@ export PATH=$GFCPP/bin:/usr/local/bin:$PATH
 export LD_LIBRARY_PATH=$GFCPP/lib:$LD_LIBRARY_PATH
 EOF
 
-sudo wget --no-verbose https://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py -O /usr/local/bin/cpplint.py
-sudo chmod +x /usr/local/bin/cpplint.py
+wget --no-verbose https://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py -O /usr/local/bin/cpplint.py
+chmod +x /usr/local/bin/cpplint.py
