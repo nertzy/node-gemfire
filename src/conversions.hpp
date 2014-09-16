@@ -4,6 +4,7 @@
 #include <nan.h>
 #include <gfcpp/PdxInstanceFactory.hpp>
 #include <gfcpp/CacheFactory.hpp>
+#include <string>
 
 using namespace v8;
 
@@ -29,6 +30,8 @@ Handle<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResult
 Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
 Handle<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
 Handle<Boolean> v8ValueFromGemfire(bool value);
+
+std::string getClassName(const Handle<Object> & v8Object);
 
 }  // namespace node_gemfire
 
