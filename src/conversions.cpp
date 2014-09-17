@@ -15,12 +15,12 @@ using namespace gemfire;
 namespace node_gemfire {
 
 std::string getClassName(const Handle<Object> & v8Object) {
-  Local<Array> v8Keys = v8Object->GetOwnPropertyNames();
+  Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
 
   std::set<std::string> fieldNames;
   unsigned int length = v8Keys->Length();
   for (unsigned int i = 0; i < length; i++) {
-    Local<Value> v8Key = v8Keys->Get(i);
+    Local<Value> v8Key(v8Keys->Get(i));
     NanUtf8String utf8FieldName(v8Key);
     char * fieldName = *utf8FieldName;
     unsigned int size = utf8FieldName.Size();
@@ -34,23 +34,24 @@ std::string getClassName(const Handle<Object> & v8Object) {
         case '[':
         case ']':
         case '\\':
-          fullFieldName << "\\";
+          fullFieldName << '\\';
       }
       fullFieldName << fieldNameChar;
     }
 
-    Local<Value> v8Value = v8Object->Get(v8Key);
+    Local<Value> v8Value(v8Object->Get(v8Key));
     if (v8Value->IsArray() && !v8Value->IsString()) {
       fullFieldName << "[]";
     }
-    fullFieldName << ",";
+    fullFieldName << ',';
 
     fieldNames.insert(fullFieldName.str());
   }
 
   std::stringstream className;
   className << "JSON: ";
-  for (std::set<std::string>::iterator i = fieldNames.begin(); i != fieldNames.end(); ++i) {
+
+  for (std::set<std::string>::iterator i(fieldNames.begin()); i != fieldNames.end(); ++i) {
     className << *i;
   }
 
