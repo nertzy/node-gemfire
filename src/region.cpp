@@ -84,12 +84,6 @@ class PutWorker : public NanAsyncWorker {
     WorkComplete();
   }
 
-  void HandleOKCallback() {
-    static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(valuePtr)) };
-    callback->Call(argc, argv);
-  }
-
   RegionPtr regionPtr;
   CacheableKeyPtr keyPtr;
   CacheablePtr valuePtr;
