@@ -102,16 +102,13 @@ PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object, const CachePt
       Local<Value> v8Key(v8Keys->Get(i));
       Local<Value> v8Value(v8Object->Get(v8Key));
 
-      // Copy the key string since gemfire is going to clean it up for us
-      String::Utf8Value v8String(v8Key);
-      char * key = new char[v8String.length()+1];
-      snprintf(key, v8String.length() + 1, "%s", *v8String);
+      NanUtf8String fieldName(v8Key);
 
       CacheablePtr cacheablePtr(gemfireValueFromV8(v8Value, cachePtr));
       if (v8Value->IsArray()) {
-        pdxInstanceFactory->writeObjectArray(key, cacheablePtr);
+        pdxInstanceFactory->writeObjectArray(*fieldName, cacheablePtr);
       } else {
-        pdxInstanceFactory->writeObject(key, cacheablePtr);
+        pdxInstanceFactory->writeObject(*fieldName, cacheablePtr);
       }
     }
 
