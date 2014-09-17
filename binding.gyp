@@ -50,7 +50,7 @@
         {
           "target_name": "test",
           "libraries": [
-            "/usr/lib64/libgtest.so"
+            "-lgtest"
           ],
           "sources": [
             "spec/cpp/test.cpp",
