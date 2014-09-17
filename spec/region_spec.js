@@ -110,36 +110,33 @@ describe("gemfire.Region", function() {
     });
 
     it("returns the region object to support chaining", function(done) {
-      var returnValue = region.put("foo", "bar", function(error, value) {
+      var returnValue = region.put("foo", "bar", function(error) {
         done();
       });
 
       expect(returnValue).toEqual(region);
     });
 
-    it("passes the value to the callback", function(done) {
-      region.put("foo", "bar", function(error, value) {
+    it("succeeds when the value is put into the cache", function(done) {
+      region.put("foo", "bar", function(error) {
         expect(error).toBeFalsy();
-        expect(value).toEqual("bar");
         done();
       });
     });
 
     it("passes an error to the callback when called with an unsupported value", function(done) {
-      region.put("foo", undefined, function(error, value) {
+      region.put("foo", undefined, function(error) {
         expect(error).toBeTruthy();
         expect(error.message).toEqual("Unable to put value undefined");
-        expect(value).toBeUndefined();
         done();
       });
     });
 
     _.each(invalidKeys, function(invalidKey) {
       it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
-        region.put(invalidKey, "foo", function(error, value) {
+        region.put(invalidKey, "foo", function(error) {
           expect(error).toBeTruthy();
           expect(error.message).toEqual("Invalid GemFire key.");
-          expect(value).toBeUndefined();
           done();
         });
       });
