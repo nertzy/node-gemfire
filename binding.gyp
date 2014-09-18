@@ -17,7 +17,8 @@
       "_REENTRANT"
     ],
     "libraries": [ 
-      "$(GFCPP)/lib/libgfcppcache.so" 
+      "-lgfcppcache", 
+      "-L$(GFCPP)/lib"
     ],
     "sources": [
       "src/binding.cpp",
