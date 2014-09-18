@@ -254,10 +254,57 @@ describe("gemfire.Region", function() {
       });
     });
 
+    it("can use objects as a key", function(done) {
+      const interestingObjects = [
+        {},
+        { foo: 'bar' },
+        { qux: 'bar' },
+        // { foo: null }, // this, strangely, does not work
+        { foo: undefined },
+        { foo: [] },
+        { foo: ['bar'] },
+        { foo: ['bar', 'baz'] },
+        { foo: { bar: 'baz' } },
+        { foo: { bar: 'qux' } },
+        { foo: [{ bar: 'baz' }] },
+        { foo: [{ bar: 'qux' }] },
+        { foo: [{ bar: 'baz' }, { bar: 'qux' }] },
+      ];
+
+      const puts = _.map(interestingObjects, function(object, index){
+        return function(next) { region.put(object, index, next); };
+      });
+
+      const expectations = _.map(interestingObjects, function(object, index){
+        return function(next) {
+          region.get(object, function(error, value) {
+            expect(error).toBeFalsy();
+            expect(value).toEqual(index);
+            next();
+          });
+        };
+      });
+
+      async.series(puts.concat(expectations), done);
+    });
+
+    it("treats the same object as the same key in the region", function(done) {
+      async.series([
+        function(next) { region.put({foo: 'bar'}, 'old value', next); },
+        function(next) { region.put({foo: 'bar'}, 'new value', next); },
+        function(next) {
+          region.get({foo: 'bar'}, function(error, value) {
+            expect(error).toBeFalsy();
+            expect(value).toEqual('new value');
+            next();
+          });
+        },
+      ], done);
+    });
+
     it("stores and retrieves null", function(done) {
       testRoundTrip(null, done);
     });
-
 
     describe("for objects", function() {
       it("stores and retrieves empty objects", function(done) {
