@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 module.exports = function(grunt) {
   var startServer = 'cd tmp/gemfire && gfsh run --file /project/bin/startServer.gfsh';
   var ensureServerRunning = 'test -e tmp/gemfire/server/vf.gf.server.pid && ps ax | grep `cat tmp/gemfire/server/vf.gf.server.pid` | grep -qv grep && echo "Server already running..." || (' + startServer + ')';
@@ -88,9 +90,9 @@ module.exports = function(grunt) {
           command: runNode("spec/cpp/runner.js"),
           options: {
             execOptions: {
-              env: {
+              env: _.extend({}, process.env, {
                 "GTEST_COLOR": "yes"
-              }
+              })
             }
           }
         },
