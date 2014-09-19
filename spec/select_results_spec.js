@@ -1,10 +1,12 @@
 const async = require('async');
 const cache = require("./support/factories.js").getCache();
+const errorMatchers = require("./support/error_matchers.js");
 
 describe("SelectResults", function() {
   var selectResults;
 
   beforeEach(function(done) {
+    this.addMatchers(errorMatchers);
     const region = cache.getRegion('exampleRegion');
 
     region.clear();
@@ -16,7 +18,7 @@ describe("SelectResults", function() {
     ],
     function() {
       cache.executeQuery("SELECT * FROM /exampleRegion", function(error, response){
-        expect(error).toBeFalsy();
+        expect(error).not.toBeError();
         selectResults = response;
         done();
       });
