@@ -216,7 +216,7 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
     }
   } else if (v8Value->IsObject()) {
     gemfireValuePtr = gemfireValueFromV8(v8Value->ToObject(), cachePtr);
-  } else if (v8Value->IsNull()) {
+  } else if (v8Value->IsUndefined()) {
     gemfireValuePtr = CacheableUndefined::create();
   } else {
     gemfireValuePtr = NULLPTR;
@@ -229,7 +229,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   NanScope();
 
   if (valuePtr == NULLPTR) {
-    NanReturnUndefined();
+    NanReturnNull();
   }
 
   int typeId = valuePtr->typeId();
@@ -250,7 +250,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
           static_cast<double>(((CacheableDatePtr) valuePtr)->milliseconds())));
   }
   if (typeId == GemfireTypeIds::CacheableUndefined) {
-    NanReturnNull();
+    NanReturnUndefined();
   }
   if (typeId == GemfireTypeIds::Struct) {
     NanReturnValue(v8ValueFromGemfire((StructPtr) valuePtr));

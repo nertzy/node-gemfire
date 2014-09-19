@@ -268,6 +268,25 @@ describe("gemfire.Cache", function() {
       );
     });
 
+    it("returns 'undefined' for fields that do not apply", function(done) {
+      async.series([
+        function(next) { region.put("foo", {}, next); },
+        function(next) { region.put("bar", { my_field_name: 'baz' }, next); },
+        function(next) {
+          cache.executeQuery("SELECT my_field_name FROM /exampleRegion", function(error, response) {
+            expect(error).not.toBeError();
+
+            const results = response.toArray();
+            expect(results.length).toEqual(2);
+            expect(results.indexOf(undefined)).not.toEqual(-1); //toContain does not support undefined
+            expect(results).toContain('baz');
+
+            next();
+          });
+        }
+      ], done);
+    });
+
     it("throws an error when no query is passed", function() {
       function callWithoutQuery() {
         cache.executeQuery();
