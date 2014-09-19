@@ -817,6 +817,24 @@ describe("gemfire.Region", function() {
       ], done);
     });
 
+    it("passes an error to the callback when there is more than one result", function(done) {
+      async.series([
+        function (next) {
+          region.putAll({
+            key1: { foo: 'bar', baz: 'qux' },
+            key2: { foo: 'bar' }
+          }, next);
+        },
+
+        function (next) {
+          region.selectValue("foo = 'bar'", function(error, response) {
+            expect(error).toBeError("gemfire::QueryException: selectValue has more than one result");
+            next();
+          });
+        }
+      ], done);
+    });
+
     it("requires a query predicate string", function() {
       function queryWithoutPredicate(){
         region.selectValue();
