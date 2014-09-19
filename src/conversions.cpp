@@ -250,6 +250,9 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   if (typeId == GemfireTypeIds::CacheableDouble) {
     NanReturnValue(NanNew(((CacheableDoublePtr) valuePtr)->value()));
   }
+  if (typeId == GemfireTypeIds::CacheableFloat) {
+    NanReturnValue(NanNew(((CacheableFloatPtr) valuePtr)->value()));
+  }
   if (typeId == GemfireTypeIds::CacheableDate) {
     NanReturnValue(NanNew<Date>(
           static_cast<double>(((CacheableDatePtr) valuePtr)->milliseconds())));
