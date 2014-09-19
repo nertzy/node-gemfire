@@ -218,8 +218,13 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
     gemfireValuePtr = gemfireValueFromV8(v8Value->ToObject(), cachePtr);
   } else if (v8Value->IsUndefined()) {
     gemfireValuePtr = CacheableUndefined::create();
-  } else {
+  } else if (v8Value->IsNull()) {
     gemfireValuePtr = NULLPTR;
+  } else {
+    std::string errorMessage("Unable to serialize value to GemFire; unknown JavaScript object: ");
+    errorMessage.append(*NanUtf8String(v8Value->ToDetailString()));
+    NanThrowError(errorMessage.c_str());
+    return NULLPTR;
   }
 
   return gemfireValuePtr;
@@ -286,7 +291,7 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   }
 
   std::stringstream errorMessageStream;
-  errorMessageStream << "Unknown typeId: " << typeId;
+  errorMessageStream << "Unable to serialize value from GemFire; unknown typeId: " << typeId;
   NanThrowError(errorMessageStream.str().c_str());
   NanReturnUndefined();
 }
