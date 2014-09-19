@@ -124,9 +124,9 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("passes an error to the callback when called with an unsupported value", function(done) {
-      region.put("foo", undefined, function(error) {
-        expect(error).toBeError("Unable to put value undefined");
+    it("passes an error to the callback when called with null", function(done) {
+      region.put("foo", null, function(error) {
+        expect(error).toBeError("Invalid GemFire value.");
         done();
       });
     });
@@ -257,8 +257,7 @@ describe("gemfire.Region", function() {
         {},
         { foo: 'bar' },
         { qux: 'bar' },
-        // { foo: null }, // this, strangely, does not work
-        { foo: undefined },
+        { foo: null },
         { foo: [] },
         { foo: ['bar'] },
         { foo: ['bar', 'baz'] },
@@ -300,8 +299,8 @@ describe("gemfire.Region", function() {
       ], done);
     });
 
-    it("stores and retrieves null", function(done) {
-      testRoundTrip(null, done);
+    it("stores and retrieves undefined", function(done) {
+      testRoundTrip(undefined, done);
     });
 
     describe("for objects", function() {
@@ -344,6 +343,10 @@ describe("gemfire.Region", function() {
 
       it("stores and retrieves objects containing null", function(done) {
         testRoundTrip({ foo: null }, done);
+      });
+
+      it("stores and retrieves objects containing undefined", function(done) {
+        testRoundTrip({ foo: undefined }, done);
       });
 
       it("stores and retrieves a stress test object", function(done) {
@@ -990,8 +993,8 @@ describe("gemfire.Region", function() {
             expect(error).not.toBeError();
 
             expect(response.key1).toEqual('value1');
-            expect(response.key2).toEqual(undefined);
             expect(response.key3).toEqual('value3');
+            expect(response.key2).toBeUndefined();
 
             next();
           });

@@ -72,16 +72,16 @@ class PutWorker : public NanAsyncWorker {
       return;
     }
 
+    if (valuePtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire value.");
+      return;
+    }
+
     try {
       regionPtr->put(keyPtr, valuePtr);
     } catch (gemfire::Exception & exception) {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
     }
-  }
-
-  void Fail(std::string errorMessage) {
-    SetErrorMessage(errorMessage.c_str());
-    WorkComplete();
   }
 
   RegionPtr regionPtr;
@@ -111,12 +111,7 @@ NAN_METHOD(Region::Put) {
   NanCallback * callback = new NanCallback(args[2].As<Function>());
 
   PutWorker * putWorker = new PutWorker(regionPtr, keyPtr, valuePtr, callback);
-
-  if (valuePtr == NULLPTR) {
-    putWorker->Fail(unableToPutValueError(args[1]));
-  } else {
-    NanAsyncQueueWorker(putWorker);
-  }
+  NanAsyncQueueWorker(putWorker);
 
   NanReturnValue(args.This());
 }
