@@ -23,4 +23,52 @@ describe("Interoperability", function() {
       done();
     });
   });
+
+  it("interprets Java integer as JavaScript Number", function(done) {
+    region.executeFunction("io.pivotal.node_gemfire.ReturnInteger", function(error, response) {
+      expect(error).not.toBeError();
+      expect(response).toEqual([1]);
+      done();
+    });
+  });
+
+  it("interprets Java short as JavaScript Number", function(done) {
+    region.executeFunction("io.pivotal.node_gemfire.ReturnShort", function(error, response) {
+      expect(error).not.toBeError();
+      expect(response).toEqual([1]);
+      done();
+    });
+  });
+
+  it("interprets Java long as JavaScript Number", function(done) {
+    region.executeFunction("io.pivotal.node_gemfire.ReturnLong", function(error, response) {
+      expect(error).not.toBeError();
+      expect(response).toEqual([1]);
+      done();
+    });
+  });
+
+  it("provides a warning when a Java long greater than Number.MAX_SAFE_INTEGER is received", function(done) {
+    spyOn(console, "warn");
+    region.executeFunction("io.pivotal.node_gemfire.ReturnPositiveAmbiguousLong", function(error, response) {
+      expect(error).not.toBeError();
+      expect(response).toEqual([Math.pow(2, 53)]);
+      expect(console.warn).toHaveBeenCalledWith(
+        "Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)"
+      );
+      done();
+    });
+  });
+
+  it("provides a warning when a Java long less than Number.MIN_SAFE_INTEGER is received", function(done) {
+    spyOn(console, "warn");
+    region.executeFunction("io.pivotal.node_gemfire.ReturnNegativeAmbiguousLong", function(error, response) {
+      expect(error).not.toBeError();
+      expect(response).toEqual([-1 * Math.pow(2, 53)]);
+      expect(console.warn).toHaveBeenCalledWith(
+        "Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)"
+      );
+      done();
+    });
+  });
 });
