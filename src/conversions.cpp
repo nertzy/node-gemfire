@@ -1,6 +1,7 @@
 #include <node.h>
 #include <nan.h>
 #include <v8.h>
+#include <math.h>
 #include <gfcpp/GemfireCppCache.hpp>
 #include <string>
 #include <sstream>
@@ -230,6 +231,17 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
   return gemfireValuePtr;
 }
 
+void ConsoleWarn(const char * message) {
+  Local<Object> global(NanGetCurrentContext()->Global());
+  Local<Function> warn(global->Get(NanNew("console"))->ToObject()->Get(NanNew("warn")).As<Function>());
+  NanCallback callback(warn);
+
+  static const int argc = 1;
+  Handle<Value> argv[argc] = { NanNew(message) };
+
+  callback.Call(argc, argv);
+}
+
 Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   NanScope();
 
@@ -252,6 +264,25 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   }
   if (typeId == GemfireTypeIds::CacheableFloat) {
     NanReturnValue(NanNew(((CacheableFloatPtr) valuePtr)->value()));
+  }
+  if (typeId == GemfireTypeIds::CacheableInt16) {
+    NanReturnValue(NanNew(((CacheableInt16Ptr) valuePtr)->value()));
+  }
+  if (typeId == GemfireTypeIds::CacheableInt32) {
+    NanReturnValue(NanNew(((CacheableInt32Ptr) valuePtr)->value()));
+  }
+  if (typeId == GemfireTypeIds::CacheableInt64) {
+    static const int64_t maxSafeInteger = pow(2, 53) - 1;
+    static const int64_t minSafeInteger = -1 * maxSafeInteger;
+
+    int64_t value = ((CacheableInt64Ptr) valuePtr)->value();
+    if (value > maxSafeInteger) {
+      ConsoleWarn("Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)");
+    } else if (value < minSafeInteger) {
+      ConsoleWarn("Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)");
+    }
+
+    NanReturnValue(NanNew<Number>(value));
   }
   if (typeId == GemfireTypeIds::CacheableDate) {
     NanReturnValue(NanNew<Date>(
