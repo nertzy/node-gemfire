@@ -1,0 +1,13 @@
+---
+whitelist:
+- MIT
+- Apache 2.0
+- BSD
+ignore_groups:
+- development
+- test
+ignore_dependencies:
+- bundler
+dependencies_file_dir: './doc/'
+project_name: "Node Gemfire"
+gradle_command: # only meaningful if used with a Java/gradle project. Defaults to "gradle".
