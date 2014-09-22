@@ -96,6 +96,7 @@ region.clear();
 ```
 
 ## Development
+
 ### Prerequisites 
 
 * [Vagrant 1.6.x or later](http://www.vagrantup.com/)
@@ -146,6 +147,10 @@ need to restart it manually, use the following:
 
     $ vagrant ssh
     $ grunt server:restart # or server:start or server:stop
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to submit a pull request.
 
 ## License
 
