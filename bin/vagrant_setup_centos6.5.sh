@@ -19,7 +19,7 @@ if ! yum -C repolist | grep epel ; then
   rpm -Uvh http://download-i2.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 fi
 
-yum -y install gcc-c++ gdb git gperftools gtest gtest-devel htop unzip valgrind yum-utils yum-plugin-auto-update-debug-info.noarch
+yum -y install gcc-c++ gdb git gperftools gtest gtest-devel htop openssl-devel unzip valgrind yum-utils yum-plugin-auto-update-debug-info.noarch
 
 if [ ! -e /usr/bin/gemfire ]; then
   if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
