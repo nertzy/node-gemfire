@@ -149,4 +149,6 @@ need to restart it manually, use the following:
 
 ## License
 
-See LICENSE file for details
+Apache 2.0, see [LICENSE](LICENSE) for details
+
+For dependency licenses, see [doc/dependencies.md](doc/dependencies.md)
