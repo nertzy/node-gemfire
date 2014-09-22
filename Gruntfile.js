@@ -98,6 +98,9 @@ module.exports = function(grunt) {
         },
         release: {
           command: "./node_modules/.bin/node-pre-gyp rebuild package testpackage publish"
+        },
+        license_finder: {
+          command: "./bin/license_finder --quiet"
         }
       },
       jshint: {
@@ -118,6 +121,7 @@ module.exports = function(grunt) {
   grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'server:deploy', 'shell:jasmine_node']);
   grunt.registerTask('lint', ['shell:lint', 'jshint']);
   grunt.registerTask('console', ['build', 'shell:console']);
+  grunt.registerTask('license_finder', ['shell:license_finder']);
 
   grunt.registerTask('server:start', ['locator:ensure', 'shell:startServer']);
   grunt.registerTask('server:stop', ['shell:stopServer']);
@@ -133,8 +137,6 @@ module.exports = function(grunt) {
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
   grunt.registerTask('server:deploy', ['newer:shell:buildTestFunction', 'newer:shell:deployTestFunction']);
-
-  grunt.registerTask('release', ['ci', 'shell:release']);
 
   grunt.registerTask('valgrind', function() {
     grunt.log.writeln('Running with valgrind...');
@@ -158,7 +160,7 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('default', ['build', 'test', 'lint']);
-
-  grunt.registerTask('ci', ['default', 'benchmark']);
+  grunt.registerTask('ci', ['default', 'benchmark', 'license_finder']);
+  grunt.registerTask('release', ['ci', 'shell:release']);
 };
 

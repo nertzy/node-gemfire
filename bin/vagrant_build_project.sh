@@ -2,5 +2,8 @@
 
 set -e
 
-cd /project && npm install && grunt
+cd /project
+npm install
+bundle install
+grunt
 
