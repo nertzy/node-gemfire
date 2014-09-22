@@ -31,5 +31,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.forward_agent = true
 
   config.vm.provision "shell", path: "bin/vagrant_setup_centos6.5.sh"
+  config.vm.provision "shell", privileged: false, path: "bin/vagrant_ruby.sh"
   config.vm.provision "shell", privileged: false, path: "bin/vagrant_build_project.sh"
 end
