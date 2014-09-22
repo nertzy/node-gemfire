@@ -39,9 +39,6 @@ module.exports = function(grunt) {
         benchmarkNode: {
           command: runNode('benchmark/node/benchmark.js')
         },
-        benchmarkNodeOql: {
-          command: runNode('benchmark/node/oql.js')
-        },
         ensureServerRunning: {
           command: ensureServerRunning
         },
@@ -133,7 +130,6 @@ module.exports = function(grunt) {
   grunt.registerTask('locator:ensure', ['shell:ensureLocatorRunning']);
 
   grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
-  grunt.registerTask('benchmark:node:oql', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNodeOql']);
   grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
   grunt.registerTask('server:deploy', ['newer:shell:buildTestFunction', 'newer:shell:deployTestFunction']);
@@ -158,8 +154,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('benchmark', [
     'benchmark:node',
-    'benchmark:java',
-    'benchmark:node:oql',
+    'benchmark:java'
   ]);
 
   grunt.registerTask('default', ['build', 'test', 'lint']);

@@ -7,9 +7,6 @@ const gemfire = require('../..');
 const cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 const region = cache.getRegion("oqlBenchmark");
 
-console.log("node-gemfire version " + gemfire.version);
-console.log("GemFire version " + gemfire.gemfireVersion);
-
 const keyOptions = {
   length: 8,
   numeric: true,
@@ -51,7 +48,6 @@ FROM \
 WHERE is_defined(a.phoneNumbers) \
   AND '212-987-5440' IN ( \
     SELECT n.number FROM a.phoneNumbers n)";
-console.log("query: ", query);
 
 function executeQuery(callback) {
   cache.executeQuery(query, callback);
@@ -75,7 +71,7 @@ function benchmark(recordCount, callback) {
     const usecPerPut = Math.round(microseconds / queryCount);
 
     console.log(
-      "" + recordCount + " records: ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
+      "OQL (" + recordCount + " entries): ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
     );
 
     callback();
@@ -83,12 +79,7 @@ function benchmark(recordCount, callback) {
 }
 
 async.series([
-  function(next){ benchmark(10, next); },
-  function(next){ benchmark(20, next); },
   function(next){ benchmark(100, next); },
-  function(next){ benchmark(200, next); },
-  function(next){ benchmark(500, next); },
   function(next){ benchmark(1000, next); },
-  function(next){ benchmark(2000, next); },
   function(next){ benchmark(5000, next); }
 ]);

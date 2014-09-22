@@ -64,7 +64,7 @@ function benchmark(numberOfPuts, title, functionToTest, callback) {
       var usecPerPut = Math.round(microseconds / numberOfPuts);
 
       console.log(
-        "(" + title + ") " + numberOfPuts + " puts: ", + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+        title + " put:" , + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
       );
 
       next();
@@ -90,20 +90,22 @@ function putNValues(value) {
 }
 
 function benchmarkStrings(numberOfPuts, callback){
-  return benchmark(numberOfPuts, "string", putNValues(stringValue), callback);
+  return benchmark(numberOfPuts, "String", putNValues(stringValue), callback);
 }
 
 function benchmarkSimpleObjects(numberOfPuts, callback){
-  return benchmark(numberOfPuts, "simple object", putNValues({ foo: stringValue }), callback);
+  return benchmark(numberOfPuts, "Simple object", putNValues({ foo: stringValue }), callback);
 }
 
 function benchmarkComplexObjects(numberOfPuts, callback){
-  return benchmark(numberOfPuts, "complex object", putNValues(randomObject), callback);
+  return benchmark(numberOfPuts, "Complex object", putNValues(randomObject), callback);
 }
 
 async.series([
-  function(next){ return smokeTest(next); },
-  function(next){ return benchmarkStrings(10000, next); },
-  function(next){ return benchmarkSimpleObjects(1000, next); },
-  function(next){ return benchmarkComplexObjects(100, next); }
-]);
+  function(next){ smokeTest(next); },
+  function(next){ benchmarkStrings(10000, next); },
+  function(next){ benchmarkSimpleObjects(1000, next); },
+  function(next){ benchmarkComplexObjects(100, next); }
+], function(){
+  require('./oql.js');
+});
