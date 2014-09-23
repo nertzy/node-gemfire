@@ -93,14 +93,14 @@ module.exports = function(grunt) {
             }
           }
         },
-        jasmine_node: {
+        jasmineNode: {
           command: "./node_modules/.bin/jasmine-node --color --captureExceptions --forceexit spec/"
         },
         release: {
           command: "./node_modules/.bin/node-pre-gyp rebuild package testpackage publish"
         },
-        license_finder: {
-          command: "./bin/license_finder --quiet"
+        licenseFinder: {
+          command: "npm prune && ./bin/license_finder --quiet"
         }
       },
       jshint: {
@@ -118,10 +118,10 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', ['shell:buildDebug']);
   grunt.registerTask('rebuild', ['shell:rebuildDebug']);
-  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'server:deploy', 'shell:jasmine_node']);
+  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'server:deploy', 'shell:jasmineNode']);
   grunt.registerTask('lint', ['shell:lint', 'jshint']);
   grunt.registerTask('console', ['build', 'shell:console']);
-  grunt.registerTask('license_finder', ['shell:license_finder']);
+  grunt.registerTask('license_finder', ['shell:licenseFinder']);
 
   grunt.registerTask('server:start', ['locator:ensure', 'shell:startServer']);
   grunt.registerTask('server:stop', ['shell:stopServer']);
