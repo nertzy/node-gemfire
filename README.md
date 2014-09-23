@@ -69,6 +69,11 @@ region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
   });
 });
 
+// putAll without callback
+region.on("error", function(error) { console.log(error); });
+region.putAll({foo: "bar", baz: "qux"});  // succeeds silently
+region.putAll({foo: null, baz: "qux"});   // emits error event
+
 //  putAll & query
 region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
   region.query("this like 'value%'", function(error, response) {

@@ -1002,14 +1002,6 @@ describe("gemfire.Region", function() {
       expect(callWithNoArgs).toThrow("You must pass an object and a callback to putAll().");
     });
 
-    it("requires a callback", function() {
-      function callWithNoCallback() {
-        region.putAll({ foo: 'foo' });
-      }
-
-      expect(callWithNoCallback).toThrow("You must pass a callback to putAll().");
-    });
-
     it("requires the callback to be a function", function() {
       function callWithNonFunction() {
         region.putAll({ foo: 'foo' }, 'this thing is not a function');
@@ -1030,6 +1022,40 @@ describe("gemfire.Region", function() {
       errorMessage = "You must pass an object and a callback to putAll().";
       expect(callWithNull).toThrow(errorMessage);
       expect(callWithString).toThrow(errorMessage);
+    });
+
+    it("emits an event when an error occurs and there is no callback", function(done) {
+      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+        expect(error).toBeError();
+        done();
+      });
+
+      region.on("error", errorHandler);
+      region.putAll({ foo: null, bar: "baz" });
+
+      _.delay(function(){
+        expect(errorHandler).toHaveBeenCalled();
+        done();
+      }, 1000);
+    });
+
+    it("does not emit an event when an error occurs and there is a callback", function(done) {
+      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+        expect(errorHandler).not.toHaveBeenCalled();
+        done();
+      });
+
+      region.on("error", errorHandler);
+
+      region.putAll({ foo: null, bar: "baz" }, function(){
+        expect(errorHandler).not.toHaveBeenCalled();
+        done();
+      });
+    });
+
+    it("does not emit an event when no error occurs and there is no callback", function() {
+      // if it fails, an uncaught event will blow up the suite
+      region.putAll({ foo: "bar" });
     });
   });
 
