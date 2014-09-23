@@ -29,7 +29,7 @@ void SelectResults::Init(Handle<Object> exports) {
 }
 
 Handle<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsPtr) {
-  NanScope();
+  NanEscapableScope();
 
   const unsigned int argc = 0;
   Handle<Value> argv[argc] = {};
@@ -38,7 +38,7 @@ Handle<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResults
   SelectResults * selectResults = new SelectResults(selectResultsPtr);
   selectResults->Wrap(v8Object);
 
-  NanReturnValue(v8Object);
+  return NanEscapeScope(v8Object);
 }
 
 NAN_METHOD(SelectResults::ToArray) {
