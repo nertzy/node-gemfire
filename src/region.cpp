@@ -101,11 +101,7 @@ class PutWorker : public NanAsyncWorker {
       v8::Local<v8::Value> argv[argc] = { error };
       callback->Call(argc, argv);
     } else {
-      Local<Object> regionObject = GetFromPersistent("regionObject");
-      Local<Function> emit(Local<Function>::Cast(regionObject->Get(NanNew("emit"))));
-      static const int argc = 2;
-      Handle<Value> argv[argc] = { NanNew("error"), error };
-      NanMakeCallback(regionObject, emit, argc, argv);
+      emitError(GetFromPersistent("regionObject"), error);
     }
   }
 
