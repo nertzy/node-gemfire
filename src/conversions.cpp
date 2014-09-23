@@ -75,7 +75,7 @@ std::wstring wstringFromV8String(const Handle<String> & v8String) {
 }
 
 Handle<String> v8StringFromWstring(const std::wstring & wideString) {
-  NanScope();
+  NanEscapableScope();
 
   unsigned int length = wideString.length();
   uint16_t * buffer = new uint16_t[length + 1];
@@ -87,13 +87,13 @@ Handle<String> v8StringFromWstring(const std::wstring & wideString) {
   Local<String> v8String(NanNew(buffer));
   delete[] buffer;
 
-  NanReturnValue(v8String);
+  return NanEscapeScope(v8String);
 }
 
 PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object, const CachePtr & cachePtr) {
-  try {
-    NanScope();
+  NanEscapableScope();
 
+  try {
     std::string pdxClassName = getClassName(v8Object);
     PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName.c_str());
 
@@ -150,13 +150,13 @@ gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Handle<Array> & v8Value
 }
 
 Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
-  try {
-    NanScope();
+  NanEscapableScope();
 
+  try {
     CacheableStringArrayPtr gemfireKeys(pdxInstance->getFieldNames());
 
     if (gemfireKeys == NULLPTR) {
-      NanReturnValue(NanNew<Object>());
+      return NanEscapeScope(NanNew<Object>());
     }
 
     Local<Object> v8Object(NanNew<Object>());
@@ -181,11 +181,11 @@ Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
       v8Object->Set(NanNew(key), v8ValueFromGemfire(value));
     }
 
-    NanReturnValue(v8Object);
+    return NanEscapeScope(v8Object);
   }
   catch(const gemfire::Exception & exception) {
     ThrowGemfireException(exception);
-    NanReturnUndefined();
+    return NanEscapeScope(NanUndefined());
   }
 }
 
@@ -243,33 +243,33 @@ void ConsoleWarn(const char * message) {
 }
 
 Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
-  NanScope();
+  NanEscapableScope();
 
   if (valuePtr == NULLPTR) {
-    NanReturnNull();
+    return NanEscapeScope(NanNull());
   }
 
   int typeId = valuePtr->typeId();
   if (typeId == GemfireTypeIds::CacheableASCIIString) {
-    NanReturnValue(NanNew(((CacheableStringPtr) valuePtr)->asChar()));
+    return NanEscapeScope(NanNew(((CacheableStringPtr) valuePtr)->asChar()));
   }
   if (typeId == GemfireTypeIds::CacheableString) {
-    NanReturnValue(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
+    return NanEscapeScope(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
   }
   if (typeId == GemfireTypeIds::CacheableBoolean) {
-    NanReturnValue(NanNew(((CacheableBooleanPtr) valuePtr)->value()));
+    return NanEscapeScope(NanNew(((CacheableBooleanPtr) valuePtr)->value()));
   }
   if (typeId == GemfireTypeIds::CacheableDouble) {
-    NanReturnValue(NanNew(((CacheableDoublePtr) valuePtr)->value()));
+    return NanEscapeScope(NanNew(((CacheableDoublePtr) valuePtr)->value()));
   }
   if (typeId == GemfireTypeIds::CacheableFloat) {
-    NanReturnValue(NanNew(((CacheableFloatPtr) valuePtr)->value()));
+    return NanEscapeScope(NanNew(((CacheableFloatPtr) valuePtr)->value()));
   }
   if (typeId == GemfireTypeIds::CacheableInt16) {
-    NanReturnValue(NanNew(((CacheableInt16Ptr) valuePtr)->value()));
+    return NanEscapeScope(NanNew(((CacheableInt16Ptr) valuePtr)->value()));
   }
   if (typeId == GemfireTypeIds::CacheableInt32) {
-    NanReturnValue(NanNew(((CacheableInt32Ptr) valuePtr)->value()));
+    return NanEscapeScope(NanNew(((CacheableInt32Ptr) valuePtr)->value()));
   }
   if (typeId == GemfireTypeIds::CacheableInt64) {
     static const int64_t maxSafeInteger = pow(2, 53) - 1;
@@ -282,17 +282,17 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
       ConsoleWarn("Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)");
     }
 
-    NanReturnValue(NanNew<Number>(value));
+    return NanEscapeScope(NanNew<Number>(value));
   }
   if (typeId == GemfireTypeIds::CacheableDate) {
-    NanReturnValue(NanNew<Date>(
+    return NanEscapeScope(NanNew<Date>(
           static_cast<double>(((CacheableDatePtr) valuePtr)->milliseconds())));
   }
   if (typeId == GemfireTypeIds::CacheableUndefined) {
-    NanReturnUndefined();
+    return NanEscapeScope(NanUndefined());
   }
   if (typeId == GemfireTypeIds::Struct) {
-    NanReturnValue(v8ValueFromGemfire((StructPtr) valuePtr));
+    return NanEscapeScope(v8ValueFromGemfire((StructPtr) valuePtr));
   }
   if (typeId == GemfireTypeIds::CacheableObjectArray) {
     CacheableObjectArrayPtr gemfireArray(valuePtr);
@@ -303,17 +303,17 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
       v8Array->Set(i, v8ValueFromGemfire((*gemfireArray)[i]));
     }
 
-    NanReturnValue(v8Array);
+    return NanEscapeScope(v8Array);
   }
   if (typeId == GemfireTypeIds::CacheableVector) {
-    NanReturnValue(v8ValueFromGemfire((CacheableVectorPtr) valuePtr));
+    return NanEscapeScope(v8ValueFromGemfire((CacheableVectorPtr) valuePtr));
   }
   if (typeId == 0) {
     try {
       UserFunctionExecutionExceptionPtr functionExceptionPtr =
         (UserFunctionExecutionExceptionPtr) valuePtr;
 
-      NanReturnValue(NanError(gemfireExceptionMessage(functionExceptionPtr).c_str()));
+      return NanEscapeScope(NanError(gemfireExceptionMessage(functionExceptionPtr).c_str()));
     }
     catch (ClassCastException & exception) {
       // fall through to default error case
@@ -321,17 +321,17 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   }
   if (typeId > GemfireTypeIds::CacheableStringHuge) {
     // We are assuming these are Pdx
-    NanReturnValue(v8ValueFromGemfire((PdxInstancePtr) valuePtr));
+    return NanEscapeScope(v8ValueFromGemfire((PdxInstancePtr) valuePtr));
   }
 
   std::stringstream errorMessageStream;
   errorMessageStream << "Unable to serialize value from GemFire; unknown typeId: " << typeId;
   NanThrowError(errorMessageStream.str().c_str());
-  NanReturnUndefined();
+  return NanEscapeScope(NanUndefined());
 }
 
 Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
-  NanScope();
+  NanEscapableScope();
 
   Local<Object> v8Object(NanNew<Object>());
 
@@ -341,7 +341,7 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
                   v8ValueFromGemfire((*structPtr)[i]));
   }
 
-  NanReturnValue(v8Object);
+  return NanEscapeScope(v8Object);
 }
 
 gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Handle<Object> & v8Object,
@@ -364,7 +364,7 @@ gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Handle<Object> & v8Obj
 }
 
 Handle<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr) {
-  NanScope();
+  NanEscapableScope();
 
   Handle<Object> v8Object(NanNew<Object>());
 
@@ -376,19 +376,19 @@ Handle<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMap
         v8ValueFromGemfire(valuePtr));
   }
 
-  NanReturnValue(v8Object);
+  return NanEscapeScope(v8Object);
 }
 
 Handle<Object> v8ValueFromGemfire(const SelectResultsPtr & selectResultsPtr) {
-  NanScope();
+  NanEscapableScope();
 
   Handle<Object> selectResults(SelectResults::NewInstance(selectResultsPtr));
 
-  NanReturnValue(selectResults);
+  return NanEscapeScope(selectResults);
 }
 
 Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr) {
-  NanScope();
+  NanEscapableScope();
 
   unsigned int length = vectorPtr->size();
 
@@ -397,12 +397,12 @@ Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr) 
     array->Set(i, v8ValueFromGemfire((*vectorPtr)[i]));
   }
 
-  NanReturnValue(array);
+  return NanEscapeScope(array);
 }
 
 Handle<Boolean> v8ValueFromGemfire(bool value) {
-  NanScope();
-  NanReturnValue(NanNew(value));
+  NanEscapableScope();
+  return NanEscapeScope(NanNew(value));
 }
 
 }  // namespace node_gemfire
