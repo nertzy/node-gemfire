@@ -57,14 +57,17 @@ std::string unableToPutValueError(Handle<Value> v8Value) {
 class PutWorker : public NanAsyncWorker {
  public:
   PutWorker(
-    const RegionPtr & regionPtr,
+    const Local<Object> & regionObject,
+    Region * region,
     const CacheableKeyPtr & keyPtr,
     const CacheablePtr & valuePtr,
     NanCallback * callback) :
       NanAsyncWorker(callback),
-      regionPtr(regionPtr),
+      region(region),
       keyPtr(keyPtr),
-      valuePtr(valuePtr) {}
+      valuePtr(valuePtr) {
+        SaveToPersistent("regionObject", regionObject);
+      }
 
   void Execute() {
     if (keyPtr == NULLPTR) {
@@ -78,13 +81,35 @@ class PutWorker : public NanAsyncWorker {
     }
 
     try {
-      regionPtr->put(keyPtr, valuePtr);
+      region->regionPtr->put(keyPtr, valuePtr);
     } catch (gemfire::Exception & exception) {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
     }
   }
 
-  RegionPtr regionPtr;
+  void HandleOKCallback() {
+    if (callback) {
+      callback->Call(0, NULL);
+    }
+  }
+
+  void HandleErrorCallback() {
+    Local<Value> error(NanError(ErrorMessage()));
+
+    if (callback) {
+      static const int argc = 1;
+      v8::Local<v8::Value> argv[argc] = { error };
+      callback->Call(argc, argv);
+    } else {
+      Local<Object> regionObject = GetFromPersistent("regionObject");
+      Local<Function> emit(Local<Function>::Cast(regionObject->Get(NanNew("emit"))));
+      static const int argc = 2;
+      Handle<Value> argv[argc] = { NanNew("error"), error };
+      NanMakeCallback(regionObject, emit, argc, argv);
+    }
+  }
+
+  Region * region;
   CacheableKeyPtr keyPtr;
   CacheablePtr valuePtr;
 };
@@ -92,25 +117,28 @@ class PutWorker : public NanAsyncWorker {
 NAN_METHOD(Region::Put) {
   NanScope();
 
-  if (args.Length() < 3) {
-    NanThrowError("You must pass a key, value, and callback to put().");
-    NanReturnUndefined();
-  }
-
-  if (!args[2]->IsFunction()) {
-    NanThrowError("You must pass a callback to put().");
+  if (args.Length() < 2) {
+    NanThrowError("You must pass a key and value to put().");
     NanReturnUndefined();
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr(region->regionPtr);
-  CachePtr cachePtr(regionPtr->getCache());
+  CachePtr cachePtr(region->regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
   CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
-  NanCallback * callback = new NanCallback(args[2].As<Function>());
 
-  PutWorker * putWorker = new PutWorker(regionPtr, keyPtr, valuePtr, callback);
+  NanCallback * callback;
+  if (args[2]->IsUndefined()) {
+    callback = NULL;
+  } else if (args[2]->IsFunction()) {
+    callback = new NanCallback(args[2].As<Function>());
+  } else {
+    NanThrowError("You must pass a function as the callback to put().");
+    NanReturnUndefined();
+  }
+
+  PutWorker * putWorker = new PutWorker(args.This(), region, keyPtr, valuePtr, callback);
   NanAsyncQueueWorker(putWorker);
 
   NanReturnValue(args.This());
@@ -601,10 +629,15 @@ NAN_METHOD(Region::Query) {
   NanReturnValue(args.This());
 }
 
+NAN_METHOD(Region::New) {
+  NanScope();
+  NanReturnValue(args.This());
+}
+
 void Region::Init(Handle<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
+  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>(Region::New);
 
   constructor->SetClassName(NanNew("Region"));
   constructor->InstanceTemplate()->SetInternalFieldCount(1);
@@ -635,6 +668,8 @@ void Region::Init(Handle<Object> exports) {
   constructor->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
 
   NanAssignPersistent(regionConstructor, constructor);
+
+  exports->Set(NanNew("Region"), constructor->GetFunction());
 }
 
 }  // namespace node_gemfire

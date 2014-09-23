@@ -57,6 +57,11 @@ region.put('foo', { bar: ['baz', 'qux'] }, function(error) {
   });
 });
 
+// put without callback
+region.on("error", function(error) { console.log(error); });
+region.put("foo", "bar");  // succeeds silently
+region.put("foo", null);   // emits error event
+
 //  putAll & getAll
 region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
   region.getAll(['key1', 'key2'], function(error, response) {

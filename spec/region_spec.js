@@ -89,7 +89,7 @@ describe("gemfire.Region", function() {
         region.put();
       }
 
-      expect(putWithNoArgs).toThrow("You must pass a key, value, and callback to put().");
+      expect(putWithNoArgs).toThrow("You must pass a key and value to put().");
     });
 
     it("throws an error when no value is passed", function() {
@@ -97,7 +97,7 @@ describe("gemfire.Region", function() {
         region.put('foo');
       }
 
-      expect(putWithOnlyKey).toThrow("You must pass a key, value, and callback to put().");
+      expect(putWithOnlyKey).toThrow("You must pass a key and value to put().");
 
     });
 
@@ -106,7 +106,7 @@ describe("gemfire.Region", function() {
         region.put('foo', 'bar', 'not a function');
       }
 
-      expect(putWithNonFunctionCallback).toThrow("You must pass a callback to put().");
+      expect(putWithNonFunctionCallback).toThrow("You must pass a function as the callback to put().");
     });
 
     it("returns the region object to support chaining", function(done) {
@@ -138,6 +138,39 @@ describe("gemfire.Region", function() {
           done();
         });
       });
+    });
+
+    it("emits an event when an error occurs and there is no callback", function(done) {
+      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+        expect(error).toBeError();
+        done();
+      });
+
+      region.on("error", errorHandler);
+      region.put("foo", null);
+
+      _.delay(function(){
+        expect(errorHandler).toHaveBeenCalled();
+        done();
+      }, 1000);
+    });
+
+    it("does not emit an event when an error occurs and there is a callback", function(done) {
+      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+        throw "Spy errorHandler was unexpectedly called.";
+      });
+
+      region.on("error", errorHandler);
+
+      region.put("foo", null, function(){
+        expect(errorHandler).not.toHaveBeenCalled();
+        done();
+      });
+    });
+
+    it("does not emit an event when no error occurs and there is no callback", function() {
+      // if it fails, an uncaught event will blow up the suite
+      region.put("foo", "bar");
     });
   });
 
