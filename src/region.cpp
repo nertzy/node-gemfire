@@ -150,19 +150,19 @@ class GetWorker : public NanAsyncWorker {
       keyPtr(keyPtr) {}
 
   void Execute() {
-    if (keyPtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire key.");
-      return;
-    }
-
     try {
+      if (keyPtr == NULLPTR) {
+        SetErrorMessage("Invalid GemFire key.");
+        return;
+      }
+
       valuePtr = regionPtr->get(keyPtr);
+
+      if (valuePtr == NULLPTR) {
+        SetErrorMessage("Key not found in region.");
+      }
     } catch (gemfire::Exception & exception) {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
-
-    if (valuePtr == NULLPTR) {
-      SetErrorMessage("Key not found in region.");
     }
   }
 
