@@ -55,7 +55,10 @@
           ],
           "sources": [
             "spec/cpp/test.cpp",
-          ]
+          ],
+          "sources!": [
+            "src/binding.cpp",
+          ],
         }
       ]
     }]
