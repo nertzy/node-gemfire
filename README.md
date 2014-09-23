@@ -64,8 +64,8 @@ region.put("foo", null);   // emits error event
 
 //  putAll & getAll
 region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.getAll(['key1', 'key2'], function(error, response) {
-    console.log(response); // => { key1: 'value1', key2: 'value2' }
+  region.getAll(['key1', 'key2', 'keyWithNoValue'], function(error, response) {
+    console.log(response); // => { key1: 'value1', key2: 'value2', keyWithNoValue: null }
   });
 });
 
