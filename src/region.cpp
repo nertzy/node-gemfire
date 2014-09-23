@@ -279,18 +279,39 @@ NAN_METHOD(Region::GetAll) {
 class PutAllWorker : public NanAsyncWorker {
  public:
   PutAllWorker(
+      const Local<Object> & regionObject,
       const RegionPtr & regionPtr,
       const HashMapOfCacheablePtr & hashMapPtr,
       NanCallback * callback) :
     NanAsyncWorker(callback),
     regionPtr(regionPtr),
-    hashMapPtr(hashMapPtr) {}
+    hashMapPtr(hashMapPtr) {
+      SaveToPersistent("regionObject", regionObject);
+    }
 
   void Execute() {
     try {
       regionPtr->putAll(*hashMapPtr);
     } catch (gemfire::Exception & exception) {
       SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    if (callback) {
+      callback->Call(0, NULL);
+    }
+  }
+
+  void HandleErrorCallback() {
+    Local<Value> error(NanError(ErrorMessage()));
+
+    if (callback) {
+      static const int argc = 1;
+      v8::Local<v8::Value> argv[argc] = { error };
+      callback->Call(argc, argv);
+    } else {
+      emitError(GetFromPersistent("regionObject"), error);
     }
   }
 
@@ -307,12 +328,12 @@ NAN_METHOD(Region::PutAll) {
     NanReturnUndefined();
   }
 
-  if (args.Length() == 1) {
-    NanThrowError("You must pass a callback to putAll().");
-    NanReturnUndefined();
-  }
-
-  if (!args[1]->IsFunction()) {
+  NanCallback * callback;
+  if (args[1]->IsUndefined()) {
+    callback = NULL;
+  } else if (args[1]->IsFunction()) {
+    callback = new NanCallback(args[1].As<Function>());
+  } else {
     NanThrowError("You must pass a function as the callback to putAll().");
     NanReturnUndefined();
   }
@@ -322,8 +343,7 @@ NAN_METHOD(Region::PutAll) {
 
   HashMapOfCacheablePtr hashMapPtr(gemfireHashMapFromV8(args[0]->ToObject(), regionPtr->getCache()));
 
-  NanCallback * callback = new NanCallback(args[1].As<Function>());
-  PutAllWorker * worker = new PutAllWorker(regionPtr, hashMapPtr, callback);
+  PutAllWorker * worker = new PutAllWorker(args.This(), regionPtr, hashMapPtr, callback);
   NanAsyncQueueWorker(worker);
   NanReturnValue(args.This());
 }
