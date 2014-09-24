@@ -1,0 +1,13 @@
+#!/bin/sh
+# vim ft=sh
+
+set -e
+
+source ~/.nvm/nvm.sh
+
+nvm exec 0.11 npm rebuild microtime
+nvm exec 0.11 grunt ci:node
+
+nvm exec 0.10 npm rebuild microtime
+nvm exec 0.10 grunt ci:node
+nvm exec 0.10 grunt ci:other
