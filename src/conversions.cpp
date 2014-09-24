@@ -16,6 +16,8 @@ using namespace gemfire;
 namespace node_gemfire {
 
 std::string getClassName(const Handle<Object> & v8Object) {
+  NanScope();
+
   Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
 
   std::set<std::string> fieldNames;
@@ -60,6 +62,8 @@ std::string getClassName(const Handle<Object> & v8Object) {
 }
 
 std::wstring wstringFromV8String(const Handle<String> & v8String) {
+  NanScope();
+
   unsigned int length = v8String->Length();
   wchar_t * buffer = new wchar_t[length + 1];
   NanUcs2String v8Data(v8String);
@@ -190,6 +194,8 @@ Handle<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
 }
 
 CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & cachePtr) {
+  NanScope();
+
   CacheablePtr gemfireValuePtr;
 
   if (v8Value->IsString()) {
@@ -232,6 +238,8 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
 }
 
 void ConsoleWarn(const char * message) {
+  NanScope();
+
   Local<Object> global(NanGetCurrentContext()->Global());
   Local<Function> warn(global->Get(NanNew("console"))->ToObject()->Get(NanNew("warn")).As<Function>());
   NanCallback callback(warn);
@@ -346,6 +354,8 @@ Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
 
 gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Handle<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr) {
+  NanScope();
+
   HashMapOfCacheablePtr hashMapPtr(new HashMapOfCacheable());
 
   Local<Array> v8Keys(v8Object->GetOwnPropertyNames());

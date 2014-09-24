@@ -81,6 +81,8 @@ class ExecuteQueryWorker : public NanAsyncWorker {
   }
 
   void HandleOKCallback() {
+    NanScope();
+
     static const int argc = 2;
     Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(selectResultsPtr)) };
     callback->Call(argc, argv);

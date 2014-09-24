@@ -49,8 +49,8 @@ To increase the chances of a pull request being merged, we recommend that you fo
 * Use [Native Abstractions for Node.js](https://github.com/rvagg/nan) where possible to improve compatibility between versions of NodeJS.
 
 * Add test cases for new or improved behavior. We use the folowing test libraries:
-	* [Jasmine](https://github.com/pivotal/jasmine) for feature specs in JavaScript
-	* [GoogleTest](https://code.google.com/p/googletest/) for unit tests in C++
+  * [Jasmine](https://github.com/pivotal/jasmine) for feature specs in JavaScript
+  * [GoogleTest](https://code.google.com/p/googletest/) for unit tests in C++
 
 * Check code style using `grunt lint`. Make sure your changes don't add any warnings or errors. We use the following tools for automated code style enforcement:
   * [JSHint](http://www.jshint.com/) for JavaScript
@@ -62,3 +62,5 @@ To increase the chances of a pull request being merged, we recommend that you fo
   * Valgrind (Memcheck) (`grunt valgrind benchmark:node`) 
   * Callgrind (`grunt callgrind benchmark:node`)
   * gperftools (`grunt gperftools benchmark:node`)
+
+* If you allocate V8 handles, you should do so inside of a HandleScope using NanScope()/NanEscapableScope() so that the handles will be freed as soon as possible.
