@@ -2,6 +2,7 @@ const childProcess = require('child_process');
 const _ = require("lodash");
 const util = require("util");
 const async = require('async');
+const randomString = require("random-string");
 const factories = require('./support/factories.js');
 const errorMatchers = require("./support/error_matchers.js");
 
@@ -223,6 +224,16 @@ describe("gemfire.Region", function() {
       it("stores and retrieves strings like " + util.inspect(string), function(done) {
         testRoundTrip(string, done);
       });
+    });
+
+    it("stores and retrieves large strings", function(done) {
+      const largeString = randomString({length: 65536});
+      testRoundTrip(largeString, done);
+    });
+
+    it("stores and retrieves large wide strings", function(done) {
+      const largeString = randomString({length: 65533}) + "☃";
+      testRoundTrip(largeString, done);
     });
 
     it("stores and retrieves string objects", function(done) {

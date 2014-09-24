@@ -258,10 +258,10 @@ Handle<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   }
 
   int typeId = valuePtr->typeId();
-  if (typeId == GemfireTypeIds::CacheableASCIIString) {
+  if (typeId == GemfireTypeIds::CacheableASCIIString || typeId == GemfireTypeIds::CacheableASCIIStringHuge) {
     return NanEscapeScope(NanNew(((CacheableStringPtr) valuePtr)->asChar()));
   }
-  if (typeId == GemfireTypeIds::CacheableString) {
+  if (typeId == GemfireTypeIds::CacheableString || typeId == GemfireTypeIds::CacheableStringHuge) {
     return NanEscapeScope(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
   }
   if (typeId == GemfireTypeIds::CacheableBoolean) {
