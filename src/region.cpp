@@ -94,6 +94,8 @@ class PutWorker : public NanAsyncWorker {
   }
 
   void HandleErrorCallback() {
+    NanScope();
+
     Local<Value> error(NanError(ErrorMessage()));
 
     if (callback) {
@@ -167,6 +169,8 @@ class GetWorker : public NanAsyncWorker {
   }
 
   void HandleOKCallback() {
+    NanScope();
+
     static const int argc = 2;
     Local<Value> argv[argc] = { NanUndefined(), NanNew(v8ValueFromGemfire(valuePtr)) };
     callback->Call(argc, argv);
@@ -233,8 +237,9 @@ class GetAllWorker : public NanAsyncWorker {
   }
 
   void HandleOKCallback() {
-    static const int argc = 2;
+    NanScope();
 
+    static const int argc = 2;
     Handle<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(resultsPtr) };
     callback->Call(argc, argv);
   }
@@ -304,6 +309,8 @@ class PutAllWorker : public NanAsyncWorker {
   }
 
   void HandleErrorCallback() {
+    NanScope();
+
     Local<Value> error(NanError(ErrorMessage()));
 
     if (callback) {
@@ -431,6 +438,8 @@ class ExecuteFunctionWorker : public NanAsyncWorker {
   }
 
   void HandleOKCallback() {
+    NanScope();
+
     Local<Value> error(NanUndefined());
     Local<Value> returnValue;
 
