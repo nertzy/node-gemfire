@@ -5,11 +5,6 @@ NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8000_b6169.zip"
 JAVA_RPM_FILENAME="jdk-7u65-linux-x64.rpm"
 JAVA_RPM_URL="http://download.oracle.com/otn-pub/java/jdk/7u65-b17/$JAVA_RPM_FILENAME"
 
-NODE_VERSION="0.10.31"
-NODE_TARBALL_DIR="node-v$NODE_VERSION-linux-x64"
-NODE_TARBALL_FILENAME="${NODE_TARBALL_DIR}.tar.gz"
-NODE_TARBALL_URL="http://nodejs.org/dist/v$NODE_VERSION/$NODE_TARBALL_FILENAME"
-
 set -e
 
 echo "Setting up Centos 6.5"
@@ -19,7 +14,7 @@ if ! yum -C repolist | grep epel ; then
   rpm -Uvh http://download-i2.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 fi
 
-yum -y install gcc-c++ gdb git gperftools gtest gtest-devel htop openssl-devel sqlite-devel unzip valgrind yum-utils yum-plugin-auto-update-debug-info.noarch
+yum -y install gcc-c++ gdb git gperftools gtest gtest-devel htop man openssl-devel sqlite-devel unzip valgrind yum-utils yum-plugin-auto-update-debug-info.noarch
 
 if [ ! -e /usr/bin/gemfire ]; then
   if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
@@ -38,16 +33,6 @@ if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
   cd /opt/pivotal
   unzip /project/tmp/$NATIVE_CLIENT_FILENAME
 fi
-
-if [ ! -e /usr/local/bin/node ]; then
-  if [ ! -e /project/tmp/$NODE_TARBALL_FILENAME ]; then
-    wget --no-verbose -O /project/tmp/$NODE_TARBALL_FILENAME $NODE_TARBALL_URL
-  fi
-  cd /usr/local
-  tar --strip-components 1 -xzf /project/tmp/$NODE_TARBALL_FILENAME
-fi
-
-test -e /usr/local/bin/grunt || /usr/local/bin/npm install -g grunt-cli
 
 if [ ! -e /usr/bin/javac ]; then
   if [ ! -e /project/tmp/$JAVA_RPM_FILENAME ]; then
