@@ -198,7 +198,7 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
 
   CacheablePtr gemfireValuePtr;
 
-  if (v8Value->IsString()) {
+  if (v8Value->IsString() || v8Value->IsStringObject()) {
     gemfireValuePtr = CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
   } else if (v8Value->IsBoolean()) {
     gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
