@@ -17,7 +17,7 @@
     },
     {
       "name": "Taavo Smith",
-      "url": "http://github.com/taavo"
+      "url": "https://github.com/taavo"
     },
     {
       "name": "Michael Schubert",
@@ -26,6 +26,10 @@
     {
       "name": "Mike Dalessio",
       "url": "http://www.daless.io/"
+    },
+    {
+      "name": "Adam Berlin",
+      "url": "https://github.com/berlin-ab"
     }
   ],
   "repository": {
