@@ -202,7 +202,7 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
     gemfireValuePtr = CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
   } else if (v8Value->IsBoolean()) {
     gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
-  } else if (v8Value->IsNumber()) {
+  } else if (v8Value->IsNumber() || v8Value->IsNumberObject()) {
     gemfireValuePtr = CacheableDouble::create(v8Value->ToNumber()->Value());
   } else if (v8Value->IsDate()) {
     uint64 millisecondsSinceEpoch = Date::Cast(*v8Value)->NumberValue();
