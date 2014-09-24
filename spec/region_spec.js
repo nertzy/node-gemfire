@@ -225,6 +225,18 @@ describe("gemfire.Region", function() {
       });
     });
 
+    it("stores and retrieves string objects", function(done) {
+      /* jshint -W053 */
+      region.put("foo", new String("string object"), function(error) {
+        expect(error).not.toBeError();
+        region.get("foo", function(error, value) {
+          expect(error).not.toBeError();
+          expect(value).toEqual("string object");
+          done();
+        });
+      });
+    });
+
     it("stores and retrieves true", function(done) {
       testRoundTrip(true, done);
     });
