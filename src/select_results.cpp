@@ -33,7 +33,7 @@ Handle<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResults
 
   const unsigned int argc = 0;
   Handle<Value> argv[argc] = {};
-  Handle<Object> v8Object(selectResultsConstructor->GetFunction()->NewInstance(argc, argv));
+  Handle<Object> v8Object(NanNew(selectResultsConstructor)->GetFunction()->NewInstance(argc, argv));
 
   SelectResults * selectResults = new SelectResults(selectResultsPtr);
   selectResults->Wrap(v8Object);

@@ -7,6 +7,7 @@ const gemfire = require('../..');
 const cache = new gemfire.Cache('benchmark/xml/BenchmarkClient.xml');
 const region = cache.getRegion("exampleRegion");
 
+console.log("node version " + process.version);
 console.log("node-gemfire version " + gemfire.version);
 console.log("GemFire version " + gemfire.gemfireVersion);
 

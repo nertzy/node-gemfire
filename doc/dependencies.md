@@ -1,6 +1,6 @@
 # Node Gemfire
 
-As of September 22, 2014  6:28pm. 12 total
+As of September 24, 2014  3:50pm. 12 total
 
 ## Summary
 * 10 MIT
@@ -77,7 +77,7 @@ DOM-less simple JavaScript BDD testing framework for Node
 A utility library delivering consistency, customization, performance, & extras.
 
 <a name="microtime"></a>
-### <a href="https://github.com/wadey/node-microtime">microtime</a> v0.6.0
+### <a href="https://github.com/wadey/node-microtime">microtime</a> v1.0.1
 #### 
 
 <a href="http://opensource.org/licenses/mit-license">MIT</a> whitelisted

@@ -31,7 +31,7 @@ NAN_METHOD(Region::GetRegion) {
 
   const unsigned int argc = 0;
   Handle<Value> argv[] = {};
-  Local<Object> regionHandle(regionConstructor->GetFunction()->NewInstance(argc, argv));
+  Local<Object> regionHandle(NanNew(regionConstructor)->GetFunction()->NewInstance(argc, argv));
 
   region->Wrap(regionHandle);
 
