@@ -1,9 +1,9 @@
 # Node Gemfire
 
-As of September 24, 2014  3:50pm. 12 total
+As of September 24, 2014  8:24pm. 11 total
 
 ## Summary
-* 10 MIT
+* 9 MIT
 * 1 Apache 2.0
 * 1 BSD
 
@@ -21,7 +21,7 @@ As of September 24, 2014  3:50pm. 12 total
 Higher-order functions and common patterns for asynchronous code
 
 <a name="aws-sdk"></a>
-### <a href="https://github.com/aws/aws-sdk-js">aws-sdk</a> v2.0.15
+### <a href="https://github.com/aws/aws-sdk-js">aws-sdk</a> v2.0.17
 #### 
 
 <a href="http://www.apache.org/licenses/LICENSE-2.0.txt">Apache 2.0</a> whitelisted
@@ -76,14 +76,6 @@ DOM-less simple JavaScript BDD testing framework for Node
 
 A utility library delivering consistency, customization, performance, & extras.
 
-<a name="microtime"></a>
-### <a href="https://github.com/wadey/node-microtime">microtime</a> v1.0.1
-#### 
-
-<a href="http://opensource.org/licenses/mit-license">MIT</a> whitelisted
-
-Get the current time in microseconds
-
 <a name="nan"></a>
 ### <a href="https://github.com/rvagg/nan">nan</a> v1.3.0
 #### 
@@ -93,7 +85,7 @@ Get the current time in microseconds
 Native Abstractions for Node.js: C++ header for Node 0.8->0.12 compatibility
 
 <a name="node-pre-gyp"></a>
-### <a href="https://github.com/mapbox/node-pre-gyp">node-pre-gyp</a> v0.5.25
+### <a href="https://github.com/mapbox/node-pre-gyp">node-pre-gyp</a> v0.5.27
 #### 
 
 <a href="http://en.wikipedia.org/wiki/BSD_licenses#4-clause_license_.28original_.22BSD_License.22.29">BSD</a> whitelisted
