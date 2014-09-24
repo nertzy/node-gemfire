@@ -1,6 +1,5 @@
 const randomString = require('random-string');
 const _ = require('lodash');
-const microtime = require("microtime");
 const async = require('async');
 
 const gemfire = require('../..');
@@ -59,13 +58,15 @@ function benchmark(recordCount, callback) {
   region.executeFunction("io.pivotal.node_gemfire.BulkPut", [baseObject, 1], function(){});
   region.executeFunction("io.pivotal.node_gemfire.BulkPut", [otherObject, recordCount - 1], function(){});
 
-  const start = microtime.now();
+  const start = process.hrtime();
 
   async.times(queryCount, function(n, done) {
     executeQuery(done);
   }, function(error, results) {
-    const microseconds = microtime.now() - start;
-    const seconds = (microseconds / 1000000);
+    const duration = process.hrtime(start);
+    const nanoseconds = duration[0] * 1e9 + duration[1];
+    const microseconds = nanoseconds / 1e3;
+    const seconds = (microseconds / 1e6);
 
     const queriesPerSecond = Math.round(queryCount / seconds);
     const usecPerPut = Math.round(microseconds / queryCount);

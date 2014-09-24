@@ -1,6 +1,5 @@
 const randomString = require('random-string');
 const _ = require('lodash');
-const microtime = require("microtime");
 const async = require('async');
 
 const gemfire = require('../..');
@@ -53,16 +52,18 @@ var suffix = 0;
 function benchmark(numberOfPuts, title, functionToTest, callback) {
   region.clear();
 
-  var start = microtime.now();
+  var start = process.hrtime();
 
   async.series([
     function(next) { functionToTest(numberOfPuts, next); },
     function(next) {
-      var microseconds = microtime.now() - start;
-      var seconds = (microseconds / 1000000);
+      const duration = process.hrtime(start);
+      const nanoseconds = duration[0] * 1e9 + duration[1];
+      const microseconds = nanoseconds / 1e3;
+      const seconds = (microseconds / 1e6);
 
-      var putsPerSecond = Math.round(numberOfPuts / seconds);
-      var usecPerPut = Math.round(microseconds / numberOfPuts);
+      const putsPerSecond = Math.round(numberOfPuts / seconds);
+      const usecPerPut = Math.round(microseconds / numberOfPuts);
 
       console.log(
         title + " put:" , + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
