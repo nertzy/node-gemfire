@@ -24,6 +24,9 @@ module.exports = function(grunt) {
     {
       pkg: grunt.file.readJSON('package.json'),
       shell: {
+        ci: {
+          command: './bin/ci'
+        },
         buildDebug: {
           command: './node_modules/.bin/node-pre-gyp --debug build'
         },
@@ -160,7 +163,11 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('default', ['build', 'test', 'lint']);
-  grunt.registerTask('ci', ['default', 'benchmark', 'license_finder']);
+
+  grunt.registerTask('ci:node', ['default', 'benchmark:node']);
+  grunt.registerTask('ci:other', ['benchmark:java', 'license_finder']);
+
+  grunt.registerTask('ci', ["shell:ci"]);
   grunt.registerTask('release', ['ci', 'shell:release']);
 };
 
