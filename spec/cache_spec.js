@@ -346,7 +346,7 @@ describe("gemfire.Cache", function() {
 
       expect(rootRegions.length).toEqual(expectedRegionNames.length);
       _.each(rootRegions, function(rootRegion) {
-        expect(rootRegion.constructor).toEqual(gemfire.Region);
+        expect(rootRegion.constructor.name).toEqual("Region");
         expect(expectedRegionNames).toContain(rootRegion.name);
       });
     });
