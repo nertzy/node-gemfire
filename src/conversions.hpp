@@ -10,28 +10,28 @@ using namespace v8;
 
 namespace node_gemfire {
 
-gemfire::CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value,
+gemfire::CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
-gemfire::PdxInstancePtr gemfireValueFromV8(const Handle<Object> & v8Object,
+gemfire::PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
 
-gemfire::CacheableKeyPtr gemfireKeyFromV8(const Handle<Value> & v8Value,
+gemfire::CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
-gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Handle<Array> & v8Value,
+gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
 
-gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Handle<Object> & v8Object,
+gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
 
-Handle<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
-Handle<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
-Handle<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
-Handle<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
-Handle<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
-Handle<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
-Handle<Boolean> v8ValueFromGemfire(bool value);
+Local<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
+Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
+Local<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
+Local<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
+Local<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
+Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
+Local<Boolean> v8ValueFromGemfire(bool value);
 
-std::string getClassName(const Handle<Object> & v8Object);
+std::string getClassName(const Local<Object> & v8Object);
 
 }  // namespace node_gemfire
 

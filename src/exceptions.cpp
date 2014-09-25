@@ -22,11 +22,11 @@ std::string gemfireExceptionMessage(gemfire::UserFunctionExecutionExceptionPtr e
   return errorMessageStream.str();
 }
 
-void emitError(const Handle<Object> & object, const Handle<Value> & error) {
+void emitError(const Local<Object> & object, const Local<Value> & error) {
   NanScope();
 
   Local<Function> emit(Local<Function>::Cast(object->Get(NanNew("emit"))));
   static const int argc = 2;
-  Handle<Value> argv[argc] = { NanNew("error"), error };
+  Local<Value> argv[argc] = { NanNew("error"), error };
   NanMakeCallback(object, emit, argc, argv);
 }

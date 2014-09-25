@@ -11,7 +11,7 @@ namespace node_gemfire {
 
 class Cache : public node::ObjectWrap {
  public:
-  static void Init(Handle<Object> exports);
+  static void Init(Local<Object> exports);
 
   gemfire::CachePtr cachePtr;
 

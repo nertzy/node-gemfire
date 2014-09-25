@@ -30,7 +30,7 @@ NAN_METHOD(Region::GetRegion) {
   Region * region = new Region(cacheHandle, regionPtr);
 
   const unsigned int argc = 0;
-  Handle<Value> argv[] = {};
+  Local<Value> argv[] = {};
   Local<Object> regionHandle(NanNew(regionConstructor)->GetFunction()->NewInstance(argc, argv));
 
   region->Wrap(regionHandle);
@@ -48,7 +48,7 @@ NAN_METHOD(Region::Clear) {
   NanReturnValue(NanTrue());
 }
 
-std::string unableToPutValueError(Handle<Value> v8Value) {
+std::string unableToPutValueError(Local<Value> v8Value) {
   std::stringstream errorMessageStream;
   errorMessageStream << "Unable to put value " << *String::Utf8Value(v8Value->ToDetailString());
   return errorMessageStream.str();
@@ -172,7 +172,7 @@ class GetWorker : public NanAsyncWorker {
     NanScope();
 
     static const int argc = 2;
-    Local<Value> argv[argc] = { NanUndefined(), NanNew(v8ValueFromGemfire(valuePtr)) };
+    Local<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(valuePtr) };
     callback->Call(argc, argv);
   }
 
@@ -240,7 +240,7 @@ class GetAllWorker : public NanAsyncWorker {
     NanScope();
 
     static const int argc = 2;
-    Handle<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(resultsPtr) };
+    Local<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(resultsPtr) };
     callback->Call(argc, argv);
   }
 
@@ -272,7 +272,7 @@ NAN_METHOD(Region::GetAll) {
   RegionPtr regionPtr(region->regionPtr);
 
   VectorOfCacheableKeyPtr gemfireKeysPtr(
-      gemfireKeysFromV8(Handle<Array>::Cast(args[0]), regionPtr->getCache()));
+      gemfireKeysFromV8(Local<Array>::Cast(args[0]), regionPtr->getCache()));
   NanCallback * callback = new NanCallback(args[1].As<Function>());
 
   GetAllWorker * worker = new GetAllWorker(regionPtr, gemfireKeysPtr, callback);
@@ -443,11 +443,11 @@ class ExecuteFunctionWorker : public NanAsyncWorker {
     Local<Value> error(NanUndefined());
     Local<Value> returnValue;
 
-    Handle<Array> resultsArray(v8ValueFromGemfire(resultsPtr));
+    Local<Array> resultsArray(v8ValueFromGemfire(resultsPtr));
 
     unsigned int length = resultsArray->Length();
     if (length > 0) {
-      Handle<Value> lastResult(resultsArray->Get(length - 1));
+      Local<Value> lastResult(resultsArray->Get(length - 1));
 
       if (lastResult->IsNativeError()) {
         error = NanNew(lastResult);
@@ -461,7 +461,7 @@ class ExecuteFunctionWorker : public NanAsyncWorker {
     }
 
     const unsigned int argc = 2;
-    Handle<Value> argv[argc] = { error, NanNew(resultsArray) };
+    Local<Value> argv[argc] = { error, resultsArray };
     callback->Call(argc, argv);
   }
 
@@ -553,7 +553,7 @@ class AbstractQueryWorker : public NanAsyncWorker {
 
   void HandleOKCallback() {
     static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(resultPtr)) };
+    Local<Value> argv[2] = { NanUndefined(), v8ValueFromGemfire(resultPtr) };
     callback->Call(argc, argv);
   }
 
@@ -659,7 +659,7 @@ NAN_METHOD(Region::New) {
   NanReturnValue(args.This());
 }
 
-void Region::Init(Handle<Object> exports) {
+void Region::Init(Local<Object> exports) {
   NanScope();
 
   Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>(Region::New);

@@ -13,7 +13,7 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-void Cache::Init(Handle<Object> exports) {
+void Cache::Init(Local<Object> exports) {
   NanScope();
 
   Local<FunctionTemplate> cacheConstructorTemplate =
@@ -84,7 +84,7 @@ class ExecuteQueryWorker : public NanAsyncWorker {
     NanScope();
 
     static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), NanNew(v8ValueFromGemfire(selectResultsPtr)) };
+    Local<Value> argv[2] = { NanUndefined(), v8ValueFromGemfire(selectResultsPtr) };
     callback->Call(argc, argv);
   }
 

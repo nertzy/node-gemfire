@@ -11,7 +11,7 @@ namespace node_gemfire {
 
 class Region : public node::ObjectWrap {
  public:
-  Region(Handle<Object> cacheHandle,
+  Region(Local<Object> cacheHandle,
          gemfire::RegionPtr regionPtr) :
     regionPtr(regionPtr) {
       NanAssignPersistent(this->cacheHandle, cacheHandle);
@@ -21,7 +21,7 @@ class Region : public node::ObjectWrap {
     NanDisposePersistent(cacheHandle);
   }
 
-  static void Init(Handle<Object> exports);
+  static void Init(Local<Object> exports);
   static NAN_METHOD(New);
   static NAN_METHOD(GetRegion);
   static NAN_METHOD(Clear);
