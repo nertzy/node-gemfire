@@ -8,24 +8,24 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-Persistent<FunctionTemplate> selectResultsConstructor;
+Persistent<Function> selectResultsConstructor;
 
 void SelectResults::Init(Local<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> constructor(NanNew<FunctionTemplate>());
+  Local<FunctionTemplate> constructorTemplate(NanNew<FunctionTemplate>());
 
-  constructor->SetClassName(NanNew("SelectResults"));
-  constructor->InstanceTemplate()->SetInternalFieldCount(1);
+  constructorTemplate->SetClassName(NanNew("SelectResults"));
+  constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NanSetPrototypeTemplate(constructor, "toArray",
+  NanSetPrototypeTemplate(constructorTemplate, "toArray",
       NanNew<FunctionTemplate>(SelectResults::ToArray)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "each",
+  NanSetPrototypeTemplate(constructorTemplate, "each",
       NanNew<FunctionTemplate>(SelectResults::Each)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "inspect",
+  NanSetPrototypeTemplate(constructorTemplate, "inspect",
       NanNew<FunctionTemplate>(SelectResults::Inspect)->GetFunction());
 
-  NanAssignPersistent(selectResultsConstructor, constructor);
+  NanAssignPersistent(selectResultsConstructor, constructorTemplate->GetFunction());
 }
 
 Local<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsPtr) {
@@ -33,7 +33,7 @@ Local<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsP
 
   const unsigned int argc = 0;
   Local<Value> argv[argc] = {};
-  Local<Object> v8Object(NanNew(selectResultsConstructor)->GetFunction()->NewInstance(argc, argv));
+  Local<Object> v8Object(NanNew(selectResultsConstructor)->NewInstance(argc, argv));
 
   SelectResults * selectResults = new SelectResults(selectResultsPtr);
   selectResults->Wrap(v8Object);

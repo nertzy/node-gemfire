@@ -12,7 +12,7 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-Persistent<FunctionTemplate> regionConstructor;
+Persistent<Function> regionConstructor;
 
 Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   NanEscapableScope();
@@ -22,7 +22,7 @@ Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   }
 
   Region * region = new Region(cacheObject, regionPtr);
-  Local<Object> regionObject(NanNew(regionConstructor)->GetFunction()->NewInstance(0, NULL));
+  Local<Object> regionObject(NanNew(regionConstructor)->NewInstance(0, NULL));
 
   region->Wrap(regionObject);
 
@@ -648,39 +648,38 @@ NAN_METHOD(Region::Query) {
 void Region::Init(Local<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
+  Local<FunctionTemplate> constructorTemplate = NanNew<FunctionTemplate>();
 
-  constructor->SetClassName(NanNew("Region"));
-  constructor->InstanceTemplate()->SetInternalFieldCount(1);
+  constructorTemplate->SetClassName(NanNew("Region"));
+  constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NanSetPrototypeTemplate(constructor, "clear",
+  NanSetPrototypeTemplate(constructorTemplate, "clear",
       NanNew<FunctionTemplate>(Region::Clear)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "put",
+  NanSetPrototypeTemplate(constructorTemplate, "put",
       NanNew<FunctionTemplate>(Region::Put)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "get",
+  NanSetPrototypeTemplate(constructorTemplate, "get",
       NanNew<FunctionTemplate>(Region::Get)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "getAll",
+  NanSetPrototypeTemplate(constructorTemplate, "getAll",
       NanNew<FunctionTemplate>(Region::GetAll)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "putAll",
+  NanSetPrototypeTemplate(constructorTemplate, "putAll",
       NanNew<FunctionTemplate>(Region::PutAll)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "remove",
+  NanSetPrototypeTemplate(constructorTemplate, "remove",
       NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "query",
+  NanSetPrototypeTemplate(constructorTemplate, "query",
       NanNew<FunctionTemplate>(Region::Query<QueryWorker>)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "selectValue",
+  NanSetPrototypeTemplate(constructorTemplate, "selectValue",
       NanNew<FunctionTemplate>(Region::Query<SelectValueWorker>)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "existsValue",
+  NanSetPrototypeTemplate(constructorTemplate, "existsValue",
       NanNew<FunctionTemplate>(Region::Query<ExistsValueWorker>)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "executeFunction",
+  NanSetPrototypeTemplate(constructorTemplate, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
-  NanSetPrototypeTemplate(constructor, "inspect",
+  NanSetPrototypeTemplate(constructorTemplate, "inspect",
       NanNew<FunctionTemplate>(Region::Inspect)->GetFunction());
 
-  constructor->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
+  constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
 
-  NanAssignPersistent(regionConstructor, constructor);
-
-  exports->Set(NanNew("Region"), constructor->GetFunction());
+  NanAssignPersistent(regionConstructor, constructorTemplate->GetFunction());
+  exports->Set(NanNew("Region"), NanNew(regionConstructor));
 }
 
 }  // namespace node_gemfire
