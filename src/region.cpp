@@ -14,28 +14,19 @@ namespace node_gemfire {
 
 Persistent<FunctionTemplate> regionConstructor;
 
-NAN_METHOD(Region::GetRegion) {
-  NanScope();
-
-  Local<Object> cacheHandle(args[0]->ToObject());
-
-  Cache * cache = ObjectWrap::Unwrap<Cache>(cacheHandle);
-  CachePtr cachePtr(cache->cachePtr);
-  RegionPtr regionPtr(cachePtr->getRegion(*NanAsciiString(args[1])));
+Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
+  NanEscapableScope();
 
   if (regionPtr == NULLPTR) {
-    NanReturnUndefined();
+    return NanEscapeScope(NanUndefined());
   }
 
-  Region * region = new Region(cacheHandle, regionPtr);
+  Region * region = new Region(cacheObject, regionPtr);
+  Local<Object> regionObject(NanNew(regionConstructor)->GetFunction()->NewInstance(0, NULL));
 
-  const unsigned int argc = 0;
-  Local<Value> argv[] = {};
-  Local<Object> regionHandle(NanNew(regionConstructor)->GetFunction()->NewInstance(argc, argv));
+  region->Wrap(regionObject);
 
-  region->Wrap(regionHandle);
-
-  NanReturnValue(regionHandle);
+  return NanEscapeScope(regionObject);
 }
 
 NAN_METHOD(Region::Clear) {
@@ -654,15 +645,10 @@ NAN_METHOD(Region::Query) {
   NanReturnValue(args.This());
 }
 
-NAN_METHOD(Region::New) {
-  NanScope();
-  NanReturnValue(args.This());
-}
-
 void Region::Init(Local<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>(Region::New);
+  Local<FunctionTemplate> constructor = NanNew<FunctionTemplate>();
 
   constructor->SetClassName(NanNew("Region"));
   constructor->InstanceTemplate()->SetInternalFieldCount(1);

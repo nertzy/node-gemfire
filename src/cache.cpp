@@ -26,6 +26,8 @@ void Cache::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Cache::ExecuteQuery)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "getRegion",
       NanNew<FunctionTemplate>(Cache::GetRegion)->GetFunction());
+  NanSetPrototypeTemplate(cacheConstructorTemplate, "rootRegions",
+      NanNew<FunctionTemplate>(Cache::RootRegions)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "inspect",
       NanNew<FunctionTemplate>(Cache::Inspect)->GetFunction());
 
@@ -133,14 +135,29 @@ NAN_METHOD(Cache::GetRegion) {
     NanReturnUndefined();
   }
 
-  Local<Function> regionGetRegionFunction =
-    NanNew<FunctionTemplate>(Region::GetRegion)->GetFunction();
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  CachePtr cachePtr(cache->cachePtr);
+  RegionPtr regionPtr(cachePtr->getRegion(*NanAsciiString(args[0])));
 
-  const unsigned int argc = 2;
-  Local<Value> argv[argc] = { args.This(), args[0] };
-  Local<Value> regionHandle(NanMakeCallback(args.This(), regionGetRegionFunction, argc, argv));
+  NanReturnValue(Region::New(args.This(), regionPtr));
+}
 
-  NanReturnValue(regionHandle);
+NAN_METHOD(Cache::RootRegions) {
+  NanScope();
+
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+
+  VectorOfRegion regions;
+  cache->cachePtr->rootRegions(regions);
+
+  unsigned int size = regions.size();
+  Local<Array> rootRegions(NanNew<Array>(size));
+
+  for (unsigned int i = 0; i < size; i++) {
+    rootRegions->Set(i, Region::New(args.This(), regions[i]));
+  }
+
+  NanReturnValue(rootRegions);
 }
 
 NAN_METHOD(Cache::Inspect) {
