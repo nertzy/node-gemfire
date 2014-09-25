@@ -1,1 +1,3 @@
-start locator --name=locator --log-level=warning
+start locator \
+  --name=locator \
+  --log-level=warning
