@@ -1,2 +1,8 @@
 connect
-start server --dir=server --log-level=warning --cache-xml-file=/project/benchmark/xml/BenchmarkServer.xml --name=server
+start server \
+  --dir=server \
+  --log-level=warning \
+  --cache-xml-file=/project/benchmark/xml/BenchmarkServer.xml \
+  --name=server \
+  --J=-Dgemfire.start-dev-rest-api=true \
+  --J=-Dgemfire.http-service-port=8080
