@@ -10,7 +10,7 @@ namespace node_gemfire {
 
 Persistent<FunctionTemplate> selectResultsConstructor;
 
-void SelectResults::Init(Handle<Object> exports) {
+void SelectResults::Init(Local<Object> exports) {
   NanScope();
 
   Local<FunctionTemplate> constructor(NanNew<FunctionTemplate>());
@@ -28,12 +28,12 @@ void SelectResults::Init(Handle<Object> exports) {
   NanAssignPersistent(selectResultsConstructor, constructor);
 }
 
-Handle<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsPtr) {
+Local<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsPtr) {
   NanEscapableScope();
 
   const unsigned int argc = 0;
-  Handle<Value> argv[argc] = {};
-  Handle<Object> v8Object(NanNew(selectResultsConstructor)->GetFunction()->NewInstance(argc, argv));
+  Local<Value> argv[argc] = {};
+  Local<Object> v8Object(NanNew(selectResultsConstructor)->GetFunction()->NewInstance(argc, argv));
 
   SelectResults * selectResults = new SelectResults(selectResultsPtr);
   selectResults->Wrap(v8Object);
@@ -73,7 +73,7 @@ NAN_METHOD(SelectResults::Each) {
 
   while (iterator.hasNext()) {
     const unsigned int argc = 1;
-    Handle<Value> argv[argc] = { v8ValueFromGemfire(iterator.next()) };
+    Local<Value> argv[argc] = { v8ValueFromGemfire(iterator.next()) };
     Local<Value> regionHandle(NanMakeCallback(args.This(), callback, argc, argv));
   }
 

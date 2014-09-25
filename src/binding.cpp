@@ -9,7 +9,7 @@
 
 using namespace v8;
 
-static void Initialize(Handle<Object> exports) {
+static void Initialize(Local<Object> exports) {
   NanScope();
 
   exports->Set(NanNew("version"),

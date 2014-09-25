@@ -115,7 +115,7 @@ NAN_METHOD(run) {
   NanReturnValue(NanNew(testReturnCode));
 }
 
-static void Initialize(Handle<Object> exports) {
+static void Initialize(Local<Object> exports) {
   NODE_SET_METHOD(exports, "run", run);
 }
 
