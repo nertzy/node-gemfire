@@ -1,5 +1,6 @@
 const childProcess = require('child_process');
 const async = require("async");
+const _ = require("lodash");
 
 const gemfire = require("./support/gemfire.js");
 const factories = require("./support/factories.js");
@@ -333,6 +334,21 @@ describe("gemfire.Cache", function() {
   describe(".inspect", function() {
     it("returns a user-friendly display string describing the cache", function() {
       expect(factories.getCache().inspect()).toEqual('[Cache]');
+    });
+  });
+
+  describe(".rootRegions", function() {
+    it("returns an array of all the top level regions", function() {
+      const cache = factories.getCache();
+      const expectedRegionNames = [ "exampleRegion", "anotherRegion", "oqlBenchmark" ];
+
+      const rootRegions = cache.rootRegions();
+
+      expect(rootRegions.length).toEqual(expectedRegionNames.length);
+      _.each(rootRegions, function(rootRegion) {
+        expect(rootRegion.constructor).toEqual(gemfire.Region);
+        expect(expectedRegionNames).toContain(rootRegion.name);
+      });
     });
   });
 });

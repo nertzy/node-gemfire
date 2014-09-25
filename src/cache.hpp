@@ -25,6 +25,7 @@ class Cache : public node::ObjectWrap {
   static NAN_METHOD(New);
   static NAN_METHOD(ExecuteQuery);
   static NAN_METHOD(GetRegion);
+  static NAN_METHOD(RootRegions);
   static NAN_METHOD(Inspect);
 
   gemfire::QueryPtr newQuery(char * queryString);
