@@ -268,6 +268,27 @@ describe("gemfire.Region", function() {
       testRoundTrip(false, done);
     });
 
+    it("stores and retrieves boolean objects", function(done) {
+      /* jshint -W053 */
+      region.putAll({
+        "true": new Boolean(true),
+        "false": new Boolean(false)
+      }, function(error) {
+        expect(error).not.toBeError();
+
+        region.getAll(["true", "false"], function(error, response) {
+          expect(error).not.toBeError();
+
+          expect(response).toEqual({
+            "true": true,
+            "false": false
+          });
+
+          done();
+        });
+      });
+    });
+
     _.each([
       [],
       ['a string', 2, true, null, false, { an: 'object' }, new Date(), ['another array', true]],

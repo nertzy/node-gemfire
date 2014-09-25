@@ -221,6 +221,12 @@ CacheablePtr gemfireValueFromV8(const Handle<Value> & v8Value, const CachePtr & 
       ((CacheableObjectArrayPtr) gemfireValuePtr)->push_back(
         gemfireValueFromV8(v8Array->Get(i), cachePtr));
     }
+  } else if (v8Value->IsBooleanObject()) {
+#if (NODE_MODULE_VERSION > 0x000B)
+    gemfireValuePtr = CacheableBoolean::create(BooleanObject::Cast(*v8Value)->ValueOf());
+#else
+    gemfireValuePtr = CacheableBoolean::create(BooleanObject::Cast(*v8Value)->BooleanValue());
+#endif
   } else if (v8Value->IsObject()) {
     gemfireValuePtr = gemfireValueFromV8(v8Value->ToObject(), cachePtr);
   } else if (v8Value->IsUndefined()) {
