@@ -5,17 +5,18 @@ const async = require('async');
 const randomString = require("random-string");
 const factories = require('./support/factories.js');
 const errorMatchers = require("./support/error_matchers.js");
+const until = require("./support/until.js");
 
 const invalidKeys = [null, undefined, []];
 
 describe("gemfire.Region", function() {
   var region, cache;
 
-  beforeEach(function() {
+  beforeEach(function(done) {
     this.addMatchers(errorMatchers);
     cache = factories.getCache();
     region = cache.getRegion("exampleRegion");
-    region.clear();
+    region.clear(done);
   });
 
   afterEach(function(done) {
@@ -169,48 +170,60 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("does not emit an event when no error occurs and there is no callback", function() {
-      // if it fails, an uncaught event will blow up the suite
+    it("does not emit an event when no error occurs and there is no callback", function(done) {
       region.put("foo", "bar");
+
+      until(
+        function(test) { region.get("foo", test); },
+        function(error, result) { return !error && result == "bar"; },
+        done
+      );
     });
   });
 
   describe(".get/.put", function() {
     function testRoundTrip(value, done) {
       const key = "foo";
-      region.clear();
-      region.put(key, value, function(error){
-        expect(error).not.toBeError();
-        region.get(key, function(error, getValue) {
-          expect(error).not.toBeError();
-          expect(getValue).toEqual(value);
-          done();
-        });
-      });
+
+      async.series([
+        function(next) { region.clear(next); },
+        function(next) {
+          region.put(key, value, function(error) {
+            expect(error).not.toBeError();
+            next();
+          });
+        },
+        function(next) {
+          region.get(key, function(error, getValue) {
+            expect(error).not.toBeError();
+            expect(getValue).toEqual(value);
+            next();
+          });
+        }
+      ], done);
     }
 
     it("stores and retrieves values in the correct region", function(done) {
       var region1 = cache.getRegion("exampleRegion");
       var region2 = cache.getRegion("anotherRegion");
 
-      region1.clear();
-      region2.clear();
-
       async.series([
-        function(callback) { region1.put("foo", "bar", callback); },
-        function(callback) { region2.put("foo", 123, callback); },
-        function(callback) {
+        function(next) { region1.clear(next); },
+        function(next) { region2.clear(next); },
+        function(next) { region1.put("foo", "bar", next); },
+        function(next) { region2.put("foo", 123, next); },
+        function(next) {
           region1.get("foo", function(error, value) {
             expect(error).not.toBeError();
             expect(value).toEqual("bar");
-            callback();
+            next();
           });
         },
-        function(callback) {
+        function(next) {
           region2.get("foo", function(error, value) {
             expect(error).not.toBeError();
             expect(value).toEqual(123);
-            callback();
+            next();
           });
         },
       ], done);
@@ -565,44 +578,67 @@ describe("gemfire.Region", function() {
   });
 
   describe(".clear", function(){
-    it("removes all keys", function(done){
+    it("removes all keys, then calls the callback", function(done){
       async.series([
-        function(callback) { region.put('key', 'value', callback); },
-        function(callback) {
-          region.clear();
-          callback();
-        },
-        function(callback) {
+        function(next) { region.put('key', 'value', next); },
+        function(next) { region.clear(next); },
+        function(next) {
           region.get('key', function(error) {
             expect(error).toBeError();
-            callback();
+            next();
           });
         }
       ], done);
+    });
+
+    it("returns the region to support chaining", function(done) {
+      expect(region.clear(done)).toEqual(region);
     });
 
     it("only removes keys for the region, not for other regions", function(done) {
       var region1 = cache.getRegion("exampleRegion");
       var region2 = cache.getRegion("anotherRegion");
 
-      region1.clear();
-      region2.clear();
-
       async.series([
-        function(callback) { region1.put('key', 'value', callback); },
-        function(callback) { region2.put('key', 'value', callback); },
-        function(callback) {
-          region1.clear();
-          callback();
-        },
-        function(callback) {
+        function(next) { region1.clear(next); },
+        function(next) { region2.clear(next); },
+        function(next) { region1.put('key', 'value', next); },
+        function(next) { region2.put('key', 'value', next); },
+        function(next) { region1.clear(next); },
+        function(next) {
           region1.get("key", function(error) {
             expect(error).toBeError();
-            callback();
+            next();
           });
         },
-        function(callback) { region2.get("key", callback); },
+        function(next) { region2.get("key", next); },
       ], done);
+    });
+
+    it("throws an error if the callback is not a function", function() {
+      function callWithNonFunction() {
+        region.clear("this is not a function");
+      }
+
+      expect(callWithNonFunction).toThrow("You must pass a function as the callback to clear().");
+    });
+
+    // Pending us figuring out how to cause an error in clear()
+    xit("emits an event when an error occurs and there is no callback", function(){});
+
+    it("does not emit an event when no error occurs and there is no callback", function(done) {
+      // if an error event is emitted, the test suite will crash here
+      region.put("foo", "bar", function(error) {
+        expect(error).not.toBeError();
+
+        region.clear();
+
+        until(
+          function(test) { region.get("foo", test); },
+          function(error) { return error && error.message === "Key not found in region."; },
+          done
+        );
+      });
     });
   });
 
@@ -611,38 +647,26 @@ describe("gemfire.Region", function() {
 
     it("gives the function access to the region", function(done) {
       const functionName = "io.pivotal.node_gemfire.SumRegion";
+      const anotherRegion = cache.getRegion("anotherRegion");
 
-      region.put("one", 1, function(error){
-        expect(error).not.toBeError();
-
-        region.put("two", 2, function(error){
-          expect(error).not.toBeError();
-
-          const anotherRegion = cache.getRegion("anotherRegion");
-          anotherRegion.clear();
-          anotherRegion.put("thousand", 1000, function(){
-            expect(error).not.toBeError();
-
-            async.parallel(
-              [
-                function(callback) {
-                  region.executeFunction(functionName, function(error, results){
-                    expect(results).toEqual([3]);
-                    callback();
-                  });
-                },
-                function(callback) {
-                  anotherRegion.executeFunction(functionName, function(error, results){
-                    expect(results).toEqual([1000]);
-                    callback();
-                  });
-                },
-              ],
-              done
-            );
+      async.series([
+        function(next) { region.put("one", 1, next); },
+        function(next) { region.put("two", 2, next); },
+        function(next) { anotherRegion.clear(next); },
+        function(next) { anotherRegion.put("thousand", 1000, next); },
+        function(next) {
+          region.executeFunction(functionName, function(error, results){
+            expect(results).toEqual([3]);
+            next();
           });
-        });
-      });
+        },
+        function(next) {
+          anotherRegion.executeFunction(functionName, function(error, results){
+            expect(results).toEqual([1000]);
+            next();
+          });
+        }
+      ], done);
     });
 
     it("returns the region object to support chaining", function(done) {
@@ -1109,9 +1133,15 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("does not emit an event when no error occurs and there is no callback", function() {
+    it("does not emit an event when no error occurs and there is no callback", function(done) {
       // if it fails, an uncaught event will blow up the suite
       region.putAll({ foo: "bar" });
+
+      until(
+        function(test) { region.get("foo", test); },
+        function(error, value) { return value === "bar"; },
+        done
+      );
     });
   });
 
