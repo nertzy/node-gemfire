@@ -145,7 +145,9 @@ gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
   for (unsigned int i = 0; i < v8Value->Length(); i++) {
     CacheableKeyPtr keyPtr = gemfireKeyFromV8(v8Value->Get(i), cachePtr);
 
-    if (keyPtr != NULLPTR) {
+    if (keyPtr == NULLPTR) {
+      return NULLPTR;
+    } else {
       vectorPtr->push_back(keyPtr);
     }
   }
@@ -227,6 +229,9 @@ CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & c
 #else
     gemfireValuePtr = CacheableBoolean::create(BooleanObject::Cast(*v8Value)->BooleanValue());
 #endif
+  } else if (v8Value->IsFunction()) {
+    NanThrowError("Unable to serialize to GemFire; functions are not supported.");
+    return NULLPTR;
   } else if (v8Value->IsObject()) {
     gemfireValuePtr = gemfireValueFromV8(v8Value->ToObject(), cachePtr);
   } else if (v8Value->IsUndefined()) {
@@ -234,7 +239,7 @@ CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & c
   } else if (v8Value->IsNull()) {
     gemfireValuePtr = NULLPTR;
   } else {
-    std::string errorMessage("Unable to serialize value to GemFire; unknown JavaScript object: ");
+    std::string errorMessage("Unable to serialize to GemFire; unknown JavaScript object: ");
     errorMessage.append(*NanUtf8String(v8Value->ToDetailString()));
     NanThrowError(errorMessage.c_str());
     return NULLPTR;
@@ -372,6 +377,10 @@ gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Obje
 
     CacheablePtr keyPtr(gemfireValueFromV8(v8Key, cachePtr));
     CacheablePtr valuePtr(gemfireValueFromV8(v8Object->Get(v8Key), cachePtr));
+
+    if (valuePtr == NULLPTR) {
+      return NULLPTR;
+    }
 
     hashMapPtr->insert(keyPtr, valuePtr);
   }

@@ -244,6 +244,11 @@ class GetAllWorker : public GemfireWorker {
   void ExecuteGemfireWork() {
     resultsPtr = new HashMapOfCacheable();
 
+    if (gemfireKeysPtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire key.");
+      return;
+    }
+
     if (gemfireKeysPtr->size() == 0) {
       return;
     }
@@ -288,6 +293,7 @@ NAN_METHOD(Region::GetAll) {
 
   VectorOfCacheableKeyPtr gemfireKeysPtr(
       gemfireKeysFromV8(Local<Array>::Cast(args[0]), regionPtr->getCache()));
+
   NanCallback * callback = new NanCallback(args[1].As<Function>());
 
   GetAllWorker * worker = new GetAllWorker(regionPtr, gemfireKeysPtr, callback);
@@ -308,6 +314,11 @@ class PutAllWorker : public GemfireEventedWorker {
     hashMapPtr(hashMapPtr) { }
 
   void ExecuteGemfireWork() {
+    if (hashMapPtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire value.");
+      return;
+    }
+
     regionPtr->putAll(*hashMapPtr);
   }
 
