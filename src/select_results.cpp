@@ -8,7 +8,7 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-Persistent<Function> selectResultsConstructor;
+Persistent<Function> SelectResults::constructor;
 
 void SelectResults::Init(Local<Object> exports) {
   NanScope();
@@ -25,7 +25,7 @@ void SelectResults::Init(Local<Object> exports) {
   NanSetPrototypeTemplate(constructorTemplate, "inspect",
       NanNew<FunctionTemplate>(SelectResults::Inspect)->GetFunction());
 
-  NanAssignPersistent(selectResultsConstructor, constructorTemplate->GetFunction());
+  NanAssignPersistent(SelectResults::constructor, constructorTemplate->GetFunction());
 }
 
 Local<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsPtr) {
@@ -33,7 +33,7 @@ Local<Object> SelectResults::NewInstance(const SelectResultsPtr & selectResultsP
 
   const unsigned int argc = 0;
   Local<Value> argv[argc] = {};
-  Local<Object> v8Object(NanNew(selectResultsConstructor)->NewInstance(argc, argv));
+  Local<Object> v8Object(NanNew(SelectResults::constructor)->NewInstance(argc, argv));
 
   SelectResults * selectResults = new SelectResults(selectResultsPtr);
   selectResults->Wrap(v8Object);

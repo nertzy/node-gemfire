@@ -12,7 +12,7 @@ using namespace gemfire;
 
 namespace node_gemfire {
 
-Persistent<Function> regionConstructor;
+Persistent<Function> Region::constructor;
 
 Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   NanEscapableScope();
@@ -22,7 +22,7 @@ Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   }
 
   Region * region = new Region(cacheObject, regionPtr);
-  Local<Object> regionObject(NanNew(regionConstructor)->NewInstance(0, NULL));
+  Local<Object> regionObject(NanNew(Region::constructor)->NewInstance(0, NULL));
 
   region->Wrap(regionObject);
 
@@ -678,8 +678,8 @@ void Region::Init(Local<Object> exports) {
 
   constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
 
-  NanAssignPersistent(regionConstructor, constructorTemplate->GetFunction());
-  exports->Set(NanNew("Region"), NanNew(regionConstructor));
+  NanAssignPersistent(Region::constructor, constructorTemplate->GetFunction());
+  exports->Set(NanNew("Region"), NanNew(Region::constructor));
 }
 
 }  // namespace node_gemfire
