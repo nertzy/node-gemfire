@@ -8,6 +8,7 @@ const errorMatchers = require("./support/error_matchers.js");
 const until = require("./support/until.js");
 
 const invalidKeys = [null, undefined, []];
+const invalidValues = [null];
 
 describe("gemfire.Region", function() {
   var region, cache;
@@ -73,6 +74,14 @@ describe("gemfire.Region", function() {
       });
     });
 
+    it("throws an error when passed a function as a key", function() {
+      function callWithFunctionKey() {
+        region.get(function(){}, function(){});
+      }
+
+      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
+    });
+
     it("passes the value into the callback", function(done) {
       region.put('foo', 'bar', function (error) {
         expect(error).not.toBeError();
@@ -126,11 +135,21 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("passes an error to the callback when called with null", function(done) {
-      region.put("foo", null, function(error) {
-        expect(error).toBeError("Invalid GemFire value.");
-        done();
+    _.each(invalidValues, function(invalidValue) {
+      it("passes an error to the callback when passed invalid value " + util.inspect(invalidValue), function(done) {
+        region.put("foo", invalidValue, function(error) {
+          expect(error).toBeError("Invalid GemFire value.");
+          done();
+        });
       });
+    });
+
+    it("throws an error when passed a function as a value", function() {
+      function callWithFunctionValue() {
+        region.put("foo", function(){}, function(){});
+      }
+
+      expect(callWithFunctionValue).toThrow("Unable to serialize to GemFire; functions are not supported.");
     });
 
     _.each(invalidKeys, function(invalidKey) {
@@ -140,6 +159,14 @@ describe("gemfire.Region", function() {
           done();
         });
       });
+    });
+
+    it("throws an error when passed a function as a key", function() {
+      function callWithFunctionKey() {
+        region.put(function(){}, "foo", function(){});
+      }
+
+      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
     });
 
     it("emits an event when an error occurs and there is no callback", function(done) {
@@ -729,6 +756,14 @@ describe("gemfire.Region", function() {
       expect(callWithoutArgs).toThrow("You must provide the name of a function to execute.");
     });
 
+    it("throws an error when a function is passed in as an argument", function() {
+      function callWithBadArgs() {
+        region.executeFunction(testFunctionName, [function(){}], function(){});
+      }
+
+      expect(callWithBadArgs).toThrow("Unable to serialize to GemFire; functions are not supported.");
+    });
+
     it("passes an error into the callback when the function is not found", function(done){
       region.executeFunction("com.example.Nonexistent", function(error, results) {
         expect(error).toBeError(
@@ -853,6 +888,15 @@ describe("gemfire.Region", function() {
         });
       });
     });
+
+    it("throws an error when passed a function as a key", function() {
+      function callWithFunctionKey() {
+        region.remove(function(){}, function(){});
+      }
+
+      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
+    });
+
   });
 
   describe(".query", function() {
@@ -1070,6 +1114,23 @@ describe("gemfire.Region", function() {
       ], done);
     });
 
+    _.each(invalidValues, function(invalidValue) {
+      it("passes an error to the callback when passed invalid value " + util.inspect(invalidValue), function(done) {
+        region.putAll({"foo": "bar", "baz": invalidValue}, function(error) {
+          expect(error).toBeError("Invalid GemFire value.");
+          done();
+        });
+      });
+    });
+
+    it("throws an error when passed a function as a value", function() {
+      function callWithFunctionValue() {
+        region.putAll({"foo": "bar", "baz": function(){}}, function(){});
+      }
+
+      expect(callWithFunctionValue).toThrow("Unable to serialize to GemFire; functions are not supported.");
+    });
+
     it("returns the region for chaining", function() {
       expect(region.putAll({ key: 'value' }, function(){})).toEqual(region);
     });
@@ -1210,13 +1271,22 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("ignores null keys", function(done) {
-      region.getAll([null], function(error, response) {
-        expect(error).not.toBeError();
-        expect(response).toEqual({});
-
-        done();
+    _.each(invalidKeys, function(invalidKey) {
+      it("passes an error to the callback when passed the invalid key " + util.inspect(invalidKey), function(done) {
+        region.getAll(["foo", invalidKey], function(error, value) {
+          expect(error).toBeError("Invalid GemFire key.");
+          expect(value).toBeUndefined();
+          done();
+        });
       });
+    });
+
+    it("throws an error when passed a function as a key", function() {
+      function callWithFunctionKey() {
+        region.getAll([function(){}], function(){});
+      }
+
+      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
     });
   });
 });
