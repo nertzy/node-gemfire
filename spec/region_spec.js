@@ -1289,4 +1289,38 @@ describe("gemfire.Region", function() {
       expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
     });
   });
+
+  describe(".keys", function() {
+    it("passes an array of key names in the region to the callback", function(done) {
+      async.series([
+        function(next) { region.putAll({"foo": 1, "bar": 2, "baz": 3}, next); },
+        function(next) {
+          region.keys(function(error, keys) {
+            expect(error).not.toBeError();
+            expect(keys.length).toEqual(3);
+            expect(keys).toContain("foo");
+            expect(keys).toContain("bar");
+            expect(keys).toContain("baz");
+            next();
+          });
+        },
+      ], done);
+    });
+
+    it("throws an exception when no callback is passed", function() {
+      function callWithNoArgs() {
+        region.keys();
+      }
+
+      expect(callWithNoArgs).toThrow("You must pass a callback to keys().");
+    });
+
+    it("throws an exception when a non-function is passed as the callback", function() {
+      function callWithNonFunction() {
+        region.keys("this is some crazy string");
+      }
+
+      expect(callWithNonFunction).toThrow("You must pass a function as the callback to keys().");
+    });
+  });
 });

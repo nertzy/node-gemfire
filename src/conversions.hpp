@@ -30,6 +30,7 @@ Local<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResults
 Local<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
 Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
 Local<Boolean> v8ValueFromGemfire(bool value);
+Local<Array> v8ValueFromGemfire(const gemfire::VectorOfCacheableKeyPtr & keysVectorPtr);
 
 std::string getClassName(const Local<Object> & v8Object);
 
