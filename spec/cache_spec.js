@@ -97,10 +97,10 @@ describe("gemfire.Cache", function() {
   describe("executeQuery", function () {
     var cache, region;
 
-    beforeEach(function() {
+    beforeEach(function(done) {
       cache = factories.getCache();
       region = cache.getRegion("exampleRegion");
-      region.clear();
+      region.clear(done);
     });
 
     it("executes a query that can retrieve string results", function(done) {

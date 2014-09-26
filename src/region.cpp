@@ -29,14 +29,68 @@ Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   return NanEscapeScope(regionObject);
 }
 
+class ClearWorker : public NanAsyncWorker {
+ public:
+  explicit ClearWorker(
+    const Local<Object> & regionObject,
+    Region * region,
+    NanCallback * callback) :
+      NanAsyncWorker(callback),
+      region(region) {
+        SaveToPersistent("regionObject", regionObject);
+      }
+
+  void Execute() {
+    try {
+      region->regionPtr->clear();
+    } catch(gemfire::Exception & exception) {
+      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    }
+  }
+
+  void HandleOKCallback() {
+    if (callback) {
+      callback->Call(0, NULL);
+    }
+  }
+
+  void HandleErrorCallback() {
+    NanScope();
+
+    Local<Value> error(NanError(ErrorMessage()));
+
+    if (callback) {
+      static const int argc = 1;
+      v8::Local<v8::Value> argv[argc] = { error };
+      callback->Call(argc, argv);
+    } else {
+      emitError(GetFromPersistent("regionObject"), error);
+    }
+  }
+
+  Persistent<Object> regionObject;
+  Region * region;
+};
+
 NAN_METHOD(Region::Clear) {
   NanScope();
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  RegionPtr regionPtr(region->regionPtr);
-  regionPtr->clear();
 
-  NanReturnValue(NanTrue());
+  NanCallback * callback;
+  if (args[0]->IsUndefined()) {
+    callback = NULL;
+  } else if (args[0]->IsFunction()) {
+    callback = new NanCallback(args[0].As<Function>());
+  } else {
+    NanThrowError("You must pass a function as the callback to clear().");
+    NanReturnUndefined();
+  }
+
+  ClearWorker * worker = new ClearWorker(args.This(), region, callback);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnValue(args.This());
 }
 
 std::string unableToPutValueError(Local<Value> v8Value) {

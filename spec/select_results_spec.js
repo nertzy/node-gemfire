@@ -9,20 +9,23 @@ describe("SelectResults", function() {
     this.addMatchers(errorMatchers);
     const region = cache.getRegion('exampleRegion');
 
-    region.clear();
-
-    async.parallel([
-      function(callback) { region.put("1", "one", callback); },
-      function(callback) { region.put("2", "two", callback); },
-      function(callback) { region.put("3", "three", callback); },
-    ],
-    function() {
-      cache.executeQuery("SELECT * FROM /exampleRegion", function(error, response){
-        expect(error).not.toBeError();
-        selectResults = response;
-        done();
-      });
-    });
+    async.series([
+      function(next) { region.clear(next); },
+      function(next) {
+        region.putAll({
+          "1": "one",
+          "2": "two",
+          "3": "three"
+        }, next);
+      },
+      function(next) {
+        cache.executeQuery("SELECT * FROM /exampleRegion", function(error, response){
+          expect(error).not.toBeError();
+          selectResults = response;
+          next();
+        });
+      }
+    ], done);
   });
 
   describe("toArray", function() {

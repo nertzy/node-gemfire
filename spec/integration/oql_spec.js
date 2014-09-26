@@ -5,9 +5,9 @@ const cache = require("../support/factories.js").getCache();
 const region = cache.getRegion("exampleRegion");
 
 describe("OQL integration", function() {
-  beforeEach(function() {
+  beforeEach(function(done) {
     this.addMatchers(errorMatchers);
-    region.clear();
+    region.clear(done);
   });
 
   it("maps null JS object values to the OQL null", function(done) {
