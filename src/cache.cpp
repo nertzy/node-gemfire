@@ -7,6 +7,7 @@
 #include "exceptions.hpp"
 #include "conversions.hpp"
 #include "region.hpp"
+#include "gemfire_worker.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -66,20 +67,15 @@ NAN_METHOD(Cache::New) {
   NanReturnValue(args.This());
 }
 
-class ExecuteQueryWorker : public NanAsyncWorker {
+class ExecuteQueryWorker : public GemfireWorker {
  public:
   ExecuteQueryWorker(QueryPtr queryPtr,
                      NanCallback * callback) :
-      NanAsyncWorker(callback),
+      GemfireWorker(callback),
       queryPtr(queryPtr) {}
 
-  void Execute() {
-    try {
-      selectResultsPtr = queryPtr->execute();
-    }
-    catch(const gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
+  void ExecuteGemfireWork() {
+    selectResultsPtr = queryPtr->execute();
   }
 
   void HandleOKCallback() {

@@ -6,6 +6,7 @@
 #include "conversions.hpp"
 #include "exceptions.hpp"
 #include "cache.hpp"
+#include "gemfire_worker.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -29,32 +30,22 @@ Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   return NanEscapeScope(regionObject);
 }
 
-class ClearWorker : public NanAsyncWorker {
+class GemfireEventedWorker : public GemfireWorker {
  public:
-  explicit ClearWorker(
-    const Local<Object> & regionObject,
-    Region * region,
+  GemfireEventedWorker(
+    const Local<Object> & v8Object,
     NanCallback * callback) :
-      NanAsyncWorker(callback),
-      region(region) {
-        SaveToPersistent("regionObject", regionObject);
+      GemfireWorker(callback) {
+        SaveToPersistent("v8Object", v8Object);
       }
 
-  void Execute() {
-    try {
-      region->regionPtr->clear();
-    } catch(gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
-  }
-
-  void HandleOKCallback() {
+  virtual void HandleOKCallback() {
     if (callback) {
       callback->Call(0, NULL);
     }
   }
 
-  void HandleErrorCallback() {
+  virtual void HandleErrorCallback() {
     NanScope();
 
     Local<Value> error(NanError(ErrorMessage()));
@@ -64,11 +55,24 @@ class ClearWorker : public NanAsyncWorker {
       v8::Local<v8::Value> argv[argc] = { error };
       callback->Call(argc, argv);
     } else {
-      emitError(GetFromPersistent("regionObject"), error);
+      emitError(GetFromPersistent("v8Object"), error);
     }
   }
+};
 
-  Persistent<Object> regionObject;
+class ClearWorker : public GemfireEventedWorker {
+ public:
+  ClearWorker(
+    const Local<Object> & regionObject,
+    Region * region,
+    NanCallback * callback) :
+      GemfireEventedWorker(regionObject, callback),
+      region(region) {}
+
+  void ExecuteGemfireWork() {
+    region->regionPtr->clear();
+  }
+
   Region * region;
 };
 
@@ -99,7 +103,7 @@ std::string unableToPutValueError(Local<Value> v8Value) {
   return errorMessageStream.str();
 }
 
-class PutWorker : public NanAsyncWorker {
+class PutWorker : public GemfireEventedWorker {
  public:
   PutWorker(
     const Local<Object> & regionObject,
@@ -107,14 +111,12 @@ class PutWorker : public NanAsyncWorker {
     const CacheableKeyPtr & keyPtr,
     const CacheablePtr & valuePtr,
     NanCallback * callback) :
-      NanAsyncWorker(callback),
+      GemfireEventedWorker(regionObject, callback),
       region(region),
       keyPtr(keyPtr),
-      valuePtr(valuePtr) {
-        SaveToPersistent("regionObject", regionObject);
-      }
+      valuePtr(valuePtr) { }
 
-  void Execute() {
+  void ExecuteGemfireWork() {
     if (keyPtr == NULLPTR) {
       SetErrorMessage("Invalid GemFire key.");
       return;
@@ -125,31 +127,7 @@ class PutWorker : public NanAsyncWorker {
       return;
     }
 
-    try {
-      region->regionPtr->put(keyPtr, valuePtr);
-    } catch (gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
-  }
-
-  void HandleOKCallback() {
-    if (callback) {
-      callback->Call(0, NULL);
-    }
-  }
-
-  void HandleErrorCallback() {
-    NanScope();
-
-    Local<Value> error(NanError(ErrorMessage()));
-
-    if (callback) {
-      static const int argc = 1;
-      v8::Local<v8::Value> argv[argc] = { error };
-      callback->Call(argc, argv);
-    } else {
-      emitError(GetFromPersistent("regionObject"), error);
-    }
+    region->regionPtr->put(keyPtr, valuePtr);
   }
 
   Region * region;
@@ -187,29 +165,25 @@ NAN_METHOD(Region::Put) {
   NanReturnValue(args.This());
 }
 
-class GetWorker : public NanAsyncWorker {
+class GetWorker : public GemfireWorker {
  public:
   GetWorker(NanCallback * callback,
            const RegionPtr & regionPtr,
            const CacheableKeyPtr & keyPtr) :
-      NanAsyncWorker(callback),
+      GemfireWorker(callback),
       regionPtr(regionPtr),
       keyPtr(keyPtr) {}
 
-  void Execute() {
-    try {
-      if (keyPtr == NULLPTR) {
-        SetErrorMessage("Invalid GemFire key.");
-        return;
-      }
+  void ExecuteGemfireWork() {
+    if (keyPtr == NULLPTR) {
+      SetErrorMessage("Invalid GemFire key.");
+      return;
+    }
 
-      valuePtr = regionPtr->get(keyPtr);
+    valuePtr = regionPtr->get(keyPtr);
 
-      if (valuePtr == NULLPTR) {
-        SetErrorMessage("Key not found in region.");
-      }
-    } catch (gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
+    if (valuePtr == NULLPTR) {
+      SetErrorMessage("Key not found in region.");
     }
   }
 
@@ -257,28 +231,24 @@ NAN_METHOD(Region::Get) {
   NanReturnValue(args.This());
 }
 
-class GetAllWorker : public NanAsyncWorker {
+class GetAllWorker : public GemfireWorker {
  public:
   GetAllWorker(
       const RegionPtr & regionPtr,
       const VectorOfCacheableKeyPtr & gemfireKeysPtr,
       NanCallback * callback) :
-    NanAsyncWorker(callback),
+    GemfireWorker(callback),
     regionPtr(regionPtr),
     gemfireKeysPtr(gemfireKeysPtr) {}
 
-  void Execute() {
+  void ExecuteGemfireWork() {
     resultsPtr = new HashMapOfCacheable();
 
     if (gemfireKeysPtr->size() == 0) {
       return;
     }
 
-    try {
-      regionPtr->getAll(*gemfireKeysPtr, resultsPtr, NULLPTR);
-    } catch (gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
+    regionPtr->getAll(*gemfireKeysPtr, resultsPtr, NULLPTR);
   }
 
   void HandleOKCallback() {
@@ -326,45 +296,19 @@ NAN_METHOD(Region::GetAll) {
   NanReturnValue(args.This());
 }
 
-class PutAllWorker : public NanAsyncWorker {
+class PutAllWorker : public GemfireEventedWorker {
  public:
   PutAllWorker(
       const Local<Object> & regionObject,
       const RegionPtr & regionPtr,
       const HashMapOfCacheablePtr & hashMapPtr,
       NanCallback * callback) :
-    NanAsyncWorker(callback),
+    GemfireEventedWorker(regionObject, callback),
     regionPtr(regionPtr),
-    hashMapPtr(hashMapPtr) {
-      SaveToPersistent("regionObject", regionObject);
-    }
+    hashMapPtr(hashMapPtr) { }
 
-  void Execute() {
-    try {
-      regionPtr->putAll(*hashMapPtr);
-    } catch (gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
-  }
-
-  void HandleOKCallback() {
-    if (callback) {
-      callback->Call(0, NULL);
-    }
-  }
-
-  void HandleErrorCallback() {
-    NanScope();
-
-    Local<Value> error(NanError(ErrorMessage()));
-
-    if (callback) {
-      static const int argc = 1;
-      v8::Local<v8::Value> argv[argc] = { error };
-      callback->Call(argc, argv);
-    } else {
-      emitError(GetFromPersistent("regionObject"), error);
-    }
+  void ExecuteGemfireWork() {
+    regionPtr->putAll(*hashMapPtr);
   }
 
  private:
@@ -400,17 +344,17 @@ NAN_METHOD(Region::PutAll) {
   NanReturnValue(args.This());
 }
 
-class RemoveWorker : public NanAsyncWorker {
+class RemoveWorker : public GemfireWorker {
  public:
   RemoveWorker(
       const RegionPtr & regionPtr,
       const CacheableKeyPtr & keyPtr,
       NanCallback * callback) :
-    NanAsyncWorker(callback),
+    GemfireWorker(callback),
     regionPtr(regionPtr),
     keyPtr(keyPtr) {}
 
-  void Execute() {
+  void ExecuteGemfireWork() {
     if (keyPtr == NULLPTR) {
       SetErrorMessage("Invalid GemFire key.");
       return;
@@ -420,8 +364,6 @@ class RemoveWorker : public NanAsyncWorker {
       regionPtr->destroy(keyPtr);
     } catch (const EntryNotFoundException & exception) {
       SetErrorMessage("Key not found in region.");
-    } catch (const gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
     }
   }
 
@@ -455,31 +397,26 @@ NAN_METHOD(Region::Remove) {
   NanReturnValue(args.This());
 }
 
-class ExecuteFunctionWorker : public NanAsyncWorker {
+class ExecuteFunctionWorker : public GemfireWorker {
  public:
   ExecuteFunctionWorker(
       const RegionPtr & regionPtr,
       const std::string & functionName,
       const CacheablePtr & functionArguments,
       NanCallback * callback) :
-    NanAsyncWorker(callback),
+    GemfireWorker(callback),
     regionPtr(regionPtr),
     functionName(functionName),
     functionArguments(functionArguments) {}
 
-  void Execute() {
+  void ExecuteGemfireWork() {
     ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
 
     if (functionArguments != NULLPTR) {
       executionPtr = executionPtr->withArgs(functionArguments);
     }
 
-    try {
-      resultsPtr = executionPtr->execute(functionName.c_str())->getResult();
-    }
-    catch (gemfire::Exception &exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
+    resultsPtr = executionPtr->execute(functionName.c_str())->getResult();
   }
 
   void HandleOKCallback() {
@@ -586,13 +523,13 @@ NAN_GETTER(Region::Name) {
 }
 
 template <typename T>
-class AbstractQueryWorker : public NanAsyncWorker {
+class AbstractQueryWorker : public GemfireWorker {
  public:
   AbstractQueryWorker(
       const RegionPtr & regionPtr,
       const std::string & queryPredicate,
       NanCallback * callback) :
-    NanAsyncWorker(callback),
+    GemfireWorker(callback),
     regionPtr(regionPtr),
     queryPredicate(queryPredicate) {}
 
@@ -615,12 +552,8 @@ class QueryWorker : public AbstractQueryWorker<SelectResultsPtr> {
       NanCallback * callback) :
     AbstractQueryWorker<SelectResultsPtr>(regionPtr, queryPredicate, callback) {}
 
-  void Execute() {
-    try {
-      resultPtr = regionPtr->query(queryPredicate.c_str());
-    } catch(const gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
+  void ExecuteGemfireWork() {
+    resultPtr = regionPtr->query(queryPredicate.c_str());
   }
 
   static std::string name() {
@@ -636,12 +569,8 @@ class SelectValueWorker : public AbstractQueryWorker<CacheablePtr> {
       NanCallback * callback) :
     AbstractQueryWorker<CacheablePtr>(regionPtr, queryPredicate, callback) {}
 
-  void Execute() {
-    try {
-      resultPtr = regionPtr->selectValue(queryPredicate.c_str());
-    } catch(const gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
+  void ExecuteGemfireWork() {
+    resultPtr = regionPtr->selectValue(queryPredicate.c_str());
   }
 
   static std::string name() {
@@ -657,12 +586,8 @@ class ExistsValueWorker : public AbstractQueryWorker<bool> {
       NanCallback * callback) :
     AbstractQueryWorker<bool>(regionPtr, queryPredicate, callback) {}
 
-  void Execute() {
-    try {
-      resultPtr = regionPtr->existsValue(queryPredicate.c_str());
-    } catch(const gemfire::Exception & exception) {
-      SetErrorMessage(gemfireExceptionMessage(exception).c_str());
-    }
+  void ExecuteGemfireWork() {
+    resultPtr = regionPtr->existsValue(queryPredicate.c_str());
   }
 
   static std::string name() {
