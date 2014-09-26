@@ -40,6 +40,7 @@ class Region : public node::ObjectWrap {
 
  private:
   Persistent<Object> cacheHandle;
+  static Persistent<Function> constructor;
 };
 
 }  // namespace node_gemfire

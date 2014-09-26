@@ -22,6 +22,7 @@ class SelectResults : public node::ObjectWrap {
 
  private:
   gemfire::SelectResultsPtr selectResultsPtr;
+  static Persistent<Function> constructor;
 };
 
 
