@@ -27,6 +27,7 @@
       "src/cache.cpp",
       "src/region.cpp",
       "src/select_results.cpp",
+      "src/gemfire_worker.cpp",
     ]
   },
   "targets": [
