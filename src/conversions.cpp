@@ -430,4 +430,18 @@ Local<Boolean> v8ValueFromGemfire(bool value) {
   return NanEscapeScope(NanNew(value));
 }
 
+Local<Array> v8ValueFromGemfire(const gemfire::VectorOfCacheableKeyPtr & keysVectorPtr) {
+  NanEscapableScope();
+
+  unsigned int length = keysVectorPtr->size();
+
+  Local<Array> array(NanNew<Array>(length));
+  for (unsigned int i = 0; i < length; i++) {
+    CacheablePtr key((*keysVectorPtr)[i]);
+    array->Set(i, v8ValueFromGemfire(key));
+  }
+
+  return NanEscapeScope(array);
+}
+
 }  // namespace node_gemfire

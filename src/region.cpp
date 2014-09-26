@@ -635,6 +635,52 @@ NAN_METHOD(Region::Query) {
   NanReturnValue(args.This());
 }
 
+class KeysWorker : public GemfireWorker {
+ public:
+  KeysWorker(
+      const RegionPtr & regionPtr,
+      NanCallback * callback) :
+    GemfireWorker(callback),
+    regionPtr(regionPtr) {}
+
+  void ExecuteGemfireWork() {
+    keysVectorPtr = new VectorOfCacheableKey();
+    regionPtr->serverKeys(*keysVectorPtr);
+  }
+
+  void HandleOKCallback() {
+    static const int argc = 2;
+    Local<Value> argv[2] = { NanUndefined(), v8ValueFromGemfire(keysVectorPtr) };
+    callback->Call(argc, argv);
+  }
+
+ private:
+  RegionPtr regionPtr;
+  VectorOfCacheableKeyPtr keysVectorPtr;
+};
+
+NAN_METHOD(Region::Keys) {
+  NanScope();
+
+  if (args.Length() == 0) {
+    NanThrowError("You must pass a callback to keys().");
+    NanReturnUndefined();
+  }
+
+  if (!args[0]->IsFunction()) {
+    NanThrowError("You must pass a function as the callback to keys().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  NanCallback * callback = new NanCallback(args[0].As<Function>());
+
+  KeysWorker * worker = new KeysWorker(region->regionPtr, callback);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnUndefined();
+}
+
 void Region::Init(Local<Object> exports) {
   NanScope();
 
@@ -663,6 +709,8 @@ void Region::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Region::Query<ExistsValueWorker>)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "executeFunction",
       NanNew<FunctionTemplate>(Region::ExecuteFunction)->GetFunction());
+  NanSetPrototypeTemplate(constructorTemplate, "keys",
+      NanNew<FunctionTemplate>(Region::Keys)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "inspect",
       NanNew<FunctionTemplate>(Region::Inspect)->GetFunction());
 
