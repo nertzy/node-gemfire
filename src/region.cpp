@@ -15,6 +15,17 @@ namespace node_gemfire {
 
 Persistent<Function> Region::constructor;
 
+inline bool isFunctionOrUndefined(const Local<Value> & value) {
+  return value->IsUndefined() || value->IsFunction();
+}
+
+inline NanCallback * getCallback(const Local<Value> & value) {
+  if (value->IsUndefined()) {
+    return NULL;
+  }
+  return new NanCallback(Local<Function>::Cast(value));
+}
+
 Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
   NanEscapableScope();
 
@@ -79,18 +90,13 @@ class ClearWorker : public GemfireEventedWorker {
 NAN_METHOD(Region::Clear) {
   NanScope();
 
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-
-  NanCallback * callback;
-  if (args[0]->IsUndefined()) {
-    callback = NULL;
-  } else if (args[0]->IsFunction()) {
-    callback = new NanCallback(args[0].As<Function>());
-  } else {
+  if (!isFunctionOrUndefined(args[0])) {
     NanThrowError("You must pass a function as the callback to clear().");
     NanReturnUndefined();
   }
 
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  NanCallback * callback = getCallback(args[0]);
   ClearWorker * worker = new ClearWorker(args.This(), region, callback);
   NanAsyncQueueWorker(worker);
 
@@ -143,22 +149,17 @@ NAN_METHOD(Region::Put) {
     NanReturnUndefined();
   }
 
+  if (!isFunctionOrUndefined(args[2])) {
+    NanThrowError("You must pass a function as the callback to put().");
+    NanReturnUndefined();
+  }
+
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   CachePtr cachePtr(region->regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
   CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
-
-  NanCallback * callback;
-  if (args[2]->IsUndefined()) {
-    callback = NULL;
-  } else if (args[2]->IsFunction()) {
-    callback = new NanCallback(args[2].As<Function>());
-  } else {
-    NanThrowError("You must pass a function as the callback to put().");
-    NanReturnUndefined();
-  }
-
+  NanCallback * callback = getCallback(args[2]);
   PutWorker * putWorker = new PutWorker(args.This(), region, keyPtr, valuePtr, callback);
   NanAsyncQueueWorker(putWorker);
 
@@ -335,12 +336,7 @@ NAN_METHOD(Region::PutAll) {
     NanReturnUndefined();
   }
 
-  NanCallback * callback;
-  if (args[1]->IsUndefined()) {
-    callback = NULL;
-  } else if (args[1]->IsFunction()) {
-    callback = new NanCallback(args[1].As<Function>());
-  } else {
+  if (!isFunctionOrUndefined(args[1])) {
     NanThrowError("You must pass a function as the callback to putAll().");
     NanReturnUndefined();
   }
@@ -349,9 +345,10 @@ NAN_METHOD(Region::PutAll) {
   RegionPtr regionPtr(region->regionPtr);
 
   HashMapOfCacheablePtr hashMapPtr(gemfireHashMapFromV8(args[0]->ToObject(), regionPtr->getCache()));
-
+  NanCallback * callback = getCallback(args[1]);
   PutAllWorker * worker = new PutAllWorker(args.This(), regionPtr, hashMapPtr, callback);
   NanAsyncQueueWorker(worker);
+
   NanReturnValue(args.This());
 }
 
@@ -391,12 +388,7 @@ NAN_METHOD(Region::Remove) {
     NanReturnUndefined();
   }
 
-  NanCallback * callback;
-  if (args[1]->IsUndefined()) {
-    callback = NULL;
-  } else if (args[1]->IsFunction()) {
-    callback = new NanCallback(args[1].As<Function>());
-  } else {
+  if (!isFunctionOrUndefined(args[1])) {
     NanThrowError("You must pass a function as the callback to remove().");
     NanReturnUndefined();
   }
@@ -406,7 +398,7 @@ NAN_METHOD(Region::Remove) {
   CachePtr cachePtr(regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
-
+  NanCallback * callback = getCallback(args[1]);
   RemoveWorker * worker = new RemoveWorker(args.This(), regionPtr, keyPtr, callback);
   NanAsyncQueueWorker(worker);
 
