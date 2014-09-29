@@ -820,15 +820,7 @@ describe("gemfire.Region", function() {
         region.remove();
       }
 
-      expect(callNoArgs).toThrow("You must pass a key and a callback to remove().");
-    });
-
-    it("throws an error if no callback is given", function() {
-      function callNoCallback() {
-        region.remove('foo');
-      }
-
-      expect(callNoCallback).toThrow("You must pass a key and a callback to remove().");
+      expect(callNoArgs).toThrow("You must pass a key to remove().");
     });
 
     it("throws an error if a non-function is passed as the callback", function() {
@@ -895,6 +887,43 @@ describe("gemfire.Region", function() {
       expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
     });
 
+    it("emits an event when an error occurs and there is no callback", function(done) {
+      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+        expect(error).toBeError();
+        done();
+      });
+
+      region.on("error", errorHandler);
+      region.remove("foo");
+
+      _.delay(function(){
+        expect(errorHandler).toHaveBeenCalled();
+        done();
+      }, 1000);
+    });
+
+    it("does not emit an event when an error occurs and there is a callback", function(done) {
+      const errorHandler = jasmine.createSpy("errorHandler");
+
+      region.on("error", errorHandler);
+
+      region.remove("foo", function(){
+        expect(errorHandler).not.toHaveBeenCalled();
+        done();
+      });
+    });
+
+    it("does not emit an event when no error occurs and there is no callback", function(done) {
+      region.put("foo", "bar", function(error) {
+        region.remove("foo");
+
+        until(
+          function(test) { region.get("foo", test); },
+          function(error, result) { return error && error.message === "Key not found in region."; },
+          done
+        );
+      });
+    });
   });
 
   describe(".query", function() {

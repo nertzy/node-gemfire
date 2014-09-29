@@ -355,13 +355,14 @@ NAN_METHOD(Region::PutAll) {
   NanReturnValue(args.This());
 }
 
-class RemoveWorker : public GemfireWorker {
+class RemoveWorker : public GemfireEventedWorker {
  public:
   RemoveWorker(
+      const Local<Object> & regionObject,
       const RegionPtr & regionPtr,
       const CacheableKeyPtr & keyPtr,
       NanCallback * callback) :
-    GemfireWorker(callback),
+    GemfireEventedWorker(regionObject, callback),
     regionPtr(regionPtr),
     keyPtr(keyPtr) {}
 
@@ -385,12 +386,17 @@ class RemoveWorker : public GemfireWorker {
 NAN_METHOD(Region::Remove) {
   NanScope();
 
-  if (args.Length() < 2) {
-    NanThrowError("You must pass a key and a callback to remove().");
+  if (args.Length() < 1) {
+    NanThrowError("You must pass a key to remove().");
     NanReturnUndefined();
   }
 
-  if (!args[1]->IsFunction()) {
+  NanCallback * callback;
+  if (args[1]->IsUndefined()) {
+    callback = NULL;
+  } else if (args[1]->IsFunction()) {
+    callback = new NanCallback(args[1].As<Function>());
+  } else {
     NanThrowError("You must pass a function as the callback to remove().");
     NanReturnUndefined();
   }
@@ -400,9 +406,8 @@ NAN_METHOD(Region::Remove) {
   CachePtr cachePtr(regionPtr->getCache());
 
   CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
-  NanCallback * callback = new NanCallback(args[1].As<Function>());
 
-  RemoveWorker * worker = new RemoveWorker(regionPtr, keyPtr, callback);
+  RemoveWorker * worker = new RemoveWorker(args.This(), regionPtr, keyPtr, callback);
   NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
