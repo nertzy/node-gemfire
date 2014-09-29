@@ -185,9 +185,7 @@ describe("gemfire.Region", function() {
     });
 
     it("does not emit an event when an error occurs and there is a callback", function(done) {
-      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
-        throw "Spy errorHandler was unexpectedly called.";
-      });
+      const errorHandler = jasmine.createSpy("errorHandler");
 
       region.on("error", errorHandler);
 
@@ -1181,10 +1179,7 @@ describe("gemfire.Region", function() {
     });
 
     it("does not emit an event when an error occurs and there is a callback", function(done) {
-      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
-        expect(errorHandler).not.toHaveBeenCalled();
-        done();
-      });
+      const errorHandler = jasmine.createSpy("errorHandler");
 
       region.on("error", errorHandler);
 
