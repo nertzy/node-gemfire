@@ -801,19 +801,22 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("assumes the second argument is an argument if it is neither an object nor a function", function(done) {
-      const results = region.executeFunction(
-        "io.pivotal.node_gemfire.Passthrough",
-        "this string is my argument",
-        function(error, results){
-          expect(error).not.toBeError();
-          expect(results).toEqual(["this string is my argument"]);
-          done();
-        });
+    it("throws an error when the options are not an Object or an Array", function() {
+      function passNonObjectAsOptions() {
+        region.executeFunction(
+          "io.pivotal.node_gemfire.Passthrough",
+          "this string is not an options object",
+          function(){}
+        );
+      }
+
+      expect(passNonObjectAsOptions).toThrow(
+        "You must pass either an Array of arguments or an options Object to executeFunction()."
+      );
     });
 
     it("supports objects as input and output", function(done) {
-      const results = region.executeFunction(
+      region.executeFunction(
         "io.pivotal.node_gemfire.Passthrough",
         { arguments: { foo: 'bar' } },
         function(error, results){
@@ -821,6 +824,56 @@ describe("gemfire.Region", function() {
           expect(results).toEqual([{ foo: 'bar' }]);
           done();
         });
+    });
+
+    it("supports filters", function(done) {
+      region.executeFunction(
+        "io.pivotal.node_gemfire.ReturnFilters",
+        {
+          arguments: { foo: 'bar' },
+          filters: ["key1", 2, 3.1]
+        },
+        function(error, results){
+          expect(error).not.toBeError();
+
+          expect(results).toBeTruthy();
+          if(results) {
+            expect(results.length).toEqual(3);
+            expect(results).toContain("key1");
+            expect(results).toContain(2);
+            expect(results).toContain(3.1);
+          }
+
+          done();
+        }
+      );
+    });
+
+    it("does not pass filters if none are provided", function(done) {
+      region.executeFunction(
+        "io.pivotal.node_gemfire.ReturnFilters",
+        {
+          arguments: { foo: 'bar' }
+        },
+        function(error, results){
+          expect(error).toBeError(/Expected filter; no filter received/);
+          done();
+        }
+      );
+    });
+
+    it("throws an error if the filters aren't an array", function() {
+      function callWithBadFilters() {
+        region.executeFunction(
+          "io.pivotal.node_gemfire.ReturnFilters",
+          { filters: "this string is not an array" },
+          function(){}
+        );
+      }
+
+      expect(callWithBadFilters).toThrow(
+        "You must pass an Array of keys as the filters for executeFunction()."
+      );
     });
   });
 

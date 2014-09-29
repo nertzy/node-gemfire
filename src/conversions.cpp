@@ -388,6 +388,19 @@ gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Obje
   return hashMapPtr;
 }
 
+CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array, const CachePtr & cachePtr) {
+  NanScope();
+
+  unsigned int length = v8Array->Length();
+  CacheableVectorPtr vectorPtr = CacheableVector::create();
+
+  for (unsigned int i = 0; i < length; i++) {
+    vectorPtr->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
+  }
+
+  return vectorPtr;
+}
+
 Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr) {
   NanEscapableScope();
 
