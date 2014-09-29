@@ -710,8 +710,16 @@ describe("gemfire.Region", function() {
       });
     });
 
-    it("runs a function with arguments on the GemFire cluster and passes its result to the callback", function(done) {
+    it("runs a function with arguments as an Array on the GemFire cluster and passes its result to the callback", function(done) {
       region.executeFunction("io.pivotal.node_gemfire.Sum", [1, 2, 3], function(error, results) {
+        expect(error).not.toBeError();
+        expect(results).toEqual([6]);
+        done();
+      });
+    });
+
+    it("runs a function with arguments as part of an options Object on the GemFire cluster and passes its result to the callback", function(done) {
+      region.executeFunction("io.pivotal.node_gemfire.Sum", {arguments: [1, 2, 3]}, function(error, results) {
         expect(error).not.toBeError();
         expect(results).toEqual([6]);
         done();
@@ -793,12 +801,26 @@ describe("gemfire.Region", function() {
       });
     });
 
+    it("assumes the second argument is an argument if it is neither an object nor a function", function(done) {
+      const results = region.executeFunction(
+        "io.pivotal.node_gemfire.Passthrough",
+        "this string is my argument",
+        function(error, results){
+          expect(error).not.toBeError();
+          expect(results).toEqual(["this string is my argument"]);
+          done();
+        });
+    });
+
     it("supports objects as input and output", function(done) {
-      const results = region.executeFunction("io.pivotal.node_gemfire.Passthrough", { foo: 'bar' }, function(error, results){
-        expect(error).not.toBeError();
-        expect(results).toEqual([{ foo: 'bar' }]);
-        done();
-      });
+      const results = region.executeFunction(
+        "io.pivotal.node_gemfire.Passthrough",
+        { arguments: { foo: 'bar' } },
+        function(error, results){
+          expect(error).not.toBeError();
+          expect(results).toEqual([{ foo: 'bar' }]);
+          done();
+        });
     });
   });
 
