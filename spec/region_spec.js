@@ -751,7 +751,7 @@ describe("gemfire.Region", function() {
       function callWithNonFunction() {
         region.executeFunction(testFunctionName, ["arguments"], "not a function");
       }
-      expect(callWithNonFunction).toThrow("You must pass a function as the callback to executeFunction().");
+      expect(callWithNonFunction).toThrow("You must pass a callback to executeFunction().");
     });
 
     it("throws an error when no function name is passed in, but a callback is", function() {
