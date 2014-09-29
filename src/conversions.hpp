@@ -27,10 +27,23 @@ Local<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
 Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
 Local<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
 Local<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
-Local<Array> v8ValueFromGemfire(const gemfire::CacheableVectorPtr & vectorPtr);
 Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
 Local<Boolean> v8ValueFromGemfire(bool value);
-Local<Array> v8ValueFromGemfire(const gemfire::VectorOfCacheableKeyPtr & keysVectorPtr);
+
+template<typename T>
+Local<Array> v8ValueFromGemfire(const T & vectorPtr) {
+  NanEscapableScope();
+
+  unsigned int length = vectorPtr->size();
+
+  Local<Array> array(NanNew<Array>(length));
+  for (unsigned int i = 0; i < length; i++) {
+    gemfire::CacheablePtr cacheablePtr((*vectorPtr)[i]);
+    array->Set(i, v8ValueFromGemfire(cacheablePtr));
+  }
+
+  return NanEscapeScope(array);
+}
 
 std::string getClassName(const Local<Object> & v8Object);
 
