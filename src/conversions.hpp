@@ -22,6 +22,8 @@ gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
 
 gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
+gemfire::CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array,
+                                           const gemfire::CachePtr & cachePtr);
 
 Local<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
 Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);

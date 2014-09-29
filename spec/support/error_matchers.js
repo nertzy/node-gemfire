@@ -6,7 +6,15 @@ function isError(error) {
 }
 
 function isErrorWithMessage(error, expectedMessage) {
-  return isError(error) && error.message === expectedMessage;
+  if (!isError(error)) {
+    return false;
+  }
+
+  if (expectedMessage.constructor === RegExp) {
+    return expectedMessage.test(error.message);
+  } else {
+    return error.message === expectedMessage;
+  }
 }
 
 exports.toBeError = function toBeError(expectedMessage) {
@@ -23,7 +31,11 @@ exports.toBeError = function toBeError(expectedMessage) {
     }
 
     if(expectedMessage) {
-      return "Expected " + inspect(actual) + " to be an error with message " + inspect(expectedMessage);
+      if(expectedMessage.constructor === RegExp) {
+        return "Expected " + inspect(actual) + " to be an error with message matching " + inspect(expectedMessage);
+      } else {
+        return "Expected " + inspect(actual) + " to be an error with message " + inspect(expectedMessage);
+      }
     } else {
       return "Expected " + inspect(actual) + " to be an error";
     }
