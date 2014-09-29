@@ -494,7 +494,16 @@ NAN_METHOD(Region::ExecuteFunction) {
       NanReturnUndefined();
     }
 
-    functionArguments = gemfireValueFromV8(args[1], regionPtr->getCache());
+    Local<Value> v8Arguments;
+
+    if (args[1]->IsArray() || !args[1]->IsObject()) {
+      v8Arguments = args[1];
+    } else {
+      v8Arguments = args[1]->ToObject()->Get(NanNew("arguments"));
+    }
+
+    functionArguments = gemfireValueFromV8(v8Arguments, regionPtr->getCache());
+
     callback = new NanCallback(args[2].As<Function>());
   }
 
