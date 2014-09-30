@@ -261,6 +261,22 @@ void ConsoleWarn(const char * message) {
   callback.Call(argc, argv);
 }
 
+Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
+  NanEscapableScope();
+
+  static const int64_t maxSafeInteger = pow(2, 53) - 1;
+  static const int64_t minSafeInteger = -1 * maxSafeInteger;
+
+  int64_t value = ((CacheableInt64Ptr) valuePtr)->value();
+  if (value > maxSafeInteger) {
+    ConsoleWarn("Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)");
+  } else if (value < minSafeInteger) {
+    ConsoleWarn("Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)");
+  }
+
+  return NanEscapeScope(NanNew<Number>(value));
+}
+
 Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   NanEscapableScope();
 
@@ -287,20 +303,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     case GemfireTypeIds::CacheableInt32:
       return NanEscapeScope(NanNew(((CacheableInt32Ptr) valuePtr)->value()));
     case GemfireTypeIds::CacheableInt64:
-      {
-        static const int64_t maxSafeInteger = pow(2, 53) - 1;
-        static const int64_t minSafeInteger = -1 * maxSafeInteger;
-
-        int64_t value = ((CacheableInt64Ptr) valuePtr)->value();
-        if (value > maxSafeInteger) {
-          ConsoleWarn("Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)");
-        } else if (value < minSafeInteger) {
-          ConsoleWarn(
-              "Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)");
-        }
-
-        return NanEscapeScope(NanNew<Number>(value));
-      }
+      return NanEscapeScope(v8ValueFromGemfire((CacheableInt64Ptr) valuePtr));
     case GemfireTypeIds::CacheableDate:
       return NanEscapeScope(NanNew<Date>(static_cast<double>(((CacheableDatePtr) valuePtr)->milliseconds())));
     case GemfireTypeIds::CacheableUndefined:
