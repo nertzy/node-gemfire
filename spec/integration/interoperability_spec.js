@@ -48,6 +48,19 @@ describe("Interoperability", function() {
     });
   });
 
+  it("interprets Java Set as JavaScript Array", function(done) {
+    region.executeFunction("io.pivotal.node_gemfire.ReturnSet", function(error, response) {
+      expect(error).not.toBeError();
+      expect(response).toBeTruthy();
+
+      const array = response[0];
+      expect(array.length).toEqual(2);
+      expect(array).toContain("foo");
+      expect(array).toContain("bar");
+      done();
+    });
+  });
+
   it("provides a warning when a Java long greater than Number.MAX_SAFE_INTEGER is received", function(done) {
     spyOn(console, "warn");
     region.executeFunction("io.pivotal.node_gemfire.ReturnPositiveAmbiguousLong", function(error, response) {

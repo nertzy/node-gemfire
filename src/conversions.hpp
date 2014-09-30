@@ -34,18 +34,19 @@ Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapP
 Local<Boolean> v8ValueFromGemfire(bool value);
 
 template<typename T>
-Local<Array> v8ValueFromGemfire(const T & vectorPtr) {
+Local<Array> v8ValueFromGemfire(const gemfire::SharedPtr<T> & iterablePtr) {
   NanEscapableScope();
 
-  unsigned int length = vectorPtr->size();
+  unsigned int length = iterablePtr->size();
+  Local<Array> v8Array(NanNew<Array>(length));
 
-  Local<Array> array(NanNew<Array>(length));
-  for (unsigned int i = 0; i < length; i++) {
-    gemfire::CacheablePtr cacheablePtr((*vectorPtr)[i]);
-    array->Set(i, v8ValueFromGemfire(cacheablePtr));
+  unsigned int i = 0;
+  for (typename T::Iterator iterator(iterablePtr->begin()); iterator != iterablePtr->end(); ++iterator) {
+    v8Array->Set(i, v8ValueFromGemfire(*iterator));
+    i++;
   }
 
-  return NanEscapeScope(array);
+  return NanEscapeScope(v8Array);
 }
 
 std::string getClassName(const Local<Object> & v8Object);
