@@ -308,17 +308,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     case GemfireTypeIds::Struct:
       return NanEscapeScope(v8ValueFromGemfire((StructPtr) valuePtr));
     case GemfireTypeIds::CacheableObjectArray:
-      {
-        CacheableObjectArrayPtr gemfireArray(valuePtr);
-        unsigned int length = gemfireArray->length();
-
-        Local<Array> v8Array(NanNew<Array>(length));
-        for (unsigned int i = 0; i < length; i++) {
-          v8Array->Set(i, v8ValueFromGemfire((*gemfireArray)[i]));
-        }
-
-        return NanEscapeScope(v8Array);
-      }
+      return NanEscapeScope(v8ValueFromGemfire((CacheableObjectArrayPtr) valuePtr));
     case GemfireTypeIds::CacheableVector:
       return NanEscapeScope(v8ValueFromGemfire((CacheableVectorPtr) valuePtr));
     case GemfireTypeIds::CacheableHashSet:
