@@ -126,7 +126,7 @@ PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object, const CachePtr
   }
 }
 
-gemfire::CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
+CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
   CacheableKeyPtr keyPtr;
   try {
     keyPtr = gemfireValueFromV8(v8Value, cachePtr);
@@ -138,8 +138,8 @@ gemfire::CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const Ca
   return keyPtr;
 }
 
-gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
-                                          const gemfire::CachePtr & cachePtr) {
+VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
+                                          const CachePtr & cachePtr) {
   VectorOfCacheableKeyPtr vectorPtr(new VectorOfCacheableKey());
 
   for (unsigned int i = 0; i < v8Value->Length(); i++) {
@@ -175,7 +175,7 @@ Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
       try {
         pdxInstance->getField(key, value);
       }
-      catch(const gemfire::IllegalStateException & exception) {
+      catch(const IllegalStateException & exception) {
         // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
         // triggers an exception. We don't know a better way to detect that we are about to read in
         // an array, so for now we catch the exception and assume we are receiving an array.
@@ -349,7 +349,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   return NanEscapeScope(NanUndefined());
 }
 
-Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
+Local<Object> v8ValueFromGemfire(const StructPtr & structPtr) {
   NanEscapableScope();
 
   Local<Object> v8Object(NanNew<Object>());
@@ -363,8 +363,8 @@ Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr) {
   return NanEscapeScope(v8Object);
 }
 
-gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
-                                           const gemfire::CachePtr & cachePtr) {
+HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
+                                           const CachePtr & cachePtr) {
   NanScope();
 
   HashMapOfCacheablePtr hashMapPtr(new HashMapOfCacheable());
@@ -401,7 +401,7 @@ CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array, const Cache
   return vectorPtr;
 }
 
-Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr) {
+Local<Object> v8ValueFromGemfire(const HashMapOfCacheablePtr & hashMapPtr) {
   NanEscapableScope();
 
   Local<Object> v8Object(NanNew<Object>());
