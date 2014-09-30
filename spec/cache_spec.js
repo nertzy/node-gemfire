@@ -324,7 +324,7 @@ describe("gemfire.Cache", function() {
       var exception;
 
       cache.executeQuery("INVALID;", function(error, results) {
-        expect(error.message).toMatch(/gemfire::QueryException/);
+        expect(error).toBeError(/gemfire::QueryException/);
         expect(results).toBeUndefined();
         done();
       });

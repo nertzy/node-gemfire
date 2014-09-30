@@ -782,8 +782,7 @@ describe("gemfire.Region", function() {
 
     it("passes an error into the callback when the function throws an exception", function(done) {
       region.executeFunction("io.pivotal.node_gemfire.TestFunctionException", function(error, results) {
-        expect(error).toBeError();
-        expect(error.message).toMatch(
+        expect(error).toBeError(
           /com.gemstone.gemfire.cache.execute.FunctionException: Test exception message thrown by server./
         );
         expect(results).toBeUndefined();
@@ -793,8 +792,7 @@ describe("gemfire.Region", function() {
 
     it("passes the results and an error when the function sends an exception with the results", function(done) {
       region.executeFunction("io.pivotal.node_gemfire.TestFunctionExceptionResult", function(error, results) {
-        expect(error).toBeError();
-        expect(error.message).toMatch("java.lang.Exception: Test exception message sent by server.");
+        expect(error).toBeError(/java.lang.Exception: Test exception message sent by server./);
         expect(results.length).toEqual(1);
         expect(results[0]).toEqual("First result");
         done();
@@ -1059,8 +1057,7 @@ describe("gemfire.Region", function() {
 
     it("passes along errors from an invalid query", function(done) {
       region.query("Invalid query", function(error, response) {
-        expect(error).toBeError();
-        expect(error.message).toMatch(/gemfire::QueryException/);
+        expect(error).toBeError(/gemfire::QueryException/);
         done();
       });
     });
@@ -1131,8 +1128,7 @@ describe("gemfire.Region", function() {
 
     it("passes along errors from an invalid query", function(done) {
       region.selectValue("Invalid query", function(error, response) {
-        expect(error).toBeError();
-        expect(error.message).toMatch(/gemfire::QueryException/);
+        expect(error).toBeError(/gemfire::QueryException/);
         done();
       });
     });
@@ -1191,8 +1187,7 @@ describe("gemfire.Region", function() {
 
     it("passes along errors from an invalid query", function(done) {
       region.existsValue("Invalid query", function(error, response) {
-        expect(error).toBeError();
-        expect(error.message).toMatch(/gemfire::QueryException/);
+        expect(error).toBeError(/gemfire::QueryException/);
         done();
       });
     });
