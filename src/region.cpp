@@ -477,11 +477,30 @@ NAN_METHOD(Region::ExecuteFunction) {
     NanReturnUndefined();
   }
 
-  NanCallback * callback;
+  Local<Function> v8CallbackArgument;
+  Local<Value> v8FunctionArguments;
+  Local<Value> v8FunctionFilter;
+
   if (args[1]->IsFunction()) {
-    callback = new NanCallback(args[1].As<Function>());
+    v8CallbackArgument = args[1].As<Function>();
   } else if (args[2]->IsFunction()) {
-    callback = new NanCallback(args[2].As<Function>());
+    v8CallbackArgument = args[2].As<Function>();
+
+    if (args[1]->IsArray()) {
+      v8FunctionArguments = args[1];
+    } else if (args[1]->IsObject()) {
+      Local<Object> optionsObject(args[1]->ToObject());
+      v8FunctionArguments = optionsObject->Get(NanNew("arguments"));
+      v8FunctionFilter = optionsObject->Get(NanNew("filters"));
+
+      if (!v8FunctionFilter->IsArray() && !v8FunctionFilter->IsUndefined()) {
+        NanThrowError("You must pass an Array of keys as the filters for executeFunction().");
+        NanReturnUndefined();
+      }
+    } else {
+      NanThrowError("You must pass either an Array of arguments or an options Object to executeFunction().");
+      NanReturnUndefined();
+    }
   } else {
     NanThrowError("You must pass a callback to executeFunction().");
     NanReturnUndefined();
@@ -491,29 +510,23 @@ NAN_METHOD(Region::ExecuteFunction) {
   RegionPtr regionPtr(region->regionPtr);
   CachePtr cachePtr(regionPtr->getCache());
 
-  CacheablePtr functionArguments(NULLPTR);
-  CacheableVectorPtr functionFilter(NULLPTR);
+  std::string functionName(*NanUtf8String(args[0]));
 
-  if (args[1]->IsArray()) {
-    functionArguments = gemfireValueFromV8(args[1], cachePtr);
-  } else if (args[1]->IsObject()) {
-    Local<Object> optionsObject(args[1]->ToObject());
-
-    functionArguments = gemfireValueFromV8(optionsObject->Get(NanNew("arguments")), cachePtr);
-
-    Local<Value> v8Filter(optionsObject->Get(NanNew("filters")));
-    if (v8Filter->IsArray()) {
-      functionFilter = gemfireVectorFromV8(v8Filter.As<Array>(), cachePtr);
-    } else if (!v8Filter->IsUndefined()) {
-      NanThrowError("You must pass an Array of keys as the filters for executeFunction().");
-      NanReturnUndefined();
-    }
+  CacheablePtr functionArguments;
+  if (v8FunctionArguments.IsEmpty() || v8FunctionArguments->IsUndefined()) {
+    functionArguments = NULLPTR;
   } else {
-    NanThrowError("You must pass either an Array of arguments or an options Object to executeFunction().");
-    NanReturnUndefined();
+    functionArguments = gemfireValueFromV8(v8FunctionArguments, cachePtr);
   }
 
-  std::string functionName(*NanUtf8String(args[0]));
+  CacheableVectorPtr functionFilter;
+  if (v8FunctionFilter.IsEmpty() || v8FunctionFilter->IsUndefined()) {
+    functionFilter = NULLPTR;
+  } else {
+    functionFilter = gemfireVectorFromV8(v8FunctionFilter.As<Array>(), cachePtr);
+  }
+
+  NanCallback * callback = new NanCallback(v8CallbackArgument);
 
   ExecuteFunctionWorker * worker =
     new ExecuteFunctionWorker(regionPtr, functionName, functionArguments, functionFilter, callback);

@@ -826,6 +826,17 @@ describe("gemfire.Region", function() {
         });
     });
 
+    it("treats undefined arguments as missing", function(done) {
+      region.executeFunction(
+        "io.pivotal.node_gemfire.Passthrough",
+        {},
+        function(error, results){
+          expect(error).not.toBeError();
+          expect(results).toEqual([null]);
+          done();
+        });
+    });
+
     it("supports filters", function(done) {
       region.executeFunction(
         "io.pivotal.node_gemfire.ReturnFilters",
