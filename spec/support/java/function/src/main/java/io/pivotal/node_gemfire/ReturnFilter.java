@@ -7,7 +7,7 @@ import com.gemstone.gemfire.cache.execute.RegionFunctionContext;
 import java.util.Iterator;
 import java.util.Set;
 
-public class ReturnFilters extends FunctionAdapter {
+public class ReturnFilter extends FunctionAdapter {
 
     public void execute(FunctionContext fc) {
         RegionFunctionContext context = (RegionFunctionContext) fc;

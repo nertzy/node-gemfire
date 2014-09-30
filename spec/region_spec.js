@@ -837,12 +837,12 @@ describe("gemfire.Region", function() {
         });
     });
 
-    it("supports filters", function(done) {
+    it("supports an Array of keys as a filter", function(done) {
       region.executeFunction(
-        "io.pivotal.node_gemfire.ReturnFilters",
+        "io.pivotal.node_gemfire.ReturnFilter",
         {
           arguments: { foo: 'bar' },
-          filters: ["key1", 2, 3.1]
+          filter: ["key1", 2, 3.1]
         },
         function(error, results){
           expect(error).not.toBeError();
@@ -860,9 +860,9 @@ describe("gemfire.Region", function() {
       );
     });
 
-    it("does not pass filters if none are provided", function(done) {
+    it("does not pass a filter if none is provided", function(done) {
       region.executeFunction(
-        "io.pivotal.node_gemfire.ReturnFilters",
+        "io.pivotal.node_gemfire.ReturnFilter",
         {
           arguments: { foo: 'bar' }
         },
@@ -874,16 +874,16 @@ describe("gemfire.Region", function() {
     });
 
     it("throws an error if the filters aren't an array", function() {
-      function callWithBadFilters() {
+      function callWithBadFilter() {
         region.executeFunction(
-          "io.pivotal.node_gemfire.ReturnFilters",
-          { filters: "this string is not an array" },
+          "io.pivotal.node_gemfire.ReturnFilter",
+          { filter: "this string is not an array" },
           function(){}
         );
       }
 
-      expect(callWithBadFilters).toThrow(
-        "You must pass an Array of keys as the filters for executeFunction()."
+      expect(callWithBadFilter).toThrow(
+        "You must pass an Array of keys as the filter for executeFunction()."
       );
     });
   });
