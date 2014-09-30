@@ -349,6 +349,10 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   return NanEscapeScope(NanUndefined());
 }
 
+Local<Value> v8ValueFromGemfire(const CacheableKeyPtr & keyPtr) {
+  return v8ValueFromGemfire(static_cast<CacheablePtr>(keyPtr));
+}
+
 Local<Object> v8ValueFromGemfire(const StructPtr & structPtr) {
   NanEscapableScope();
 
