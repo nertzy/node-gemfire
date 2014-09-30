@@ -327,6 +327,9 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   if (typeId == GemfireTypeIds::CacheableVector) {
     return NanEscapeScope(v8ValueFromGemfire((CacheableVectorPtr) valuePtr));
   }
+  if (typeId == GemfireTypeIds::CacheableHashSet) {
+    return NanEscapeScope(v8ValueFromGemfire((CacheableHashSetPtr) valuePtr));
+  }
   if (typeId == 0) {
     try {
       UserFunctionExecutionExceptionPtr functionExceptionPtr =
