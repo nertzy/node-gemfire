@@ -26,6 +26,7 @@ gemfire::CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array,
                                            const gemfire::CachePtr & cachePtr);
 
 Local<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
+Local<Value> v8ValueFromGemfire(const gemfire::CacheableKeyPtr & keyPtr);
 Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
 Local<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
 Local<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
