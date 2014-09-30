@@ -491,10 +491,10 @@ NAN_METHOD(Region::ExecuteFunction) {
     } else if (args[1]->IsObject()) {
       Local<Object> optionsObject(args[1]->ToObject());
       v8FunctionArguments = optionsObject->Get(NanNew("arguments"));
-      v8FunctionFilter = optionsObject->Get(NanNew("filters"));
+      v8FunctionFilter = optionsObject->Get(NanNew("filter"));
 
       if (!v8FunctionFilter->IsArray() && !v8FunctionFilter->IsUndefined()) {
-        NanThrowError("You must pass an Array of keys as the filters for executeFunction().");
+        NanThrowError("You must pass an Array of keys as the filter for executeFunction().");
         NanReturnUndefined();
       }
     } else {
