@@ -1,4 +1,5 @@
 #ifndef __SELECT_RESULTS_HPP__
+#define __SELECT_RESULTS_HPP__
 
 #include <v8.h>
 #include <nan.h>
@@ -28,5 +29,4 @@ class SelectResults : public node::ObjectWrap {
 
 }  // namespace node_gemfire
 
-#define __SELECT_RESULTS_HPP__
 #endif

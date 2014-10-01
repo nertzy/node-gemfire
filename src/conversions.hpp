@@ -1,4 +1,5 @@
 #ifndef __CONVERSIONS_HPP__
+#define __CONVERSIONS_HPP__
 
 #include <v8.h>
 #include <nan.h>
@@ -54,5 +55,4 @@ std::string getClassName(const Local<Object> & v8Object);
 
 }  // namespace node_gemfire
 
-#define __CONVERSIONS_HPP__
 #endif

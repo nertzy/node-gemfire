@@ -1,4 +1,5 @@
 #ifndef __CACHE_HPP__
+#define __CACHE_HPP__
 
 #include <v8.h>
 #include <nan.h>
@@ -33,5 +34,4 @@ class Cache : public node::ObjectWrap {
 
 }  // namespace node_gemfire
 
-#define __CACHE_HPP__
 #endif

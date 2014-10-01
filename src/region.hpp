@@ -1,4 +1,5 @@
 #ifndef __REGION_HPP__
+#define __REGION_HPP__
 
 #include <v8.h>
 #include <nan.h>
@@ -46,5 +47,4 @@ class Region : public node::ObjectWrap {
 
 }  // namespace node_gemfire
 
-#define __REGION_HPP__
 #endif
