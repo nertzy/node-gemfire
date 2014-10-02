@@ -1,12 +1,16 @@
 #include "region.hpp"
 #include <gfcpp/Region.hpp>
 #include <gfcpp/FunctionService.hpp>
+#include <uv.h>
 #include <sstream>
 #include <string>
+#include "dependencies.hpp"
 #include "conversions.hpp"
 #include "exceptions.hpp"
 #include "cache.hpp"
 #include "gemfire_worker.hpp"
+#include "streaming_result_collector.hpp"
+#include "events.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -405,21 +409,57 @@ NAN_METHOD(Region::Remove) {
   NanReturnValue(args.This());
 }
 
-class ExecuteFunctionWorker : public GemfireWorker {
+class ExecuteFunctionWorker {
  public:
   ExecuteFunctionWorker(
       const RegionPtr & regionPtr,
       const std::string & functionName,
       const CacheablePtr & functionArguments,
       const CacheableVectorPtr & functionFilter,
-      NanCallback * callback) :
-    GemfireWorker(callback),
+      const Local<Object> & emitter) :
+    resultStream(new ResultStream(this, DataAsyncCallback, EndAsyncCallback)),
     regionPtr(regionPtr),
     functionName(functionName),
     functionArguments(functionArguments),
-    functionFilter(functionFilter) {}
+    functionFilter(functionFilter) {
+      NanAssignPersistent(this->emitter, emitter);
+      request.data = reinterpret_cast<void *>(this);
+    }
 
-  void ExecuteGemfireWork() {
+  ~ExecuteFunctionWorker() {
+    NanDisposePersistent(emitter);
+  }
+
+  static void Execute(uv_work_t * request) {
+    ExecuteFunctionWorker * worker = static_cast<ExecuteFunctionWorker *>(request->data);
+    worker->Execute();
+  }
+
+  static void ExecuteComplete(uv_work_t * request, int status) {
+    ExecuteFunctionWorker * worker = static_cast<ExecuteFunctionWorker *>(request->data);
+    worker->ExecuteComplete();
+    delete worker;
+  }
+
+  static void DataAsyncCallback(uv_async_t * async) {
+    ExecuteFunctionWorker * worker = reinterpret_cast<ExecuteFunctionWorker *>(async->data);
+    worker->Data();
+  }
+
+  static void DataAsyncCallback(uv_async_t * async, int status) {
+    DataAsyncCallback(async);
+  }
+
+  static void EndAsyncCallback(uv_async_t * async) {
+    ExecuteFunctionWorker * worker = reinterpret_cast<ExecuteFunctionWorker *>(async->data);
+    worker->End();
+  }
+
+  static void EndAsyncCallback(uv_async_t * async, int status) {
+    EndAsyncCallback(async);
+  }
+
+  void Execute() {
     ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
 
     if (functionArguments != NULLPTR) {
@@ -430,43 +470,63 @@ class ExecuteFunctionWorker : public GemfireWorker {
       executionPtr = executionPtr->withFilter(functionFilter);
     }
 
-    resultsPtr = executionPtr->execute(functionName.c_str())->getResult();
+    ResultCollectorPtr resultCollectorPtr(new StreamingResultCollector(resultStream));
+    executionPtr = executionPtr->withCollector(resultCollectorPtr);
+
+    try {
+      executionPtr->execute(functionName.c_str());
+      resultStream->waitUntilFinished();
+    } catch (const gemfire::Exception & exception) {
+      errorMessage = gemfireExceptionMessage(exception);
+    }
   }
 
-  void HandleOKCallback() {
+  void ExecuteComplete() {
+    if (!errorMessage.empty()) {
+      NanScope();
+      emitError(NanNew(emitter), NanError(errorMessage.c_str()));
+    }
+  }
+
+  void Data() {
     NanScope();
 
-    Local<Value> error(NanUndefined());
-    Local<Value> returnValue;
+    Local<Object> eventEmitter(NanNew(emitter));
 
-    Local<Array> resultsArray(v8ValueFromGemfire(resultsPtr));
+    CacheableVectorPtr resultsPtr(resultStream->nextResults());
+    for (CacheableVector::Iterator iterator(resultsPtr->begin());
+         iterator != resultsPtr->end();
+         ++iterator) {
+      Local<Value> result(v8ValueFromGemfire(*iterator));
 
-    unsigned int length = resultsArray->Length();
-    if (length > 0) {
-      Local<Value> lastResult(resultsArray->Get(length - 1));
-
-      if (lastResult->IsNativeError()) {
-        error = NanNew(lastResult);
-
-        Local<Array> resultsExceptLast(NanNew<Array>(length - 1));
-        for (unsigned int i = 0; i < length - 1; i++) {
-          resultsExceptLast->Set(i, resultsArray->Get(i));
-        }
-        resultsArray = resultsExceptLast;
+      if (result->IsNativeError()) {
+        emitError(eventEmitter, result);
+      } else {
+        emitEvent(eventEmitter, "data", result);
       }
     }
 
-    const unsigned int argc = 2;
-    Local<Value> argv[argc] = { error, resultsArray };
-    callback->Call(argc, argv);
+    resultStream->resultsProcessed();
   }
 
+  void End() {
+    NanScope();
+
+    emitEvent(NanNew(emitter), "end");
+    resultStream->endProcessed();
+  }
+
+  uv_work_t request;
+
  private:
+  ResultStreamPtr resultStream;
+
   RegionPtr regionPtr;
   std::string functionName;
   CacheablePtr functionArguments;
   CacheableVectorPtr functionFilter;
-  CacheableVectorPtr resultsPtr;
+  Persistent<Object> emitter;
+  std::string errorMessage;
 };
 
 NAN_METHOD(Region::ExecuteFunction) {
@@ -477,32 +537,22 @@ NAN_METHOD(Region::ExecuteFunction) {
     NanReturnUndefined();
   }
 
-  Local<Function> v8CallbackArgument;
   Local<Value> v8FunctionArguments;
   Local<Value> v8FunctionFilter;
 
-  if (args[1]->IsFunction()) {
-    v8CallbackArgument = args[1].As<Function>();
-  } else if (args[2]->IsFunction()) {
-    v8CallbackArgument = args[2].As<Function>();
+  if (args[1]->IsArray()) {
+    v8FunctionArguments = args[1];
+  } else if (args[1]->IsObject()) {
+    Local<Object> optionsObject(args[1]->ToObject());
+    v8FunctionArguments = optionsObject->Get(NanNew("arguments"));
+    v8FunctionFilter = optionsObject->Get(NanNew("filter"));
 
-    if (args[1]->IsArray()) {
-      v8FunctionArguments = args[1];
-    } else if (args[1]->IsObject()) {
-      Local<Object> optionsObject(args[1]->ToObject());
-      v8FunctionArguments = optionsObject->Get(NanNew("arguments"));
-      v8FunctionFilter = optionsObject->Get(NanNew("filter"));
-
-      if (!v8FunctionFilter->IsArray() && !v8FunctionFilter->IsUndefined()) {
-        NanThrowError("You must pass an Array of keys as the filter for executeFunction().");
-        NanReturnUndefined();
-      }
-    } else {
-      NanThrowError("You must pass either an Array of arguments or an options Object to executeFunction().");
+    if (!v8FunctionFilter->IsArray() && !v8FunctionFilter->IsUndefined()) {
+      NanThrowError("You must pass an Array of keys as the filter for executeFunction().");
       NanReturnUndefined();
     }
-  } else {
-    NanThrowError("You must pass a callback to executeFunction().");
+  } else if (!args[1]->IsUndefined()) {
+    NanThrowError("You must pass either an Array of arguments or an options Object to executeFunction().");
     NanReturnUndefined();
   }
 
@@ -526,13 +576,19 @@ NAN_METHOD(Region::ExecuteFunction) {
     functionFilter = gemfireVectorFromV8(v8FunctionFilter.As<Array>(), cachePtr);
   }
 
-  NanCallback * callback = new NanCallback(v8CallbackArgument);
+  Local<Function> eventEmitterConstructor(NanNew(dependencies)->Get(NanNew("EventEmitter")).As<Function>());
+  Local<Object> eventEmitter(eventEmitterConstructor->NewInstance());
 
   ExecuteFunctionWorker * worker =
-    new ExecuteFunctionWorker(regionPtr, functionName, functionArguments, functionFilter, callback);
-  NanAsyncQueueWorker(worker);
+    new ExecuteFunctionWorker(regionPtr, functionName, functionArguments, functionFilter, eventEmitter);
 
-  NanReturnValue(args.This());
+  uv_queue_work(
+      uv_default_loop(),
+      &worker->request,
+      ExecuteFunctionWorker::Execute,
+      ExecuteFunctionWorker::ExecuteComplete);
+
+  NanReturnValue(eventEmitter);
 }
 
 NAN_METHOD(Region::Inspect) {

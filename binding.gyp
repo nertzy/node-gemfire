@@ -22,12 +22,16 @@
     ],
     "sources": [
       "src/binding.cpp",
+      "src/dependencies.cpp",
       "src/exceptions.cpp",
       "src/conversions.cpp",
       "src/cache.cpp",
       "src/region.cpp",
       "src/select_results.cpp",
       "src/gemfire_worker.cpp",
+      "src/streaming_result_collector.cpp",
+      "src/result_stream.cpp",
+      "src/events.cpp",
     ]
   },
   "targets": [

@@ -96,12 +96,26 @@ region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
 });
 
 //  executeFunction
-region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"], function(error, results){
-  console.log("executeFunction MyJavaFunction: ", results);
+region.executeFunction("com.example.MyJavaFunction", { 
+    arguments: ["some", "optional", "arguments"], 
+    filters: ["some", "optional", "filters"]
+  })
+  .on("error", function(error) { console.log("MyJavaFunction error ", error); })
+  .on("data", function(result) { console.log("MyJavaFunction sent result ", result); })
+  .on("end", function() { console.log("MyJavaFunction has returned"); });
+});
+
+//  executeFunction shorthand for array of arguments
+region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"])
+  .on("error", function(error) { console.log("MyJavaFunction error ", error); })
+  .on("data", function(result) { console.log("MyJavaFunction sent result ", result); })
+  .on("end", function() { console.log("MyJavaFunction has returned"); });
 });
 
 //  clear
-region.clear();
+region.clear(function() {
+  console.log("region has been cleared");
+});
 
 ```
 

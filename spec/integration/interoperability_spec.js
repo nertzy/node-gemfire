@@ -1,3 +1,4 @@
+const async = require('async');
 const errorMatchers = require("../support/error_matchers.js");
 
 const cache = require("../support/factories.js").getCache();
@@ -8,80 +9,87 @@ describe("Interoperability", function() {
     this.addMatchers(errorMatchers);
   });
 
+  function expectFunctionToReturn(functionName, returnValue, done) {
+    const dataCallback = jasmine.createSpy("dataCallback");
+    region
+      .executeFunction(functionName)
+      .on("data", dataCallback)
+      .on("end", function(){
+        expect(dataCallback.callCount).toEqual(1);
+        expect(dataCallback).toHaveBeenCalledWith(returnValue);
+        done();
+      });
+  }
+
   it("interprets Java null as JavaScript null", function(done) {
-    region.executeFunction("io.pivotal.node_gemfire.ReturnNull", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([null]);
-      done();
-    });
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnNull", null, done);
   });
 
   it("interprets Java float as JavaScript Number", function(done) {
-    region.executeFunction("io.pivotal.node_gemfire.ReturnFloat", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([1.0]);
-      done();
-    });
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnFloat", 1.0, done);
   });
 
   it("interprets Java integer as JavaScript Number", function(done) {
-    region.executeFunction("io.pivotal.node_gemfire.ReturnInteger", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([1]);
-      done();
-    });
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnInteger", 1, done);
   });
 
   it("interprets Java short as JavaScript Number", function(done) {
-    region.executeFunction("io.pivotal.node_gemfire.ReturnShort", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([1]);
-      done();
-    });
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnShort", 1, done);
   });
 
   it("interprets Java long as JavaScript Number", function(done) {
-    region.executeFunction("io.pivotal.node_gemfire.ReturnLong", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([1]);
-      done();
-    });
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnLong", 1, done);
   });
 
   it("interprets Java Set as JavaScript Array", function(done) {
-    region.executeFunction("io.pivotal.node_gemfire.ReturnSet", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toBeTruthy();
+    const dataCallback = jasmine.createSpy("dataCallback");
+    region
+      .executeFunction("io.pivotal.node_gemfire.ReturnSet")
+      .on("data", dataCallback)
+      .on("end", function(){
+        expect(dataCallback.callCount).toEqual(1);
 
-      const array = response[0];
-      expect(array.length).toEqual(2);
-      expect(array).toContain("foo");
-      expect(array).toContain("bar");
-      done();
-    });
+        const array = dataCallback.calls[0].args[0];
+        expect(array.length).toEqual(2);
+        expect(array).toContain("foo");
+        expect(array).toContain("bar");
+        done();
+      });
   });
 
   it("provides a warning when a Java long greater than Number.MAX_SAFE_INTEGER is received", function(done) {
     spyOn(console, "warn");
-    region.executeFunction("io.pivotal.node_gemfire.ReturnPositiveAmbiguousLong", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([Math.pow(2, 53)]);
-      expect(console.warn).toHaveBeenCalledWith(
-        "Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)"
-      );
-      done();
-    });
+
+    async.series([
+      function(next) {
+        expectFunctionToReturn("io.pivotal.node_gemfire.ReturnPositiveAmbiguousLong",
+                               Math.pow(2, 53),
+                               next);
+      },
+      function(next) {
+        expect(console.warn).toHaveBeenCalledWith(
+          "Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)"
+        );
+        next();
+      }
+    ], done);
   });
 
   it("provides a warning when a Java long less than Number.MIN_SAFE_INTEGER is received", function(done) {
     spyOn(console, "warn");
-    region.executeFunction("io.pivotal.node_gemfire.ReturnNegativeAmbiguousLong", function(error, response) {
-      expect(error).not.toBeError();
-      expect(response).toEqual([-1 * Math.pow(2, 53)]);
-      expect(console.warn).toHaveBeenCalledWith(
-        "Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)"
-      );
-      done();
-    });
+
+    async.series([
+      function(next) {
+        expectFunctionToReturn("io.pivotal.node_gemfire.ReturnNegativeAmbiguousLong",
+                               -Math.pow(2, 53),
+                               next);
+      },
+      function(next) {
+        expect(console.warn).toHaveBeenCalledWith(
+          "Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)"
+        );
+        next();
+      }
+    ], done);
   });
 });
