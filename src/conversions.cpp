@@ -94,105 +94,17 @@ Local<String> v8StringFromWstring(const std::wstring & wideString) {
   return NanEscapeScope(v8String);
 }
 
-PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object, const CachePtr & cachePtr) {
-  NanEscapableScope();
+void ConsoleWarn(const char * message) {
+  NanScope();
 
-  try {
-    std::string pdxClassName = getClassName(v8Object);
-    PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName.c_str());
+  Local<Object> global(NanGetCurrentContext()->Global());
+  Local<Function> warn(global->Get(NanNew("console"))->ToObject()->Get(NanNew("warn")).As<Function>());
+  NanCallback callback(warn);
 
-    Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
-    unsigned int length = v8Keys->Length();
+  static const int argc = 1;
+  Local<Value> argv[argc] = { NanNew(message) };
 
-    for (unsigned int i = 0; i < length; i++) {
-      Local<Value> v8Key(v8Keys->Get(i));
-      Local<Value> v8Value(v8Object->Get(v8Key));
-
-      NanUtf8String fieldName(v8Key);
-
-      CacheablePtr cacheablePtr(gemfireValueFromV8(v8Value, cachePtr));
-      if (v8Value->IsArray()) {
-        pdxInstanceFactory->writeObjectArray(*fieldName, cacheablePtr);
-      } else {
-        pdxInstanceFactory->writeObject(*fieldName, cacheablePtr);
-      }
-    }
-
-    return pdxInstanceFactory->create();
-  }
-  catch(const gemfire::Exception & exception) {
-    ThrowGemfireException(exception);
-    return NULLPTR;
-  }
-}
-
-CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
-  CacheableKeyPtr keyPtr;
-  try {
-    keyPtr = gemfireValueFromV8(v8Value, cachePtr);
-  }
-  catch(const ClassCastException & exception) {
-    return NULLPTR;
-  }
-
-  return keyPtr;
-}
-
-VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
-                                          const CachePtr & cachePtr) {
-  VectorOfCacheableKeyPtr vectorPtr(new VectorOfCacheableKey());
-
-  for (unsigned int i = 0; i < v8Value->Length(); i++) {
-    CacheableKeyPtr keyPtr = gemfireKeyFromV8(v8Value->Get(i), cachePtr);
-
-    if (keyPtr == NULLPTR) {
-      return NULLPTR;
-    } else {
-      vectorPtr->push_back(keyPtr);
-    }
-  }
-
-  return vectorPtr;
-}
-
-Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
-  NanEscapableScope();
-
-  try {
-    CacheableStringArrayPtr gemfireKeys(pdxInstance->getFieldNames());
-
-    if (gemfireKeys == NULLPTR) {
-      return NanEscapeScope(NanNew<Object>());
-    }
-
-    Local<Object> v8Object(NanNew<Object>());
-    int length = gemfireKeys->length();
-
-    for (int i = 0; i < length; i++) {
-      const char * key = gemfireKeys[i]->asChar();
-
-      CacheablePtr value;
-      try {
-        pdxInstance->getField(key, value);
-      }
-      catch(const IllegalStateException & exception) {
-        // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
-        // triggers an exception. We don't know a better way to detect that we are about to read in
-        // an array, so for now we catch the exception and assume we are receiving an array.
-        CacheableObjectArrayPtr valueArray;
-        pdxInstance->getField(key, valueArray);
-        value = valueArray;
-      }
-
-      v8Object->Set(NanNew(key), v8ValueFromGemfire(value));
-    }
-
-    return NanEscapeScope(v8Object);
-  }
-  catch(const gemfire::Exception & exception) {
-    ThrowGemfireException(exception);
-    return NanEscapeScope(NanUndefined());
-  }
+  callback.Call(argc, argv);
 }
 
 CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
@@ -229,6 +141,38 @@ CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & c
   }
 }
 
+PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object, const CachePtr & cachePtr) {
+  NanEscapableScope();
+
+  try {
+    std::string pdxClassName = getClassName(v8Object);
+    PdxInstanceFactoryPtr pdxInstanceFactory = cachePtr->createPdxInstanceFactory(pdxClassName.c_str());
+
+    Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
+    unsigned int length = v8Keys->Length();
+
+    for (unsigned int i = 0; i < length; i++) {
+      Local<Value> v8Key(v8Keys->Get(i));
+      Local<Value> v8Value(v8Object->Get(v8Key));
+
+      NanUtf8String fieldName(v8Key);
+
+      CacheablePtr cacheablePtr(gemfireValueFromV8(v8Value, cachePtr));
+      if (v8Value->IsArray()) {
+        pdxInstanceFactory->writeObjectArray(*fieldName, cacheablePtr);
+      } else {
+        pdxInstanceFactory->writeObject(*fieldName, cacheablePtr);
+      }
+    }
+
+    return pdxInstanceFactory->create();
+  }
+  catch(const gemfire::Exception & exception) {
+    ThrowGemfireException(exception);
+    return NULLPTR;
+  }
+}
+
 gemfire::CacheableObjectArrayPtr gemfireValueFromV8(const Local<Array> & v8Array,
                                          const gemfire::CachePtr & cachePtr) {
   CacheableObjectArrayPtr objectArrayPtr(CacheableObjectArray::create());
@@ -251,33 +195,71 @@ gemfire::CacheableDatePtr gemfireValueFromV8(const Local<Date> & v8Date) {
   return CacheableDate::create(timeSinceEpoch);
 }
 
-void ConsoleWarn(const char * message) {
-  NanScope();
-
-  Local<Object> global(NanGetCurrentContext()->Global());
-  Local<Function> warn(global->Get(NanNew("console"))->ToObject()->Get(NanNew("warn")).As<Function>());
-  NanCallback callback(warn);
-
-  static const int argc = 1;
-  Local<Value> argv[argc] = { NanNew(message) };
-
-  callback.Call(argc, argv);
-}
-
-Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
-  NanEscapableScope();
-
-  static const int64_t maxSafeInteger = pow(2, 53) - 1;
-  static const int64_t minSafeInteger = -1 * maxSafeInteger;
-
-  int64_t value = ((CacheableInt64Ptr) valuePtr)->value();
-  if (value > maxSafeInteger) {
-    ConsoleWarn("Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)");
-  } else if (value < minSafeInteger) {
-    ConsoleWarn("Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)");
+CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
+  CacheableKeyPtr keyPtr;
+  try {
+    keyPtr = gemfireValueFromV8(v8Value, cachePtr);
+  }
+  catch(const ClassCastException & exception) {
+    return NULLPTR;
   }
 
-  return NanEscapeScope(NanNew<Number>(value));
+  return keyPtr;
+}
+
+VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
+                                          const CachePtr & cachePtr) {
+  VectorOfCacheableKeyPtr vectorPtr(new VectorOfCacheableKey());
+
+  for (unsigned int i = 0; i < v8Value->Length(); i++) {
+    CacheableKeyPtr keyPtr = gemfireKeyFromV8(v8Value->Get(i), cachePtr);
+
+    if (keyPtr == NULLPTR) {
+      return NULLPTR;
+    } else {
+      vectorPtr->push_back(keyPtr);
+    }
+  }
+
+  return vectorPtr;
+}
+
+HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
+                                           const CachePtr & cachePtr) {
+  NanScope();
+
+  HashMapOfCacheablePtr hashMapPtr(new HashMapOfCacheable());
+
+  Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
+  unsigned int length = v8Keys->Length();
+
+  for (unsigned int i = 0; i < length; i++) {
+    Local<Value> v8Key(v8Keys->Get(i));
+
+    CacheablePtr keyPtr(gemfireValueFromV8(v8Key, cachePtr));
+    CacheablePtr valuePtr(gemfireValueFromV8(v8Object->Get(v8Key), cachePtr));
+
+    if (valuePtr == NULLPTR) {
+      return NULLPTR;
+    }
+
+    hashMapPtr->insert(keyPtr, valuePtr);
+  }
+
+  return hashMapPtr;
+}
+
+CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array, const CachePtr & cachePtr) {
+  NanScope();
+
+  unsigned int length = v8Array->Length();
+  CacheableVectorPtr vectorPtr = CacheableVector::create();
+
+  for (unsigned int i = 0; i < length; i++) {
+    vectorPtr->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
+  }
+
+  return vectorPtr;
 }
 
 Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
@@ -342,6 +324,62 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   return NanEscapeScope(NanUndefined());
 }
 
+Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
+  NanEscapableScope();
+
+  try {
+    CacheableStringArrayPtr gemfireKeys(pdxInstance->getFieldNames());
+
+    if (gemfireKeys == NULLPTR) {
+      return NanEscapeScope(NanNew<Object>());
+    }
+
+    Local<Object> v8Object(NanNew<Object>());
+    int length = gemfireKeys->length();
+
+    for (int i = 0; i < length; i++) {
+      const char * key = gemfireKeys[i]->asChar();
+
+      CacheablePtr value;
+      try {
+        pdxInstance->getField(key, value);
+      }
+      catch(const IllegalStateException & exception) {
+        // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
+        // triggers an exception. We don't know a better way to detect that we are about to read in
+        // an array, so for now we catch the exception and assume we are receiving an array.
+        CacheableObjectArrayPtr valueArray;
+        pdxInstance->getField(key, valueArray);
+        value = valueArray;
+      }
+
+      v8Object->Set(NanNew(key), v8ValueFromGemfire(value));
+    }
+
+    return NanEscapeScope(v8Object);
+  }
+  catch(const gemfire::Exception & exception) {
+    ThrowGemfireException(exception);
+    return NanEscapeScope(NanUndefined());
+  }
+}
+
+Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
+  NanEscapableScope();
+
+  static const int64_t maxSafeInteger = pow(2, 53) - 1;
+  static const int64_t minSafeInteger = -1 * maxSafeInteger;
+
+  int64_t value = ((CacheableInt64Ptr) valuePtr)->value();
+  if (value > maxSafeInteger) {
+    ConsoleWarn("Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)");
+  } else if (value < minSafeInteger) {
+    ConsoleWarn("Received 64 bit integer from GemFire less than Number.MIN_SAFE_INTEGER (-1 * 2^53 + 1)");
+  }
+
+  return NanEscapeScope(NanNew<Number>(value));
+}
+
 Local<Value> v8ValueFromGemfire(const CacheableKeyPtr & keyPtr) {
   return v8ValueFromGemfire(static_cast<CacheablePtr>(keyPtr));
 }
@@ -358,44 +396,6 @@ Local<Object> v8ValueFromGemfire(const StructPtr & structPtr) {
   }
 
   return NanEscapeScope(v8Object);
-}
-
-HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
-                                           const CachePtr & cachePtr) {
-  NanScope();
-
-  HashMapOfCacheablePtr hashMapPtr(new HashMapOfCacheable());
-
-  Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
-  unsigned int length = v8Keys->Length();
-
-  for (unsigned int i = 0; i < length; i++) {
-    Local<Value> v8Key(v8Keys->Get(i));
-
-    CacheablePtr keyPtr(gemfireValueFromV8(v8Key, cachePtr));
-    CacheablePtr valuePtr(gemfireValueFromV8(v8Object->Get(v8Key), cachePtr));
-
-    if (valuePtr == NULLPTR) {
-      return NULLPTR;
-    }
-
-    hashMapPtr->insert(keyPtr, valuePtr);
-  }
-
-  return hashMapPtr;
-}
-
-CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array, const CachePtr & cachePtr) {
-  NanScope();
-
-  unsigned int length = v8Array->Length();
-  CacheableVectorPtr vectorPtr = CacheableVector::create();
-
-  for (unsigned int i = 0; i < length; i++) {
-    vectorPtr->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
-  }
-
-  return vectorPtr;
 }
 
 Local<Object> v8ValueFromGemfire(const HashMapOfCacheablePtr & hashMapPtr) {
