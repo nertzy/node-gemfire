@@ -26,8 +26,6 @@ $ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save pivotal/node-gemfire
 
 ## Usage
 
-For an example cache.xml, see [here](https://github.com/pivotal/node-gemfire/blob/master/benchmark/xml/BenchmarkClient.xml).
-
 ```javascript
 var gemfire = require('gemfire');
 
