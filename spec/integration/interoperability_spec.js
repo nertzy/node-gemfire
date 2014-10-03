@@ -41,6 +41,10 @@ describe("Interoperability", function() {
     expectFunctionToReturn("io.pivotal.node_gemfire.ReturnLong", 1, done);
   });
 
+  it("interprets Java HashMap as JavaScript Object", function(done) {
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnHashMap", { foo: 'bar' }, done);
+  });
+
   it("interprets Java Set as JavaScript Array", function(done) {
     const dataCallback = jasmine.createSpy("dataCallback");
     region

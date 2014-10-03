@@ -299,6 +299,8 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
       return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableObjectArrayPtr>(valuePtr)));
     case GemfireTypeIds::CacheableVector:
       return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableVectorPtr>(valuePtr)));
+    case GemfireTypeIds::CacheableHashMap:
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableHashMapPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashSet:
       return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableHashSetPtr>(valuePtr)));
     case 0:
@@ -413,6 +415,22 @@ Local<Object> v8ValueFromGemfire(const HashMapOfCacheablePtr & hashMapPtr) {
   Local<Object> v8Object(NanNew<Object>());
 
   for (HashMapOfCacheable::Iterator i = hashMapPtr->begin(); i != hashMapPtr->end(); i++) {
+    CacheablePtr keyPtr(i.first());
+    CacheablePtr valuePtr(i.second());
+
+    v8Object->Set(v8ValueFromGemfire(keyPtr),
+        v8ValueFromGemfire(valuePtr));
+  }
+
+  return NanEscapeScope(v8Object);
+}
+
+Local<Object> v8ValueFromGemfire(const CacheableHashMapPtr & hashMapPtr) {
+  NanEscapableScope();
+
+  Local<Object> v8Object(NanNew<Object>());
+
+  for (CacheableHashMap::Iterator i = hashMapPtr->begin(); i != hashMapPtr->end(); i++) {
     CacheablePtr keyPtr(i.first());
     CacheablePtr valuePtr(i.second());
 
