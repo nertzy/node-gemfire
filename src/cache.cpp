@@ -113,7 +113,7 @@ NAN_METHOD(Cache::ExecuteQuery) {
   }
 
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
-  QueryPtr queryPtr(cache->newQuery(*(NanUtf8String(args[0]))));
+  QueryPtr queryPtr(cache->newQuery(*NanUtf8String(args[0])));
 
   NanCallback * callback = new NanCallback(args[1].As<Function>());
 

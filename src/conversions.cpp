@@ -273,38 +273,39 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   switch (typeId) {
     case GemfireTypeIds::CacheableASCIIString:
     case GemfireTypeIds::CacheableASCIIStringHuge:
-      return NanEscapeScope(NanNew(((CacheableStringPtr) valuePtr)->asChar()));
+      return NanEscapeScope(NanNew((static_cast<CacheableStringPtr>(valuePtr))->asChar()));
     case GemfireTypeIds::CacheableString:
     case GemfireTypeIds::CacheableStringHuge:
-      return NanEscapeScope(v8StringFromWstring(((CacheableStringPtr) valuePtr)->asWChar()));
+      return NanEscapeScope(v8StringFromWstring((static_cast<CacheableStringPtr>(valuePtr))->asWChar()));
     case GemfireTypeIds::CacheableBoolean:
-      return NanEscapeScope(NanNew(((CacheableBooleanPtr) valuePtr)->value()));
+      return NanEscapeScope(NanNew((static_cast<CacheableBooleanPtr>(valuePtr))->value()));
     case GemfireTypeIds::CacheableDouble:
-      return NanEscapeScope(NanNew(((CacheableDoublePtr) valuePtr)->value()));
+      return NanEscapeScope(NanNew((static_cast<CacheableDoublePtr>(valuePtr))->value()));
     case GemfireTypeIds::CacheableFloat:
-      return NanEscapeScope(NanNew(((CacheableFloatPtr) valuePtr)->value()));
+      return NanEscapeScope(NanNew((static_cast<CacheableFloatPtr>(valuePtr))->value()));
     case GemfireTypeIds::CacheableInt16:
-      return NanEscapeScope(NanNew(((CacheableInt16Ptr) valuePtr)->value()));
+      return NanEscapeScope(NanNew((static_cast<CacheableInt16Ptr>(valuePtr))->value()));
     case GemfireTypeIds::CacheableInt32:
-      return NanEscapeScope(NanNew(((CacheableInt32Ptr) valuePtr)->value()));
+      return NanEscapeScope(NanNew((static_cast<CacheableInt32Ptr>(valuePtr))->value()));
     case GemfireTypeIds::CacheableInt64:
-      return NanEscapeScope(v8ValueFromGemfire((CacheableInt64Ptr) valuePtr));
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableInt64Ptr>(valuePtr)));
     case GemfireTypeIds::CacheableDate:
-      return NanEscapeScope(NanNew<Date>(static_cast<double>(((CacheableDatePtr) valuePtr)->milliseconds())));
+      return NanEscapeScope(
+          NanNew<Date>(static_cast<double>(static_cast<CacheableDatePtr>(valuePtr)->milliseconds())));
     case GemfireTypeIds::CacheableUndefined:
       return NanEscapeScope(NanUndefined());
     case GemfireTypeIds::Struct:
-      return NanEscapeScope(v8ValueFromGemfire((StructPtr) valuePtr));
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<StructPtr>(valuePtr)));
     case GemfireTypeIds::CacheableObjectArray:
-      return NanEscapeScope(v8ValueFromGemfire((CacheableObjectArrayPtr) valuePtr));
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableObjectArrayPtr>(valuePtr)));
     case GemfireTypeIds::CacheableVector:
-      return NanEscapeScope(v8ValueFromGemfire((CacheableVectorPtr) valuePtr));
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableVectorPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashSet:
-      return NanEscapeScope(v8ValueFromGemfire((CacheableHashSetPtr) valuePtr));
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableHashSetPtr>(valuePtr)));
     case 0:
       try {
         UserFunctionExecutionExceptionPtr functionExceptionPtr =
-          (UserFunctionExecutionExceptionPtr) valuePtr;
+          static_cast<UserFunctionExecutionExceptionPtr>(valuePtr);
 
         return NanEscapeScope(NanError(gemfireExceptionMessage(functionExceptionPtr).c_str()));
       } catch (ClassCastException & exception) {
@@ -315,7 +316,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
 
   if (typeId > GemfireTypeIds::CacheableStringHuge) {
     // We are assuming these are Pdx
-    return NanEscapeScope(v8ValueFromGemfire((PdxInstancePtr) valuePtr));
+    return NanEscapeScope(v8ValueFromGemfire(static_cast<PdxInstancePtr>(valuePtr)));
   }
 
   std::stringstream errorMessageStream;
@@ -370,7 +371,7 @@ Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
   static const int64_t maxSafeInteger = pow(2, 53) - 1;
   static const int64_t minSafeInteger = -1 * maxSafeInteger;
 
-  int64_t value = ((CacheableInt64Ptr) valuePtr)->value();
+  int64_t value = static_cast<CacheableInt64Ptr>(valuePtr)->value();
   if (value > maxSafeInteger) {
     ConsoleWarn("Received 64 bit integer from GemFire greater than Number.MAX_SAFE_INTEGER (2^53 - 1)");
   } else if (value < minSafeInteger) {
