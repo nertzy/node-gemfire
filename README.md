@@ -24,100 +24,24 @@ $ cd /my/node/project
 $ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save pivotal/node-gemfire
 ```
 
-## Usage examples:
+## Usage
 
 For an example cache.xml, see [here](https://github.com/pivotal/node-gemfire/blob/master/benchmark/xml/BenchmarkClient.xml).
 
 ```javascript
 var gemfire = require('gemfire');
 
-//
-//  Cache
-//
 var cache = new gemfire.Cache('config/cache.xml');
-
-//  executeQuery
-cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, results){
-  console.log("executeQuery: ", results.toArray());
-
-  results.each(function(result) {
-    console.log(result);
-  });
-});
-
-//
-// Region
-//
 var region = cache.getRegion('myRegion');
 
-// put & get
 region.put('foo', { bar: ['baz', 'qux'] }, function(error) { 
   region.get('foo', function(error, value) {
     console.log(value); // => { bar: ['baz', 'qux'] }
   });
 });
-
-// put without callback
-region.on("error", function(error) { console.log(error); });
-region.put("foo", "bar");  // succeeds silently
-region.put("foo", null);   // emits error event
-
-//  putAll & getAll
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.getAll(['key1', 'key2', 'keyWithNoValue'], function(error, response) {
-    console.log(response); // => { key1: 'value1', key2: 'value2', keyWithNoValue: null }
-  });
-});
-
-// putAll without callback
-region.on("error", function(error) { console.log(error); });
-region.putAll({foo: "bar", baz: "qux"});  // succeeds silently
-region.putAll({foo: null, baz: "qux"});   // emits error event
-
-//  putAll & query
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-  region.query("this like 'value%'", function(error, response) {
-    console.log(response.toArray()); // => [ 'value1', 'value2' ]
-  });
-});
-
-//  putAll & existsValue
-region.putAll({ key1: 'value1', key2: 'value2' }, function(error) {
-
-  // exists
-  region.existsValue("this = 'value1'", function(error, response) {
-    console.log(response); // => true
-  });
-
-  // does not exist
-  region.existsValue("this = 'something that does not exist'", function(error, response) {
-    console.log(response); // => false
-  });
-});
-
-//  executeFunction
-region.executeFunction("com.example.MyJavaFunction", { 
-    arguments: ["some", "optional", "arguments"], 
-    filters: ["some", "optional", "filters"]
-  })
-  .on("error", function(error) { console.log("MyJavaFunction error ", error); })
-  .on("data", function(result) { console.log("MyJavaFunction sent result ", result); })
-  .on("end", function() { console.log("MyJavaFunction has returned"); });
-});
-
-//  executeFunction shorthand for array of arguments
-region.executeFunction("com.example.MyJavaFunction", ["some", "arguments"])
-  .on("error", function(error) { console.log("MyJavaFunction error ", error); })
-  .on("data", function(result) { console.log("MyJavaFunction sent result ", result); })
-  .on("end", function() { console.log("MyJavaFunction has returned"); });
-});
-
-//  clear
-region.clear(function() {
-  console.log("region has been cleared");
-});
-
 ```
+
+For more information, please see the [API](doc/api.md).
 
 ## Development
 
