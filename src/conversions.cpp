@@ -107,7 +107,7 @@ void ConsoleWarn(const char * message) {
   callback.Call(argc, argv);
 }
 
-CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
+CacheablePtr gemfireValue(const Local<Value> & v8Value, const CachePtr & cachePtr) {
   if (v8Value->IsString() || v8Value->IsStringObject()) {
     return CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
   } else if (v8Value->IsBoolean()) {
@@ -115,9 +115,9 @@ CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & c
   } else if (v8Value->IsNumber() || v8Value->IsNumberObject()) {
     return CacheableDouble::create(v8Value->ToNumber()->Value());
   } else if (v8Value->IsDate()) {
-    return gemfireValueFromV8(Local<Date>::Cast(v8Value));
+    return gemfireValue(Local<Date>::Cast(v8Value));
   } else if (v8Value->IsArray()) {
-    return gemfireValueFromV8(Local<Array>::Cast(v8Value), cachePtr);
+    return gemfireValue(Local<Array>::Cast(v8Value), cachePtr);
   } else if (v8Value->IsBooleanObject()) {
 #if (NODE_MODULE_VERSION > 0x000B)
     return CacheableBoolean::create(BooleanObject::Cast(*v8Value)->ValueOf());
@@ -128,7 +128,7 @@ CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & c
     NanThrowError("Unable to serialize to GemFire; functions are not supported.");
     return NULLPTR;
   } else if (v8Value->IsObject()) {
-    return gemfireValueFromV8(v8Value->ToObject(), cachePtr);
+    return gemfireValue(v8Value->ToObject(), cachePtr);
   } else if (v8Value->IsUndefined()) {
     return CacheableUndefined::create();
   } else if (v8Value->IsNull()) {
@@ -141,7 +141,7 @@ CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & c
   }
 }
 
-PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object, const CachePtr & cachePtr) {
+PdxInstancePtr gemfireValue(const Local<Object> & v8Object, const CachePtr & cachePtr) {
   NanEscapableScope();
 
   try {
@@ -157,7 +157,7 @@ PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object, const CachePtr
 
       NanUtf8String fieldName(v8Key);
 
-      CacheablePtr cacheablePtr(gemfireValueFromV8(v8Value, cachePtr));
+      CacheablePtr cacheablePtr(gemfireValue(v8Value, cachePtr));
       if (v8Value->IsArray()) {
         pdxInstanceFactory->writeObjectArray(*fieldName, cacheablePtr);
       } else {
@@ -173,19 +173,19 @@ PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object, const CachePtr
   }
 }
 
-gemfire::CacheableObjectArrayPtr gemfireValueFromV8(const Local<Array> & v8Array,
+gemfire::CacheableObjectArrayPtr gemfireValue(const Local<Array> & v8Array,
                                          const gemfire::CachePtr & cachePtr) {
   CacheableObjectArrayPtr objectArrayPtr(CacheableObjectArray::create());
 
   unsigned int length = v8Array->Length();
   for (unsigned int i = 0; i < length; i++) {
-    objectArrayPtr->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
+    objectArrayPtr->push_back(gemfireValue(v8Array->Get(i), cachePtr));
   }
 
   return objectArrayPtr;
 }
 
-gemfire::CacheableDatePtr gemfireValueFromV8(const Local<Date> & v8Date) {
+gemfire::CacheableDatePtr gemfireValue(const Local<Date> & v8Date) {
   uint64 millisecondsSinceEpoch = v8Date->NumberValue();
 
   timeval timeSinceEpoch;
@@ -195,10 +195,10 @@ gemfire::CacheableDatePtr gemfireValueFromV8(const Local<Date> & v8Date) {
   return CacheableDate::create(timeSinceEpoch);
 }
 
-CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
+CacheableKeyPtr gemfireKey(const Local<Value> & v8Value, const CachePtr & cachePtr) {
   CacheableKeyPtr keyPtr;
   try {
-    keyPtr = gemfireValueFromV8(v8Value, cachePtr);
+    keyPtr = gemfireValue(v8Value, cachePtr);
   }
   catch(const ClassCastException & exception) {
     return NULLPTR;
@@ -207,12 +207,12 @@ CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value, const CachePtr & 
   return keyPtr;
 }
 
-VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
+VectorOfCacheableKeyPtr gemfireKeys(const Local<Array> & v8Value,
                                           const CachePtr & cachePtr) {
   VectorOfCacheableKeyPtr vectorPtr(new VectorOfCacheableKey());
 
   for (unsigned int i = 0; i < v8Value->Length(); i++) {
-    CacheableKeyPtr keyPtr = gemfireKeyFromV8(v8Value->Get(i), cachePtr);
+    CacheableKeyPtr keyPtr = gemfireKey(v8Value->Get(i), cachePtr);
 
     if (keyPtr == NULLPTR) {
       return NULLPTR;
@@ -224,7 +224,7 @@ VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
   return vectorPtr;
 }
 
-HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
+HashMapOfCacheablePtr gemfireHashMap(const Local<Object> & v8Object,
                                            const CachePtr & cachePtr) {
   NanScope();
 
@@ -236,8 +236,8 @@ HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
   for (unsigned int i = 0; i < length; i++) {
     Local<Value> v8Key(v8Keys->Get(i));
 
-    CacheablePtr keyPtr(gemfireValueFromV8(v8Key, cachePtr));
-    CacheablePtr valuePtr(gemfireValueFromV8(v8Object->Get(v8Key), cachePtr));
+    CacheablePtr keyPtr(gemfireValue(v8Key, cachePtr));
+    CacheablePtr valuePtr(gemfireValue(v8Object->Get(v8Key), cachePtr));
 
     if (valuePtr == NULLPTR) {
       return NULLPTR;
@@ -249,20 +249,20 @@ HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
   return hashMapPtr;
 }
 
-CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array, const CachePtr & cachePtr) {
+CacheableVectorPtr gemfireVector(const Local<Array> & v8Array, const CachePtr & cachePtr) {
   NanScope();
 
   unsigned int length = v8Array->Length();
   CacheableVectorPtr vectorPtr = CacheableVector::create();
 
   for (unsigned int i = 0; i < length; i++) {
-    vectorPtr->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
+    vectorPtr->push_back(gemfireValue(v8Array->Get(i), cachePtr));
   }
 
   return vectorPtr;
 }
 
-Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
+Local<Value> v8Value(const CacheablePtr & valuePtr) {
   NanEscapableScope();
 
   if (valuePtr == NULLPTR) {
@@ -288,21 +288,21 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     case GemfireTypeIds::CacheableInt32:
       return NanEscapeScope(NanNew((static_cast<CacheableInt32Ptr>(valuePtr))->value()));
     case GemfireTypeIds::CacheableInt64:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableInt64Ptr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<CacheableInt64Ptr>(valuePtr)));
     case GemfireTypeIds::CacheableDate:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableDatePtr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<CacheableDatePtr>(valuePtr)));
     case GemfireTypeIds::CacheableUndefined:
       return NanEscapeScope(NanUndefined());
     case GemfireTypeIds::Struct:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<StructPtr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<StructPtr>(valuePtr)));
     case GemfireTypeIds::CacheableObjectArray:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableObjectArrayPtr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<CacheableObjectArrayPtr>(valuePtr)));
     case GemfireTypeIds::CacheableVector:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableVectorPtr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<CacheableVectorPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashMap:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableHashMapPtr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<CacheableHashMapPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashSet:
-      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableHashSetPtr>(valuePtr)));
+      return NanEscapeScope(v8Value(static_cast<CacheableHashSetPtr>(valuePtr)));
     case 0:
       try {
         UserFunctionExecutionExceptionPtr functionExceptionPtr =
@@ -317,7 +317,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
 
   if (typeId > GemfireTypeIds::CacheableStringHuge) {
     // We are assuming these are Pdx
-    return NanEscapeScope(v8ValueFromGemfire(static_cast<PdxInstancePtr>(valuePtr)));
+    return NanEscapeScope(v8Value(static_cast<PdxInstancePtr>(valuePtr)));
   }
 
   std::stringstream errorMessageStream;
@@ -326,7 +326,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
   return NanEscapeScope(NanUndefined());
 }
 
-Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
+Local<Value> v8Value(const PdxInstancePtr & pdxInstance) {
   NanEscapableScope();
 
   try {
@@ -355,7 +355,7 @@ Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
         value = valueArray;
       }
 
-      v8Object->Set(NanNew(key), v8ValueFromGemfire(value));
+      v8Object->Set(NanNew(key), v8Value(value));
     }
 
     return NanEscapeScope(v8Object);
@@ -366,7 +366,7 @@ Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
   }
 }
 
-Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
+Local<Value> v8Value(const CacheableInt64Ptr & valuePtr) {
   NanEscapableScope();
 
   static const int64_t maxSafeInteger = pow(2, 53) - 1;
@@ -382,7 +382,7 @@ Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
   return NanEscapeScope(NanNew<Number>(value));
 }
 
-Local<Date> v8ValueFromGemfire(const CacheableDatePtr & datePtr) {
+Local<Date> v8Value(const CacheableDatePtr & datePtr) {
   NanEscapableScope();
 
   double epochMillis = datePtr->milliseconds();
@@ -391,11 +391,11 @@ Local<Date> v8ValueFromGemfire(const CacheableDatePtr & datePtr) {
 }
 
 
-Local<Value> v8ValueFromGemfire(const CacheableKeyPtr & keyPtr) {
-  return v8ValueFromGemfire(static_cast<CacheablePtr>(keyPtr));
+Local<Value> v8Value(const CacheableKeyPtr & keyPtr) {
+  return v8Value(static_cast<CacheablePtr>(keyPtr));
 }
 
-Local<Object> v8ValueFromGemfire(const StructPtr & structPtr) {
+Local<Object> v8Value(const StructPtr & structPtr) {
   NanEscapableScope();
 
   Local<Object> v8Object(NanNew<Object>());
@@ -403,13 +403,13 @@ Local<Object> v8ValueFromGemfire(const StructPtr & structPtr) {
   unsigned int length = structPtr->length();
   for (unsigned int i = 0; i < length; i++) {
     v8Object->Set(NanNew(structPtr->getFieldName(i)),
-                  v8ValueFromGemfire((*structPtr)[i]));
+                  v8Value((*structPtr)[i]));
   }
 
   return NanEscapeScope(v8Object);
 }
 
-Local<Object> v8ValueFromGemfire(const HashMapOfCacheablePtr & hashMapPtr) {
+Local<Object> v8Value(const HashMapOfCacheablePtr & hashMapPtr) {
   NanEscapableScope();
 
   Local<Object> v8Object(NanNew<Object>());
@@ -418,14 +418,14 @@ Local<Object> v8ValueFromGemfire(const HashMapOfCacheablePtr & hashMapPtr) {
     CacheablePtr keyPtr(i.first());
     CacheablePtr valuePtr(i.second());
 
-    v8Object->Set(v8ValueFromGemfire(keyPtr),
-        v8ValueFromGemfire(valuePtr));
+    v8Object->Set(v8Value(keyPtr),
+        v8Value(valuePtr));
   }
 
   return NanEscapeScope(v8Object);
 }
 
-Local<Object> v8ValueFromGemfire(const CacheableHashMapPtr & hashMapPtr) {
+Local<Object> v8Value(const CacheableHashMapPtr & hashMapPtr) {
   NanEscapableScope();
 
   Local<Object> v8Object(NanNew<Object>());
@@ -434,14 +434,14 @@ Local<Object> v8ValueFromGemfire(const CacheableHashMapPtr & hashMapPtr) {
     CacheablePtr keyPtr(i.first());
     CacheablePtr valuePtr(i.second());
 
-    v8Object->Set(v8ValueFromGemfire(keyPtr),
-        v8ValueFromGemfire(valuePtr));
+    v8Object->Set(v8Value(keyPtr),
+        v8Value(valuePtr));
   }
 
   return NanEscapeScope(v8Object);
 }
 
-Local<Object> v8ValueFromGemfire(const SelectResultsPtr & selectResultsPtr) {
+Local<Object> v8Value(const SelectResultsPtr & selectResultsPtr) {
   NanEscapableScope();
 
   Local<Object> selectResults(SelectResults::NewInstance(selectResultsPtr));
@@ -449,7 +449,7 @@ Local<Object> v8ValueFromGemfire(const SelectResultsPtr & selectResultsPtr) {
   return NanEscapeScope(selectResults);
 }
 
-Local<Boolean> v8ValueFromGemfire(bool value) {
+Local<Boolean> v8Value(bool value) {
   NanEscapableScope();
   return NanEscapeScope(NanNew(value));
 }

@@ -11,37 +11,37 @@ using namespace v8;
 
 namespace node_gemfire {
 
-gemfire::CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value,
+gemfire::CacheablePtr gemfireValue(const Local<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
-gemfire::PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object,
+gemfire::PdxInstancePtr gemfireValue(const Local<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
-gemfire::CacheableObjectArrayPtr gemfireValueFromV8(const Local<Array> & v8Value,
+gemfire::CacheableObjectArrayPtr gemfireValue(const Local<Array> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
-gemfire::CacheableDatePtr gemfireValueFromV8(const Local<Date> & v8Value);
+gemfire::CacheableDatePtr gemfireValue(const Local<Date> & v8Value);
 
-gemfire::CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value,
+gemfire::CacheableKeyPtr gemfireKey(const Local<Value> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
-gemfire::VectorOfCacheableKeyPtr gemfireKeysFromV8(const Local<Array> & v8Value,
+gemfire::VectorOfCacheableKeyPtr gemfireKeys(const Local<Array> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
 
-gemfire::HashMapOfCacheablePtr gemfireHashMapFromV8(const Local<Object> & v8Object,
+gemfire::HashMapOfCacheablePtr gemfireHashMap(const Local<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
-gemfire::CacheableVectorPtr gemfireVectorFromV8(const Local<Array> & v8Array,
+gemfire::CacheableVectorPtr gemfireVector(const Local<Array> & v8Array,
                                            const gemfire::CachePtr & cachePtr);
 
-Local<Value> v8ValueFromGemfire(const gemfire::CacheablePtr & valuePtr);
-Local<Value> v8ValueFromGemfire(const gemfire::CacheableKeyPtr & keyPtr);
-Local<Value> v8ValueFromGemfire(const gemfire::CacheableInt64Ptr & valuePtr);
-Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
-Local<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
-Local<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
-Local<Object> v8ValueFromGemfire(const gemfire::CacheableHashMapPtr & hashMapPtr);
-Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
-Local<Date> v8ValueFromGemfire(const gemfire::CacheableDatePtr & datePtr);
-Local<Boolean> v8ValueFromGemfire(bool value);
+Local<Value> v8Value(const gemfire::CacheablePtr & valuePtr);
+Local<Value> v8Value(const gemfire::CacheableKeyPtr & keyPtr);
+Local<Value> v8Value(const gemfire::CacheableInt64Ptr & valuePtr);
+Local<Object> v8Value(const gemfire::StructPtr & structPtr);
+Local<Value> v8Value(const gemfire::PdxInstancePtr & pdxInstancePtr);
+Local<Object> v8Value(const gemfire::SelectResultsPtr & selectResultsPtr);
+Local<Object> v8Value(const gemfire::CacheableHashMapPtr & hashMapPtr);
+Local<Object> v8Value(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
+Local<Date> v8Value(const gemfire::CacheableDatePtr & datePtr);
+Local<Boolean> v8Value(bool value);
 
 template<typename T>
-Local<Array> v8ValueFromGemfire(const gemfire::SharedPtr<T> & iterablePtr) {
+Local<Array> v8Value(const gemfire::SharedPtr<T> & iterablePtr) {
   NanEscapableScope();
 
   unsigned int length = iterablePtr->size();
@@ -49,7 +49,7 @@ Local<Array> v8ValueFromGemfire(const gemfire::SharedPtr<T> & iterablePtr) {
 
   unsigned int i = 0;
   for (typename T::Iterator iterator(iterablePtr->begin()); iterator != iterablePtr->end(); ++iterator) {
-    v8Array->Set(i, v8ValueFromGemfire(*iterator));
+    v8Array->Set(i, v8Value(*iterator));
     i++;
   }
 
