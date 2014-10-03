@@ -15,6 +15,9 @@ gemfire::CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value,
                                          const gemfire::CachePtr & cachePtr);
 gemfire::PdxInstancePtr gemfireValueFromV8(const Local<Object> & v8Object,
                                            const gemfire::CachePtr & cachePtr);
+gemfire::CacheableObjectArrayPtr gemfireValueFromV8(const Local<Array> & v8Value,
+                                         const gemfire::CachePtr & cachePtr);
+gemfire::CacheableDatePtr gemfireValueFromV8(const Local<Date> & v8Value);
 
 gemfire::CacheableKeyPtr gemfireKeyFromV8(const Local<Value> & v8Value,
                                           const gemfire::CachePtr & cachePtr);
