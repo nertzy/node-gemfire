@@ -290,8 +290,7 @@ Local<Value> v8ValueFromGemfire(const CacheablePtr & valuePtr) {
     case GemfireTypeIds::CacheableInt64:
       return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableInt64Ptr>(valuePtr)));
     case GemfireTypeIds::CacheableDate:
-      return NanEscapeScope(
-          NanNew<Date>(static_cast<double>(static_cast<CacheableDatePtr>(valuePtr)->milliseconds())));
+      return NanEscapeScope(v8ValueFromGemfire(static_cast<CacheableDatePtr>(valuePtr)));
     case GemfireTypeIds::CacheableUndefined:
       return NanEscapeScope(NanUndefined());
     case GemfireTypeIds::Struct:
@@ -380,6 +379,15 @@ Local<Value> v8ValueFromGemfire(const CacheableInt64Ptr & valuePtr) {
 
   return NanEscapeScope(NanNew<Number>(value));
 }
+
+Local<Date> v8ValueFromGemfire(const CacheableDatePtr & datePtr) {
+  NanEscapableScope();
+
+  double epochMillis = datePtr->milliseconds();
+
+  return NanEscapeScope(NanNew<Date>(epochMillis));
+}
+
 
 Local<Value> v8ValueFromGemfire(const CacheableKeyPtr & keyPtr) {
   return v8ValueFromGemfire(static_cast<CacheablePtr>(keyPtr));

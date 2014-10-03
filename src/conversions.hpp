@@ -36,6 +36,7 @@ Local<Object> v8ValueFromGemfire(const gemfire::StructPtr & structPtr);
 Local<Value> v8ValueFromGemfire(const gemfire::PdxInstancePtr & pdxInstancePtr);
 Local<Object> v8ValueFromGemfire(const gemfire::SelectResultsPtr & selectResultsPtr);
 Local<Object> v8ValueFromGemfire(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
+Local<Date> v8ValueFromGemfire(const gemfire::CacheableDatePtr & datePtr);
 Local<Boolean> v8ValueFromGemfire(bool value);
 
 template<typename T>
