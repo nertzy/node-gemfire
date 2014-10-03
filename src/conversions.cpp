@@ -196,56 +196,59 @@ Local<Value> v8ValueFromGemfire(const PdxInstancePtr & pdxInstance) {
 }
 
 CacheablePtr gemfireValueFromV8(const Local<Value> & v8Value, const CachePtr & cachePtr) {
-  NanScope();
-
-  CacheablePtr gemfireValuePtr;
-
   if (v8Value->IsString() || v8Value->IsStringObject()) {
-    gemfireValuePtr = CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
+    return CacheableString::create(wstringFromV8String(v8Value->ToString()).c_str());
   } else if (v8Value->IsBoolean()) {
-    gemfireValuePtr = CacheableBoolean::create(v8Value->ToBoolean()->Value());
+    return CacheableBoolean::create(v8Value->ToBoolean()->Value());
   } else if (v8Value->IsNumber() || v8Value->IsNumberObject()) {
-    gemfireValuePtr = CacheableDouble::create(v8Value->ToNumber()->Value());
+    return CacheableDouble::create(v8Value->ToNumber()->Value());
   } else if (v8Value->IsDate()) {
-    uint64 millisecondsSinceEpoch = Date::Cast(*v8Value)->NumberValue();
-
-    timeval timeSinceEpoch;
-    timeSinceEpoch.tv_sec = millisecondsSinceEpoch / 1000;
-    timeSinceEpoch.tv_usec = (millisecondsSinceEpoch % 1000) * 1000;
-
-    gemfireValuePtr = CacheableDate::create(timeSinceEpoch);
+    return gemfireValueFromV8(Local<Date>::Cast(v8Value));
   } else if (v8Value->IsArray()) {
-    Local<Array> v8Array(Local<Array>::Cast(v8Value));
-    unsigned int length = v8Array->Length();
-
-    gemfireValuePtr = CacheableObjectArray::create();
-    for (unsigned int i = 0; i < length; i++) {
-      ((CacheableObjectArrayPtr) gemfireValuePtr)->push_back(
-        gemfireValueFromV8(v8Array->Get(i), cachePtr));
-    }
+    return gemfireValueFromV8(Local<Array>::Cast(v8Value), cachePtr);
   } else if (v8Value->IsBooleanObject()) {
 #if (NODE_MODULE_VERSION > 0x000B)
-    gemfireValuePtr = CacheableBoolean::create(BooleanObject::Cast(*v8Value)->ValueOf());
+    return CacheableBoolean::create(BooleanObject::Cast(*v8Value)->ValueOf());
 #else
-    gemfireValuePtr = CacheableBoolean::create(BooleanObject::Cast(*v8Value)->BooleanValue());
+    return CacheableBoolean::create(BooleanObject::Cast(*v8Value)->BooleanValue());
 #endif
   } else if (v8Value->IsFunction()) {
     NanThrowError("Unable to serialize to GemFire; functions are not supported.");
     return NULLPTR;
   } else if (v8Value->IsObject()) {
-    gemfireValuePtr = gemfireValueFromV8(v8Value->ToObject(), cachePtr);
+    return gemfireValueFromV8(v8Value->ToObject(), cachePtr);
   } else if (v8Value->IsUndefined()) {
-    gemfireValuePtr = CacheableUndefined::create();
+    return CacheableUndefined::create();
   } else if (v8Value->IsNull()) {
-    gemfireValuePtr = NULLPTR;
+    return NULLPTR;
   } else {
     std::string errorMessage("Unable to serialize to GemFire; unknown JavaScript object: ");
     errorMessage.append(*NanUtf8String(v8Value->ToDetailString()));
     NanThrowError(errorMessage.c_str());
     return NULLPTR;
   }
+}
 
-  return gemfireValuePtr;
+gemfire::CacheableObjectArrayPtr gemfireValueFromV8(const Local<Array> & v8Array,
+                                         const gemfire::CachePtr & cachePtr) {
+  CacheableObjectArrayPtr objectArrayPtr(CacheableObjectArray::create());
+
+  unsigned int length = v8Array->Length();
+  for (unsigned int i = 0; i < length; i++) {
+    objectArrayPtr->push_back(gemfireValueFromV8(v8Array->Get(i), cachePtr));
+  }
+
+  return objectArrayPtr;
+}
+
+gemfire::CacheableDatePtr gemfireValueFromV8(const Local<Date> & v8Date) {
+  uint64 millisecondsSinceEpoch = v8Date->NumberValue();
+
+  timeval timeSinceEpoch;
+  timeSinceEpoch.tv_sec = millisecondsSinceEpoch / 1000;
+  timeSinceEpoch.tv_usec = (millisecondsSinceEpoch % 1000) * 1000;
+
+  return CacheableDate::create(timeSinceEpoch);
 }
 
 void ConsoleWarn(const char * message) {
