@@ -54,29 +54,38 @@ function executeQuery(callback) {
 
 const queryCount = 4;
 function benchmark(recordCount, callback) {
-  region.clear();
-  region.executeFunction("io.pivotal.node_gemfire.BulkPut", [baseObject, 1], function(){});
-  region.executeFunction("io.pivotal.node_gemfire.BulkPut", [otherObject, recordCount - 1], function(){});
+  async.series([
+    function(next) { region.clear(next); },
+    function(next) {
+      region.executeFunction("io.pivotal.node_gemfire.BulkPut", [baseObject, 1])
+        .on('end', next);
+    },
+    function(next) {
+      region.executeFunction("io.pivotal.node_gemfire.BulkPut", [otherObject, recordCount - 1])
+        .on('end', next);
+    },
+    function(next) {
+      const start = process.hrtime();
 
-  const start = process.hrtime();
+      async.times(queryCount, function(n, done) {
+        executeQuery(done);
+      }, function(error, results) {
+        const duration = process.hrtime(start);
+        const nanoseconds = duration[0] * 1e9 + duration[1];
+        const microseconds = nanoseconds / 1e3;
+        const seconds = (microseconds / 1e6);
 
-  async.times(queryCount, function(n, done) {
-    executeQuery(done);
-  }, function(error, results) {
-    const duration = process.hrtime(start);
-    const nanoseconds = duration[0] * 1e9 + duration[1];
-    const microseconds = nanoseconds / 1e3;
-    const seconds = (microseconds / 1e6);
+        const queriesPerSecond = Math.round(queryCount / seconds);
+        const usecPerPut = Math.round(microseconds / queryCount);
 
-    const queriesPerSecond = Math.round(queryCount / seconds);
-    const usecPerPut = Math.round(microseconds / queryCount);
+        console.log(
+          "OQL (" + recordCount + " entries): ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
+        );
 
-    console.log(
-      "OQL (" + recordCount + " entries): ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
-    );
-
-    callback();
-  });
+        next();
+      });
+    }
+  ], callback);
 }
 
 async.series([
