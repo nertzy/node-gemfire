@@ -51,7 +51,7 @@ NAN_METHOD(SelectResults::ToArray) {
 
   Local<Array> array(NanNew<Array>(length));
   for (unsigned int i = 0; i < length; i++) {
-    array->Set(i, v8ValueFromGemfire((*selectResultsPtr)[i]));
+    array->Set(i, v8Value((*selectResultsPtr)[i]));
   }
 
   NanReturnValue(array);
@@ -73,7 +73,7 @@ NAN_METHOD(SelectResults::Each) {
 
   while (iterator.hasNext()) {
     const unsigned int argc = 1;
-    Local<Value> argv[argc] = { v8ValueFromGemfire(iterator.next()) };
+    Local<Value> argv[argc] = { v8Value(iterator.next()) };
     Local<Value> regionHandle(NanMakeCallback(args.This(), callback, argc, argv));
   }
 

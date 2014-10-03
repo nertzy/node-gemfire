@@ -82,7 +82,7 @@ class ExecuteQueryWorker : public GemfireWorker {
     NanScope();
 
     static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), v8ValueFromGemfire(selectResultsPtr) };
+    Local<Value> argv[2] = { NanUndefined(), v8Value(selectResultsPtr) };
     callback->Call(argc, argv);
   }
 

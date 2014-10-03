@@ -161,8 +161,8 @@ NAN_METHOD(Region::Put) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   CachePtr cachePtr(region->regionPtr->getCache());
 
-  CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
-  CacheablePtr valuePtr(gemfireValueFromV8(args[1], cachePtr));
+  CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
+  CacheablePtr valuePtr(gemfireValue(args[1], cachePtr));
   NanCallback * callback = getCallback(args[2]);
   PutWorker * putWorker = new PutWorker(args.This(), region, keyPtr, valuePtr, callback);
   NanAsyncQueueWorker(putWorker);
@@ -196,7 +196,7 @@ class GetWorker : public GemfireWorker {
     NanScope();
 
     static const int argc = 2;
-    Local<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(valuePtr) };
+    Local<Value> argv[argc] = { NanUndefined(), v8Value(valuePtr) };
     callback->Call(argc, argv);
   }
 
@@ -227,7 +227,7 @@ NAN_METHOD(Region::Get) {
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
-  CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], regionPtr->getCache()));
+  CacheableKeyPtr keyPtr(gemfireKey(args[0], regionPtr->getCache()));
 
   NanCallback * callback = new NanCallback(args[1].As<Function>());
   GetWorker * getWorker = new GetWorker(callback, regionPtr, keyPtr);
@@ -265,7 +265,7 @@ class GetAllWorker : public GemfireWorker {
     NanScope();
 
     static const int argc = 2;
-    Local<Value> argv[argc] = { NanUndefined(), v8ValueFromGemfire(resultsPtr) };
+    Local<Value> argv[argc] = { NanUndefined(), v8Value(resultsPtr) };
     callback->Call(argc, argv);
   }
 
@@ -297,7 +297,7 @@ NAN_METHOD(Region::GetAll) {
   RegionPtr regionPtr(region->regionPtr);
 
   VectorOfCacheableKeyPtr gemfireKeysPtr(
-      gemfireKeysFromV8(Local<Array>::Cast(args[0]), regionPtr->getCache()));
+      gemfireKeys(Local<Array>::Cast(args[0]), regionPtr->getCache()));
 
   NanCallback * callback = new NanCallback(args[1].As<Function>());
 
@@ -348,7 +348,7 @@ NAN_METHOD(Region::PutAll) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
 
-  HashMapOfCacheablePtr hashMapPtr(gemfireHashMapFromV8(args[0]->ToObject(), regionPtr->getCache()));
+  HashMapOfCacheablePtr hashMapPtr(gemfireHashMap(args[0]->ToObject(), regionPtr->getCache()));
   NanCallback * callback = getCallback(args[1]);
   PutAllWorker * worker = new PutAllWorker(args.This(), regionPtr, hashMapPtr, callback);
   NanAsyncQueueWorker(worker);
@@ -401,7 +401,7 @@ NAN_METHOD(Region::Remove) {
   RegionPtr regionPtr(region->regionPtr);
   CachePtr cachePtr(regionPtr->getCache());
 
-  CacheableKeyPtr keyPtr(gemfireKeyFromV8(args[0], cachePtr));
+  CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
   NanCallback * callback = getCallback(args[1]);
   RemoveWorker * worker = new RemoveWorker(args.This(), regionPtr, keyPtr, callback);
   NanAsyncQueueWorker(worker);
@@ -497,7 +497,7 @@ class ExecuteFunctionWorker {
     for (CacheableVector::Iterator iterator(resultsPtr->begin());
          iterator != resultsPtr->end();
          ++iterator) {
-      Local<Value> result(v8ValueFromGemfire(*iterator));
+      Local<Value> result(v8Value(*iterator));
 
       if (result->IsNativeError()) {
         emitError(eventEmitter, result);
@@ -566,14 +566,14 @@ NAN_METHOD(Region::ExecuteFunction) {
   if (v8FunctionArguments.IsEmpty() || v8FunctionArguments->IsUndefined()) {
     functionArguments = NULLPTR;
   } else {
-    functionArguments = gemfireValueFromV8(v8FunctionArguments, cachePtr);
+    functionArguments = gemfireValue(v8FunctionArguments, cachePtr);
   }
 
   CacheableVectorPtr functionFilter;
   if (v8FunctionFilter.IsEmpty() || v8FunctionFilter->IsUndefined()) {
     functionFilter = NULLPTR;
   } else {
-    functionFilter = gemfireVectorFromV8(v8FunctionFilter.As<Array>(), cachePtr);
+    functionFilter = gemfireVector(v8FunctionFilter.As<Array>(), cachePtr);
   }
 
   Local<Function> eventEmitterConstructor(NanNew(dependencies)->Get(NanNew("EventEmitter")).As<Function>());
@@ -626,7 +626,7 @@ class AbstractQueryWorker : public GemfireWorker {
 
   void HandleOKCallback() {
     static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), v8ValueFromGemfire(resultPtr) };
+    Local<Value> argv[2] = { NanUndefined(), v8Value(resultPtr) };
     callback->Call(argc, argv);
   }
 
@@ -730,7 +730,7 @@ class KeysWorker : public GemfireWorker {
 
   void HandleOKCallback() {
     static const int argc = 2;
-    Local<Value> argv[2] = { NanUndefined(), v8ValueFromGemfire(keysVectorPtr) };
+    Local<Value> argv[2] = { NanUndefined(), v8Value(keysVectorPtr) };
     callback->Call(argc, argv);
   }
 
