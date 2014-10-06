@@ -296,13 +296,13 @@ Local<Value> v8Value(const CacheablePtr & valuePtr) {
     case GemfireTypeIds::Struct:
       return NanEscapeScope(v8Value(static_cast<StructPtr>(valuePtr)));
     case GemfireTypeIds::CacheableObjectArray:
-      return NanEscapeScope(v8Value(static_cast<CacheableObjectArrayPtr>(valuePtr)));
+      return NanEscapeScope(v8Array(static_cast<CacheableObjectArrayPtr>(valuePtr)));
     case GemfireTypeIds::CacheableVector:
-      return NanEscapeScope(v8Value(static_cast<CacheableVectorPtr>(valuePtr)));
+      return NanEscapeScope(v8Array(static_cast<CacheableVectorPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashMap:
-      return NanEscapeScope(v8Value(static_cast<CacheableHashMapPtr>(valuePtr)));
+      return NanEscapeScope(v8Object(static_cast<CacheableHashMapPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashSet:
-      return NanEscapeScope(v8Value(static_cast<CacheableHashSetPtr>(valuePtr)));
+      return NanEscapeScope(v8Array(static_cast<CacheableHashSetPtr>(valuePtr)));
     case 0:
       try {
         UserFunctionExecutionExceptionPtr functionExceptionPtr =
@@ -410,35 +410,11 @@ Local<Object> v8Value(const StructPtr & structPtr) {
 }
 
 Local<Object> v8Value(const HashMapOfCacheablePtr & hashMapPtr) {
-  NanEscapableScope();
-
-  Local<Object> v8Object(NanNew<Object>());
-
-  for (HashMapOfCacheable::Iterator i = hashMapPtr->begin(); i != hashMapPtr->end(); i++) {
-    CacheablePtr keyPtr(i.first());
-    CacheablePtr valuePtr(i.second());
-
-    v8Object->Set(v8Value(keyPtr),
-        v8Value(valuePtr));
-  }
-
-  return NanEscapeScope(v8Object);
+  return v8Object(hashMapPtr);
 }
 
-Local<Object> v8Value(const CacheableHashMapPtr & hashMapPtr) {
-  NanEscapableScope();
-
-  Local<Object> v8Object(NanNew<Object>());
-
-  for (CacheableHashMap::Iterator i = hashMapPtr->begin(); i != hashMapPtr->end(); i++) {
-    CacheablePtr keyPtr(i.first());
-    CacheablePtr valuePtr(i.second());
-
-    v8Object->Set(v8Value(keyPtr),
-        v8Value(valuePtr));
-  }
-
-  return NanEscapeScope(v8Object);
+Local<Array> v8Value(const VectorOfCacheableKeyPtr & vectorPtr) {
+  return v8Array(vectorPtr);
 }
 
 Local<Object> v8Value(const SelectResultsPtr & selectResultsPtr) {
