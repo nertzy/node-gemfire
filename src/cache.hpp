@@ -17,19 +17,28 @@ class Cache : public node::ObjectWrap {
   gemfire::CachePtr cachePtr;
 
  protected:
-  explicit Cache(gemfire::CachePtr cachePtr) : cachePtr(cachePtr) {}
+  explicit Cache(
+      gemfire::CachePtr cachePtr) :
+    cachePtr(cachePtr),
+    closed(false) {}
 
   ~Cache() {
-    cachePtr->close();
+    close();
   }
 
+  void close();
+
   static NAN_METHOD(New);
+  static NAN_METHOD(Close);
   static NAN_METHOD(ExecuteQuery);
   static NAN_METHOD(GetRegion);
   static NAN_METHOD(RootRegions);
   static NAN_METHOD(Inspect);
 
   gemfire::QueryPtr newQuery(char * queryString);
+
+ private:
+  bool closed;
 };
 
 }  // namespace node_gemfire

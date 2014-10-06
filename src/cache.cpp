@@ -23,6 +23,8 @@ void Cache::Init(Local<Object> exports) {
   cacheConstructorTemplate->SetClassName(NanNew("Cache"));
   cacheConstructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+  NanSetPrototypeTemplate(cacheConstructorTemplate, "close",
+      NanNew<FunctionTemplate>(Cache::Close)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "executeQuery",
       NanNew<FunctionTemplate>(Cache::ExecuteQuery)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "getRegion",
@@ -65,6 +67,22 @@ NAN_METHOD(Cache::New) {
   cache->Wrap(args.This());
 
   NanReturnValue(args.This());
+}
+
+NAN_METHOD(Cache::Close) {
+  NanScope();
+
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  cache->close();
+
+  NanReturnUndefined();
+}
+
+void Cache::close() {
+  if (!closed) {
+    cachePtr->close();
+    closed = true;
+  }
 }
 
 class ExecuteQueryWorker : public GemfireWorker {

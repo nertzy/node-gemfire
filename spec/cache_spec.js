@@ -15,33 +15,33 @@ describe("gemfire.Cache", function() {
     setTimeout(done, 0);
   });
 
+  function runExternalTest(name, done, callback) {
+    if(!done) { throw("You must run this test asynchronously and pass done");  }
+    if(!callback) { throw("You must pass a callback");  }
+
+    var filename = "spec/support/cache/" + name + ".js";
+
+    childProcess.execFile("node", [filename], function(error, stdout, stderr) {
+      callback(error, stdout, stderr);
+      done();
+    });
+  }
+
+  function expectExternalSuccess(name, done){
+    runExternalTest(name, done, function(error, stdout, stderr) {
+      expect(error).not.toBeError();
+      expect(stderr).toEqual('');
+    });
+  }
+
+  function expectExternalFailure(name, done, message){
+    runExternalTest(name, done, function(error, stdout, stderr) {
+      expect(error).toBeError();
+      expect(stderr).toContain(message);
+    });
+  }
+
   describe("constructor", function(){
-    function runExternalTest(name, done, callback) {
-      if(!done) { throw("You must run this test asynchronously and pass done");  }
-      if(!callback) { throw("You must pass a callback");  }
-
-      var filename = "spec/support/cache/" + name + ".js";
-
-      childProcess.execFile("node", [filename], function(error, stdout, stderr) {
-        callback(error, stdout, stderr);
-        done();
-      });
-    }
-
-    function expectExternalSuccess(name, done){
-      runExternalTest(name, done, function(error, stdout, stderr) {
-        expect(error).not.toBeError();
-        expect(stderr).toEqual('');
-      });
-    }
-
-    function expectExternalFailure(name, done, message){
-      runExternalTest(name, done, function(error, stdout, stderr) {
-        expect(error).toBeError();
-        expect(stderr).toContain(message);
-      });
-    }
-
     it("throws an error if the file is not found", function(done) {
       var expectedMessage = 'I/O warning : failed to load external entity "/bad/path.xml"';
       expectExternalFailure("missing_xml_file", done, expectedMessage);
@@ -58,6 +58,16 @@ describe("gemfire.Cache", function() {
 
     it("throws an error if there are no parameters", function(done) {
       expectExternalFailure("no_parameters", done, "Cache constructor requires a path to an XML configuration file as its first argument.");
+    });
+  });
+
+  describe(".close", function() {
+    it("does not throw an error", function(done) {
+      expectExternalSuccess("close_cache", done);
+    });
+
+    it("causes subsequent region operations to throw", function(done) {
+      expectExternalFailure("close_cache_region_put", done, "region /exampleRegion destroyed");
     });
   });
 
