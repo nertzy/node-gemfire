@@ -430,6 +430,11 @@ describe("gemfire.Region", function() {
       testRoundTrip(undefined, done);
     });
 
+    it("stores and retrieves Date objects", function(done) {
+      const date = new Date();
+      testRoundTrip(date, done);
+    });
+
     describe("for objects", function() {
       it("stores and retrieves empty objects", function(done) {
         testRoundTrip({}, done);
