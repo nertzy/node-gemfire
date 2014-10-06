@@ -47,8 +47,9 @@ var region = cache.getRegion('exampleRegion');
 
 ### cache.rootRegions(callback)
 
-Retrieves an array of all root Regions from the Cache. Example:
+Retrieves an array of all root Regions from the Cache. 
 
+Example:
 ```javascript
 var regions = cache.rootRegions();
 // if there are three Regions defined in your cache, regions could now be:
@@ -133,7 +134,7 @@ See also `region.query` and `region.selectValue`.
 
 Retrieves the value of an entry in the Region. The callback will be called with an `error` and the `value`. If the key is not present in the Region, an error will be passed to the callback.
 
-Example
+Example:
 ```javascript
 region.get("key", function(error, value){
   if(error) { throw error; }
@@ -143,15 +144,15 @@ region.get("key", function(error, value){
 
 ### region.getAll(keys, callback)
 
-Retrieves the values of multiple keys in the Region. The keys should be passed in as an `Array`. The callback will be called with an `error` and a `values` object. If one or more keys are not present in the region, their values will be undefined.
+Retrieves the values of multiple keys in the Region. The keys should be passed in as an `Array`. The callback will be called with an `error` and a `values` object. If one or more keys are not present in the region, their values will be returned as null.
 
-Example
+Example:
 ```javascript
 region.getAll(["key1", "key2", "unknownKey"], function(error, values){
   if(error) { throw error; }
   // if key1 and key2 are present in the region, but unknownKey is not,
   // then values may look like this:
-  // { key1: 'value1', key2: { foo: 'bar' } }
+  // { key1: 'value1', key2: { foo: 'bar' }, unknownKey: null }
 });
 ```
 
@@ -160,7 +161,7 @@ region.getAll(["key1", "key2", "unknownKey"], function(error, values){
 Retrieves all keys in the Region. The callback will be called with an `error` argument, and an Array of keys.
 
 Example:
-```
+```javascript
 region.keys(function(error, keys) {
   if(error) { throw error; }
   // keys is now an array of all keys in the region, for example:
