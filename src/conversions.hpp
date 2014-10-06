@@ -37,11 +37,12 @@ Local<Value> v8Value(const gemfire::PdxInstancePtr & pdxInstancePtr);
 Local<Object> v8Value(const gemfire::SelectResultsPtr & selectResultsPtr);
 Local<Object> v8Value(const gemfire::CacheableHashMapPtr & hashMapPtr);
 Local<Object> v8Value(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
+Local<Array> v8Value(const gemfire::VectorOfCacheableKeyPtr & vectorPtr);
 Local<Date> v8Value(const gemfire::CacheableDatePtr & datePtr);
 Local<Boolean> v8Value(bool value);
 
 template<typename T>
-Local<Array> v8Value(const gemfire::SharedPtr<T> & iterablePtr) {
+Local<Array> v8Array(const gemfire::SharedPtr<T> & iterablePtr) {
   NanEscapableScope();
 
   unsigned int length = iterablePtr->size();
@@ -54,6 +55,23 @@ Local<Array> v8Value(const gemfire::SharedPtr<T> & iterablePtr) {
   }
 
   return NanEscapeScope(v8Array);
+}
+
+template<typename T>
+Local<Object> v8Object(const gemfire::SharedPtr<T> & hashMapPtr) {
+  NanEscapableScope();
+
+  Local<Object> v8Object(NanNew<Object>());
+
+  for (typename T::Iterator i = hashMapPtr->begin(); i != hashMapPtr->end(); i++) {
+    gemfire::CacheablePtr keyPtr(i.first());
+    gemfire::CacheablePtr valuePtr(i.second());
+
+    v8Object->Set(v8Value(keyPtr),
+        v8Value(valuePtr));
+  }
+
+  return NanEscapeScope(v8Object);
 }
 
 std::string getClassName(const Local<Object> & v8Object);
