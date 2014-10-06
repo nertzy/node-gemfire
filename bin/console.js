@@ -1,14 +1,25 @@
 #!/usr/bin/env node
 
-gemfire = require("../spec/support/gemfire.js");
-cache = new gemfire.Cache("benchmark/xml/BenchmarkClient.xml");
-region = cache.getRegion("exampleRegion");
+const _ = require("lodash");
+const repl = require("repl");
 
-region.on('error', console.log);
+(function(){
+  const gemfire = require("../spec/support/gemfire.js");
+  const cache = new gemfire.Cache("benchmark/xml/BenchmarkClient.xml");
+  const region = cache.getRegion("exampleRegion");
 
-var repl = require("repl");
-repl.start({
-  prompt: "node_gemfire> ",
-  terminal: true
-}).on('exit', process.exit);
+  region.on('error', console.log);
 
+  const consoleRepl = repl.start({
+    prompt: "node_gemfire> ",
+    terminal: true
+  });
+
+  _.extend(consoleRepl.context, {
+    gemfire: gemfire,
+    cache: cache,
+    region: region
+  });
+
+  consoleRepl.on('exit', process.exit);
+})();
