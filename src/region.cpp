@@ -113,6 +113,17 @@ std::string unableToPutValueError(Local<Value> v8Value) {
   return errorMessageStream.str();
 }
 
+CachePtr getCacheFromRegion(RegionPtr regionPtr) {
+  NanScope();
+
+  try {
+    return regionPtr->getCache();
+  } catch (const RegionDestroyedException exception) {
+    ThrowGemfireException(exception);
+    return NULLPTR;
+  }
+}
+
 class PutWorker : public GemfireEventedWorker {
  public:
   PutWorker(
@@ -159,7 +170,11 @@ NAN_METHOD(Region::Put) {
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
-  CachePtr cachePtr(region->regionPtr->getCache());
+
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
 
   CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
   CacheablePtr valuePtr(gemfireValue(args[1], cachePtr));
@@ -227,7 +242,13 @@ NAN_METHOD(Region::Get) {
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
-  CacheableKeyPtr keyPtr(gemfireKey(args[0], regionPtr->getCache()));
+
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
 
   NanCallback * callback = new NanCallback(args[1].As<Function>());
   GetWorker * getWorker = new GetWorker(callback, regionPtr, keyPtr);
@@ -296,8 +317,12 @@ NAN_METHOD(Region::GetAll) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
 
-  VectorOfCacheableKeyPtr gemfireKeysPtr(
-      gemfireKeys(Local<Array>::Cast(args[0]), regionPtr->getCache()));
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  VectorOfCacheableKeyPtr gemfireKeysPtr(gemfireKeys(Local<Array>::Cast(args[0]), cachePtr));
 
   NanCallback * callback = new NanCallback(args[1].As<Function>());
 
@@ -348,7 +373,12 @@ NAN_METHOD(Region::PutAll) {
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
 
-  HashMapOfCacheablePtr hashMapPtr(gemfireHashMap(args[0]->ToObject(), regionPtr->getCache()));
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  HashMapOfCacheablePtr hashMapPtr(gemfireHashMap(args[0]->ToObject(), cachePtr));
   NanCallback * callback = getCallback(args[1]);
   PutAllWorker * worker = new PutAllWorker(args.This(), regionPtr, hashMapPtr, callback);
   NanAsyncQueueWorker(worker);
@@ -399,7 +429,11 @@ NAN_METHOD(Region::Remove) {
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
-  CachePtr cachePtr(regionPtr->getCache());
+
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
 
   CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
   NanCallback * callback = getCallback(args[1]);
@@ -558,7 +592,11 @@ NAN_METHOD(Region::ExecuteFunction) {
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
   RegionPtr regionPtr(region->regionPtr);
-  CachePtr cachePtr(regionPtr->getCache());
+
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
 
   std::string functionName(*NanUtf8String(args[0]));
 
