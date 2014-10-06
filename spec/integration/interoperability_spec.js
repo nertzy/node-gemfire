@@ -45,6 +45,12 @@ describe("Interoperability", function() {
     expectFunctionToReturn("io.pivotal.node_gemfire.ReturnHashMap", { foo: 'bar' }, done);
   });
 
+  it("interprets Java Date as JavaScript Date", function(done) {
+    const millisSinceEpoch = Date.parse("2001-07-04 12:34:56.789");
+    const date = new Date(millisSinceEpoch);
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnDate", date, done);
+  });
+
   it("interprets Java Set as JavaScript Array", function(done) {
     const dataCallback = jasmine.createSpy("dataCallback");
     region
