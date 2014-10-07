@@ -19,8 +19,7 @@ class Cache : public node::ObjectWrap {
  protected:
   explicit Cache(
       gemfire::CachePtr cachePtr) :
-    cachePtr(cachePtr),
-    closed(false) {}
+    cachePtr(cachePtr) {}
 
   ~Cache() {
     close();
@@ -36,9 +35,6 @@ class Cache : public node::ObjectWrap {
   static NAN_METHOD(Inspect);
 
   gemfire::QueryPtr newQuery(char * queryString);
-
- private:
-  bool closed;
 };
 
 }  // namespace node_gemfire
