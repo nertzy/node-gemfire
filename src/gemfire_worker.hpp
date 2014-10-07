@@ -1,3 +1,6 @@
+#ifndef __GEMFIRE_WORKER_HPP__
+#define __GEMFIRE_WORKER_HPP__
+
 #include <nan.h>
 
 namespace node_gemfire {
@@ -14,3 +17,5 @@ class GemfireWorker : public NanAsyncWorker {
 };
 
 }  // namespace node_gemfire
+
+#endif
