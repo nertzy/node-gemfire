@@ -35,6 +35,9 @@ class Cache : public node::ObjectWrap {
   static NAN_METHOD(Inspect);
 
   gemfire::QueryPtr newQuery(char * queryString);
+
+ private:
+  Local<Function> exitCallback();
 };
 
 }  // namespace node_gemfire
