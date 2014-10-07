@@ -149,6 +149,11 @@ NAN_METHOD(Cache::ExecuteQuery) {
   }
 
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  if (cache->cachePtr->isClosed()) {
+    NanThrowError("Cannot execute query; cache is closed.");
+    NanReturnUndefined();
+  }
+
   QueryPtr queryPtr(cache->newQuery(*NanUtf8String(args[0])));
 
   NanCallback * callback = new NanCallback(args[1].As<Function>());
