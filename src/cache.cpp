@@ -79,9 +79,8 @@ NAN_METHOD(Cache::Close) {
 }
 
 void Cache::close() {
-  if (!closed) {
+  if (!cachePtr->isClosed()) {
     cachePtr->close();
-    closed = true;
   }
 }
 
