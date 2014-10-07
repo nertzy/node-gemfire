@@ -85,6 +85,10 @@ class ClearWorker : public GemfireEventedWorker {
       region(region) {}
 
   void ExecuteGemfireWork() {
+    // Workaround: We don't want to call clear on the region if the cache is closed.
+    // After cache is cleared, getCache() will throw an exception, whereas clear() causes a segfault.
+    region->regionPtr->getCache();
+
     region->regionPtr->clear();
   }
 
@@ -100,6 +104,7 @@ NAN_METHOD(Region::Clear) {
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
   NanCallback * callback = getCallback(args[0]);
   ClearWorker * worker = new ClearWorker(args.This(), region, callback);
   NanAsyncQueueWorker(worker);

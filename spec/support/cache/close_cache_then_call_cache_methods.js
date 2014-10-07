@@ -1,5 +1,5 @@
 const _ = require("lodash");
-const util = require("util");
+const expectErrorMessage = require("./expect_error_message.js");
 
 const cache = require("../factories.js").getCache();
 
@@ -8,16 +8,6 @@ if(_.isEmpty(cache.rootRegions())) {
 }
 
 cache.close();
-
-function expectErrorMessage(error, expectedMessage) {
-  if(!error.message.match(expectedMessage)) {
-    throw new Error(
-      "Error message didn't match expectation:\n" +
-      "Expected: " + util.inspect(expectedMessage) + "\n" +
-      "  Actual: " + util.inspect(error.message)
-    );
-  }
-}
 
 try {
   cache.executeQuery("SELECT * FROM /exampleRegion", function(){});
