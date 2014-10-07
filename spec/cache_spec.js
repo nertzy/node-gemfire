@@ -72,7 +72,8 @@ describe("gemfire.Cache", function() {
     });
 
     it("causes subsequent region operations to throw", function(done) {
-      expectExternalFailure("close_cache_region_put", done, "region /exampleRegion destroyed");
+      // The script catches expected exceptions and throws unexpected ones
+      expectExternalSuccess("close_cache_then_call_region_methods", done);
     });
   });
 
