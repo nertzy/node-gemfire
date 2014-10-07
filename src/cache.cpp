@@ -8,6 +8,7 @@
 #include "conversions.hpp"
 #include "region.hpp"
 #include "gemfire_worker.hpp"
+#include "dependencies.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -66,7 +67,25 @@ NAN_METHOD(Cache::New) {
   Cache * cache = new Cache(cachePtr);
   cache->Wrap(args.This());
 
+  Local<Object> process(NanNew(dependencies)->Get(NanNew("process"))->ToObject());
+  static const int argc = 2;
+  Handle<Value> argv[argc] = { NanNew("exit"), cache->exitCallback() };
+  NanMakeCallback(process, "on", argc, argv);
+
   NanReturnValue(args.This());
+}
+
+Local<Function> Cache::exitCallback() {
+  NanEscapableScope();
+
+  Local<Function> unboundExitCallback(NanNew<FunctionTemplate>(Cache::Close)->GetFunction());
+
+  static const int argc = 1;
+  Handle<Value> argv[argc] = { NanObjectWrapHandle(this) };
+  Local<Function> boundExitCallback(
+      NanMakeCallback(unboundExitCallback, "bind", argc, argv).As<Function>());
+
+  return NanEscapeScope(boundExitCallback);
 }
 
 NAN_METHOD(Cache::Close) {
