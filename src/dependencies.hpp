@@ -5,7 +5,9 @@
 
 namespace node_gemfire {
 
-extern v8::Persistent<v8::Object> dependencies;
+using namespace v8;
+
+extern Persistent<Object> dependencies;
 
 }  // namespace node_gemfire
 
