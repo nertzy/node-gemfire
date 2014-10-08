@@ -78,8 +78,6 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
     if(expectFunctionsToThrowExceptionsCorrectly) {
       it("emits an error when the function throws an error", function(done) {
         subject.executeFunction("io.pivotal.node_gemfire.TestFunctionException")
-          .on('data', function(){ console.log("data", arguments); })
-          .on('end', function(){ console.log("end", arguments); })
           .on('error', function(error) {
             expect(error).toBeError(
               /com.gemstone.gemfire.cache.execute.FunctionException: Test exception message thrown by server./
