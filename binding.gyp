@@ -32,6 +32,7 @@
       "src/streaming_result_collector.cpp",
       "src/result_stream.cpp",
       "src/events.cpp",
+      "src/functions.cpp",
     ]
   },
   "targets": [

@@ -6,6 +6,7 @@ const randomString = require("random-string");
 const factories = require('./support/factories.js');
 const errorMatchers = require("./support/error_matchers.js");
 const until = require("./support/until.js");
+const itExecutesFunctions = require("./support/it_executes_functions.js");
 
 const invalidKeys = [null, undefined, []];
 const invalidValues = [null];
@@ -673,20 +674,11 @@ describe("gemfire.Region", function() {
   });
 
   describe(".executeFunction", function() {
-    const testFunctionName = "io.pivotal.node_gemfire.TestFunction";
-
-    it("runs a function on the GemFire cluster and emits results via the 'data' event", function(done) {
-      const dataCallback = jasmine.createSpy("dataCallback");
-
-      region
-        .executeFunction(testFunctionName)
-          .on("data", dataCallback)
-          .on("end", function(){
-            expect(dataCallback.callCount).toEqual(1);
-            expect(dataCallback).toHaveBeenCalledWith("TestFunction succeeded.");
-            done();
-          });
-    });
+    const expectFunctionsToThrowExceptionsCorrectly = true;
+    itExecutesFunctions(
+      function(){ return region; },
+      expectFunctionsToThrowExceptionsCorrectly
+    );
 
     it("gives the function access to the region", function(done) {
       const functionName = "io.pivotal.node_gemfire.SumRegion";
@@ -720,117 +712,6 @@ describe("gemfire.Region", function() {
             });
         }
       ], done);
-    });
-
-    it("runs a function with arguments as an Array on the GemFire cluster", function(done) {
-      const dataCallback = jasmine.createSpy("dataCallback");
-      region.executeFunction("io.pivotal.node_gemfire.Sum", [1, 2, 3])
-        .on("data", dataCallback)
-        .on("end", function(){
-          expect(dataCallback.callCount).toEqual(1);
-          expect(dataCallback).toHaveBeenCalledWith(6);
-          done();
-        });
-    });
-
-    it("runs a function with arguments as part of an options Object on the GemFire cluster", function(done) {
-      const dataCallback = jasmine.createSpy("dataCallback");
-      region.executeFunction("io.pivotal.node_gemfire.Sum", {arguments: [1, 2, 3]})
-        .on("data", dataCallback)
-        .on("end", function(){
-          expect(dataCallback.callCount).toEqual(1);
-          expect(dataCallback).toHaveBeenCalledWith(6);
-          done();
-        });
-    });
-
-    it("throws an error when no function name is passed in", function(){
-      function callWithoutArgs() {
-        region.executeFunction();
-      }
-      expect(callWithoutArgs).toThrow("You must provide the name of a function to execute.");
-    });
-
-    it("throws an error when no function name is passed in, but a non-name is", function() {
-      function callWithoutName() {
-        region.executeFunction(function(){});
-      }
-
-      expect(callWithoutName).toThrow("You must provide the name of a function to execute.");
-    });
-
-    it("throws an error when a function is passed in as an argument", function() {
-      function callWithBadArgs() {
-        region.executeFunction(testFunctionName, [function(){}]);
-      }
-
-      expect(callWithBadArgs).toThrow("Unable to serialize to GemFire; functions are not supported.");
-    });
-
-    it("emits an error when the function is not found", function(done){
-      region.executeFunction("com.example.Nonexistent")
-        .on('error', function(error) {
-          expect(error).toBeError(
-            "gemfire::MessageException: Execute::GET_FUNCTION_ATTRIBUTES: message from server could not be handled"
-          );
-          done();
-        });
-    });
-
-    it("emits an error when the function throws an error", function(done) {
-      region.executeFunction("io.pivotal.node_gemfire.TestFunctionException")
-        .on('error', function(error) {
-          expect(error).toBeError(
-            /com.gemstone.gemfire.cache.execute.FunctionException: Test exception message thrown by server./
-          );
-          done();
-        });
-    });
-
-    it("passes the results and an error when the function sends an exception with the results", function(done) {
-      const dataCallback = jasmine.createSpy("dataCallback");
-      region.executeFunction("io.pivotal.node_gemfire.TestFunctionExceptionResult")
-        .on('data', dataCallback)
-        .on('error', function(error) {
-          expect(error).toBeError(/java.lang.Exception: Test exception message sent by server./);
-        })
-        .on('end', function() {
-          expect(dataCallback.callCount).toEqual(1);
-          expect(dataCallback).toHaveBeenCalledWith("First result");
-          done();
-        });
-    });
-
-    it("throws an error when the options are not an Object or an Array", function() {
-      function passNonObjectAsOptions() {
-        region.executeFunction(
-          "io.pivotal.node_gemfire.Passthrough",
-          "this string is not an options object"
-        );
-      }
-
-      expect(passNonObjectAsOptions).toThrow(
-        "You must pass either an Array of arguments or an options Object to executeFunction()."
-      );
-    });
-
-    it("supports objects as input and output", function(done) {
-      const dataCallback = jasmine.createSpy("dataCallback");
-      region.executeFunction("io.pivotal.node_gemfire.Passthrough", { arguments: { foo: 'bar' } })
-        .on('data', dataCallback)
-        .on('end', function(){
-          expect(dataCallback.callCount).toEqual(1);
-          expect(dataCallback).toHaveBeenCalledWith({ foo: 'bar' });
-          done();
-        });
-    });
-
-    it("treats undefined arguments as missing", function(done) {
-      region.executeFunction("io.pivotal.node_gemfire.Passthrough", {})
-        .on('error', function(error) {
-          expect(error).toBeError(/Expected arguments; no arguments received/);
-          done();
-        });
     });
 
     it("supports an Array of keys as a filter", function(done) {

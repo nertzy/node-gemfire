@@ -9,6 +9,7 @@
 #include "region.hpp"
 #include "gemfire_worker.hpp"
 #include "dependencies.hpp"
+#include "functions.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -26,6 +27,8 @@ void Cache::Init(Local<Object> exports) {
 
   NanSetPrototypeTemplate(cacheConstructorTemplate, "close",
       NanNew<FunctionTemplate>(Cache::Close)->GetFunction());
+  NanSetPrototypeTemplate(cacheConstructorTemplate, "executeFunction",
+      NanNew<FunctionTemplate>(Cache::ExecuteFunction)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "executeQuery",
       NanNew<FunctionTemplate>(Cache::ExecuteQuery)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "getRegion",
@@ -200,6 +203,21 @@ NAN_METHOD(Cache::RootRegions) {
 NAN_METHOD(Cache::Inspect) {
   NanScope();
   NanReturnValue(NanNew("[Cache]"));
+}
+
+NAN_METHOD(Cache::ExecuteFunction) {
+  NanScope();
+
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  CachePtr cachePtr(cache->cachePtr);
+  if (cachePtr->isClosed()) {
+    NanThrowError("Cannot execute function; cache is closed.");
+    NanReturnUndefined();
+  }
+
+  ExecutionPtr executionPtr(FunctionService::onServer(cachePtr));
+
+  NanReturnValue(executeFunction(args, cachePtr, executionPtr));
 }
 
 }  // namespace node_gemfire
