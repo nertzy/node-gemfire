@@ -375,5 +375,35 @@ describe("gemfire.Cache", function() {
       factories.getCache,
       expectFunctionsToThrowExceptionsCorrectly
     );
+
+    // TODO: reenable this test when the Native Client is updated to throw errors for Cache.executeFunction
+    // See https://groups.google.com/a/pivotal.io/d/topic/labs-node-gemfire/HGOnikEWtNw/discussion
+    xit("does not give the function access to a region", function(done) {
+      const cache = factories.getCache();
+      const functionName = "io.pivotal.node_gemfire.SumRegion";
+
+      cache.executeFunction(functionName)
+        .on("error", function(error) {
+          expect(error).toBeError(
+            /cannot be cast to com.gemstone.gemfire.cache.execute.RegionFunctionContext/
+          );
+          done();
+        });
+    });
+
+    it("throws an error if filters are provided", function() {
+      const cache = factories.getCache();
+
+      function callWithFilter() {
+        cache.executeFunction(
+          "io.pivotal.node_gemfire.ReturnFilter",
+          { filter: ["foo", "bar"] }
+        );
+      }
+
+      expect(callWithFilter).toThrow(
+        "You cannot pass a filter to executeFunction for a Cache."
+      );
+    });
   });
 });

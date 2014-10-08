@@ -215,6 +215,14 @@ NAN_METHOD(Cache::ExecuteFunction) {
     NanReturnUndefined();
   }
 
+  if (args[1]->IsObject() && !args[1]->IsArray()) {
+    Local<Value> filter = args[1]->ToObject()->Get(NanNew("filter"));
+    if (!filter->IsUndefined()) {
+      NanThrowError("You cannot pass a filter to executeFunction for a Cache.");
+      NanReturnUndefined();
+    }
+  }
+
   ExecutionPtr executionPtr(FunctionService::onServer(cachePtr));
 
   NanReturnValue(executeFunction(args, cachePtr, executionPtr));
