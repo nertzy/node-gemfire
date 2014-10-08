@@ -11,6 +11,46 @@ var cache = new gemfire.Cache('config/gemfire.xml');
 
 For more information on cache configuration files, see [the documentation](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/cache-init-file/chapter-overview.html#chapter-overview).
 
+### cache.executeFunction(functionName, options)
+
+Executes a Java function on a server in the cluster containing the cache. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object containing the optional field `arguments`.
+
+ * `options.arguments`: the arguments to be passed to the Java function
+
+> **Note**: Unlike region.executeFunction(), `options.filter` is not allowed.
+
+cache.executeFunction returns an EventEmitter which emits the following events:
+
+ * `data`: Emitted once for each result sent by the Java function.
+ * `error`: Emitted if the function throws or returns an Exception.
+ * `end`: Called after the Java function has finally returned.
+
+> **Warning:** As of GemFire 8.0.0.0, there are some situations where the Java function can throw an uncaught Exception, but the node `error` callback never gets called. This is due to a known bug in how the GemFire 8.0.0.0 Native Client handles exceptions. This bug is only present for cache.executeFunction. region.executeFunction works as expected.
+
+Example:
+```javascript
+cache.executeFunction("com.example.FunctionName", 
+    { arguments: [1, 2, 3] }
+  )
+  .on("error", function(error) { throw error; })
+  .on("data", function(result) {
+    // ...
+  })
+  .on("end", function() {
+    // ...
+  });
+```
+
+For more information, please see the [GemFire documentation for Function Execution](http://gemfire.docs.pivotal.io/latest/userguide/developing/function_exec/chapter_overview.html).
+
+### cache.executeFunction(functionName, arguments)
+
+Shorthand for `executeFunction` with an array of arguments. Equivalent to:
+
+```javascript
+cache.executeFunction(functionName, { arguments: arguments })
+```
+
 ### cache.executeQuery(query, callback)
 
 Executes an OQL query on the cluster. The callback will be called with an `error` argument and a `response` argument. The `response` argument is an object responding to `toArray` and `each`.
@@ -79,12 +119,13 @@ Executes a Java function on any servers in the cluster containing the region. `f
  * `options.arguments`: the arguments to be passed to the Java function
  * `options.filter`: an array of keys to be sent to the Java function as the filter. 
 
-executeFunction returns an EventEmitter which emits the following events:
+region.executeFunction returns an EventEmitter which emits the following events:
 
  * `data`: Emitted once for each result sent by the Java function.
  * `error`: Emitted if the function throws or returns an Exception.
  * `end`: Called after the Java function has finally returned.
 
+Example:
 ```javascript
 region.executeFunction("com.example.FunctionName", 
     { arguments: [1, 2, 3], filters: ["key1", "key2"] }

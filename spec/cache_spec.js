@@ -5,6 +5,7 @@ const _ = require("lodash");
 const gemfire = require("./support/gemfire.js");
 const factories = require("./support/factories.js");
 const errorMatchers = require("./support/error_matchers.js");
+const itExecutesFunctions = require("./support/it_executes_functions.js");
 
 describe("gemfire.Cache", function() {
   beforeEach(function() {
@@ -366,5 +367,13 @@ describe("gemfire.Cache", function() {
         expect(expectedRegionNames).toContain(rootRegion.name);
       });
     });
+  });
+
+  describe(".executeFunction", function() {
+    const expectFunctionsToThrowExceptionsCorrectly = false;
+    itExecutesFunctions(
+      factories.getCache,
+      expectFunctionsToThrowExceptionsCorrectly
+    );
   });
 });
