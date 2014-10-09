@@ -175,8 +175,14 @@ NAN_METHOD(Cache::CreateRegion) {
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
   CachePtr cachePtr(cache->cachePtr);
 
-  RegionFactoryPtr regionFactoryPtr(cachePtr->createRegionFactory(LOCAL));
-  RegionPtr regionPtr(regionFactoryPtr->create(*NanUtf8String(args[0])));
+  RegionPtr regionPtr;
+  try {
+    RegionFactoryPtr regionFactoryPtr(cachePtr->createRegionFactory(CACHING_PROXY));
+    regionPtr = regionFactoryPtr->create(*NanUtf8String(args[0]));
+  } catch (const gemfire::Exception & exception) {
+    NanThrowError(gemfireExceptionMessage(exception).c_str());
+    NanReturnUndefined();
+  }
 
   NanReturnValue(Region::New(args.This(), regionPtr));
 }
