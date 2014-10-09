@@ -24,6 +24,20 @@ $ cd /my/node/project
 $ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save pivotal/node-gemfire
 ```
 
+### Configuring the GemFire client
+
+It is possible to configure the GemFire C++ Native Client compiled into this node module via a file called `gfcpp.properties`. Place this file in the current working directory of your node application.
+
+Here is an example file that turns off statistics collection, sets the "warning" log level, and redirects the log output to a file.
+
+```
+statistic-sampling-enabled=false
+log-level=warning
+log-file=log/gemfire.log
+```
+
+You can see the available options for `gfcpp.properties` in the [GemFire documentation](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/setting-properties/attributes-gfcpp.html).
+
 ## Usage
 
 ```javascript
@@ -39,7 +53,7 @@ region.put('foo', { bar: ['baz', 'qux'] }, function(error) {
 });
 ```
 
-For more information, please see the [API](doc/api.md).
+For more information, please see the full [API documentation](doc/api.md).
 
 ## Development
 
