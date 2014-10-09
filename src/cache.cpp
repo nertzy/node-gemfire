@@ -31,6 +31,8 @@ void Cache::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Cache::ExecuteFunction)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "executeQuery",
       NanNew<FunctionTemplate>(Cache::ExecuteQuery)->GetFunction());
+  NanSetPrototypeTemplate(cacheConstructorTemplate, "createRegion",
+      NanNew<FunctionTemplate>(Cache::CreateRegion)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "getRegion",
       NanNew<FunctionTemplate>(Cache::GetRegion)->GetFunction());
   NanSetPrototypeTemplate(cacheConstructorTemplate, "rootRegions",
@@ -165,6 +167,18 @@ NAN_METHOD(Cache::ExecuteQuery) {
   NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
+}
+
+NAN_METHOD(Cache::CreateRegion) {
+  NanScope();
+
+  Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  CachePtr cachePtr(cache->cachePtr);
+
+  RegionFactoryPtr regionFactoryPtr(cachePtr->createRegionFactory(LOCAL));
+  RegionPtr regionPtr(regionFactoryPtr->create(*NanUtf8String(args[0])));
+
+  NanReturnValue(Region::New(args.This(), regionPtr));
 }
 
 NAN_METHOD(Cache::GetRegion) {

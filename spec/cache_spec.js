@@ -406,4 +406,17 @@ describe("gemfire.Cache", function() {
       );
     });
   });
+
+  describe(".createRegion", function() {
+    it("creates a region", function() {
+      const cache = factories.getCache();
+
+      expect(cache.getRegion("newRegion")).toBeUndefined();
+
+      const newRegion = cache.createRegion("newRegion");
+
+      expect(newRegion).toBeDefined();
+      expect(cache.getRegion("newRegion")).toEqual(newRegion);
+    });
+  });
 });
