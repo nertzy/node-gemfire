@@ -9,4 +9,5 @@
   <region name="exampleRegion" refid="REPLICATE"/>
   <region name="anotherRegion" refid="REPLICATE"/>
   <region name="oqlBenchmark" refid="REPLICATE"/>
+  <region name="shadow" refid="REPLICATE"/>
 </cache>
