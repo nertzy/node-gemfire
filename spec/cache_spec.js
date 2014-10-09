@@ -7,6 +7,32 @@ const factories = require("./support/factories.js");
 const errorMatchers = require("./support/error_matchers.js");
 const itExecutesFunctions = require("./support/it_executes_functions.js");
 
+function runExternalTest(name, done, callback) {
+  if(!done) { throw("You must run this test asynchronously and pass done");  }
+  if(!callback) { throw("You must pass a callback");  }
+
+  var filename = "spec/support/cache/" + name + ".js";
+
+  childProcess.execFile("node", [filename], function(error, stdout, stderr) {
+    callback(error, stdout, stderr);
+    done();
+  });
+}
+
+function expectExternalSuccess(name, done){
+  runExternalTest(name, done, function(error, stdout, stderr) {
+    expect(error).not.toBeError();
+    expect(stderr).toEqual('');
+  });
+}
+
+function expectExternalFailure(name, done, message){
+  runExternalTest(name, done, function(error, stdout, stderr) {
+    expect(error).toBeError();
+    expect(stderr).toContain(message);
+  });
+}
+
 describe("gemfire.Cache", function() {
   beforeEach(function() {
     this.addMatchers(errorMatchers);
@@ -15,32 +41,6 @@ describe("gemfire.Cache", function() {
   afterEach(function(done) {
     setTimeout(done, 0);
   });
-
-  function runExternalTest(name, done, callback) {
-    if(!done) { throw("You must run this test asynchronously and pass done");  }
-    if(!callback) { throw("You must pass a callback");  }
-
-    var filename = "spec/support/cache/" + name + ".js";
-
-    childProcess.execFile("node", [filename], function(error, stdout, stderr) {
-      callback(error, stdout, stderr);
-      done();
-    });
-  }
-
-  function expectExternalSuccess(name, done){
-    runExternalTest(name, done, function(error, stdout, stderr) {
-      expect(error).not.toBeError();
-      expect(stderr).toEqual('');
-    });
-  }
-
-  function expectExternalFailure(name, done, message){
-    runExternalTest(name, done, function(error, stdout, stderr) {
-      expect(error).toBeError();
-      expect(stderr).toContain(message);
-    });
-  }
 
   describe("constructor", function(){
     it("throws an error if the file is not found", function(done) {
@@ -429,6 +429,23 @@ describe("gemfire.Cache", function() {
       expect(createExistingRegion).toThrow(
         'gemfire::RegionExistsException: Cache::createRegion: "exampleRegion" region exists in local cache'
       );
+    });
+
+    it("creates a caching proxy region", function(done) {
+      async.series([
+        function(next) {
+          expectExternalSuccess("populate_shadow_region", next);
+        },
+        function(next) {
+          const cache = factories.getCache();
+          const shadowRegion = cache.createRegion("shadow");
+          shadowRegion.get("proxy", function(error, value) {
+            expect(error).not.toBeError();
+            expect(value).toEqual(true);
+            next();
+          });
+        }
+      ], done);
     });
   });
 });
