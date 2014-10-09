@@ -418,5 +418,17 @@ describe("gemfire.Cache", function() {
       expect(newRegion).toBeDefined();
       expect(cache.getRegion("newRegion")).toEqual(newRegion);
     });
+
+    it("throws an error when a region already exists", function() {
+      const cache = factories.getCache();
+
+      function createExistingRegion(){
+        cache.createRegion("exampleRegion");
+      }
+
+      expect(createExistingRegion).toThrow(
+        'gemfire::RegionExistsException: Cache::createRegion: "exampleRegion" region exists in local cache'
+      );
+    });
   });
 });
