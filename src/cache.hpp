@@ -31,6 +31,7 @@ class Cache : public node::ObjectWrap {
   static NAN_METHOD(Close);
   static NAN_METHOD(ExecuteFunction);
   static NAN_METHOD(ExecuteQuery);
+  static NAN_METHOD(CreateRegion);
   static NAN_METHOD(GetRegion);
   static NAN_METHOD(RootRegions);
   static NAN_METHOD(Inspect);
