@@ -48,6 +48,8 @@ To increase the chances of a pull request being merged, we recommend that you fo
 
 * Use [Native Abstractions for Node.js](https://github.com/rvagg/nan) where possible to improve compatibility between versions of NodeJS.
 
+  * To learn more about the differences between the versions of V8 included with each version of NodeJS, you can refer to the [v8 documentation](https://v8docs.nodesource.com/).
+
 * Add test cases for new or improved behavior. We use the folowing test libraries:
   * [Jasmine](https://github.com/pivotal/jasmine) for feature specs in JavaScript
   * [GoogleTest](https://code.google.com/p/googletest/) for unit tests in C++
