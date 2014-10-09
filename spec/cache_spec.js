@@ -96,9 +96,9 @@ describe("gemfire.Cache", function() {
         cache.getRegion("exampleRegion", "foo");
       }
 
-      expect(callWithZeroArguments).toThrow("getRegion expects one argument: the name of a Gemfire region");
+      expect(callWithZeroArguments).toThrow("You must pass the name of a GemFire region to getRegion.");
       expect(callWithOneArgument).not.toThrow();
-      expect(callWithTwoArguments).toThrow("getRegion expects one argument: the name of a Gemfire region");
+      expect(callWithTwoArguments).toThrow("You must pass the name of a GemFire region to getRegion.");
     });
 
     it("returns a gemfire.Region object", function() {
@@ -109,6 +109,17 @@ describe("gemfire.Cache", function() {
     it("returns undefined if the region is unknown", function(){
       expect(cache.getRegion("there is no such region")).toBeUndefined();
     });
+
+    it("throws an error when a non-string name is passed in", function() {
+      function getRegionWithNonStringArguments(){
+        cache.getRegion({});
+      }
+
+      expect(getRegionWithNonStringArguments).toThrow(
+        "You must pass a string as the name of a GemFire region to getRegion."
+      );
+    });
+
   });
 
   describe("executeQuery", function () {
@@ -428,6 +439,30 @@ describe("gemfire.Cache", function() {
 
       expect(createExistingRegion).toThrow(
         'gemfire::RegionExistsException: Cache::createRegion: "exampleRegion" region exists in local cache'
+      );
+    });
+
+    it("throws an error when no name is passed in", function() {
+      const cache = factories.getCache();
+
+      function createRegionWithNoArguments(){
+        cache.createRegion();
+      }
+
+      expect(createRegionWithNoArguments).toThrow(
+        "You must pass the name of a GemFire region to createRegion."
+      );
+    });
+
+    it("throws an error when a non-string name is passed in", function() {
+      const cache = factories.getCache();
+
+      function createRegionWithNonStringArguments(){
+        cache.createRegion({});
+      }
+
+      expect(createRegionWithNonStringArguments).toThrow(
+        "You must pass a string as the name of a GemFire region to createRegion."
       );
     });
 
