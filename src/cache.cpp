@@ -172,6 +172,16 @@ NAN_METHOD(Cache::ExecuteQuery) {
 NAN_METHOD(Cache::CreateRegion) {
   NanScope();
 
+  if (args.Length() != 1) {
+    NanThrowError("You must pass the name of a GemFire region to createRegion.");
+    NanReturnUndefined();
+  }
+
+  if (!args[0]->IsString()) {
+    NanThrowError("You must pass a string as the name of a GemFire region to createRegion.");
+    NanReturnUndefined();
+  }
+
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
   CachePtr cachePtr(cache->cachePtr);
 
@@ -191,7 +201,12 @@ NAN_METHOD(Cache::GetRegion) {
   NanScope();
 
   if (args.Length() != 1) {
-    NanThrowError("getRegion expects one argument: the name of a Gemfire region");
+    NanThrowError("You must pass the name of a GemFire region to getRegion.");
+    NanReturnUndefined();
+  }
+
+  if (!args[0]->IsString()) {
+    NanThrowError("You must pass a string as the name of a GemFire region to getRegion.");
     NanReturnUndefined();
   }
 
