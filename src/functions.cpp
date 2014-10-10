@@ -22,7 +22,7 @@ class ExecuteFunctionWorker {
       const CacheablePtr & functionArguments,
       const CacheableVectorPtr & functionFilter,
       const Local<Object> & emitter) :
-    resultStream(new ResultStream(this, DataAsyncCallback, EndAsyncCallback)),
+    resultStreamPtr(new ResultStream(this, DataAsyncCallback, EndAsyncCallback)),
     executionPtr(executionPtr),
     functionName(functionName),
     functionArguments(functionArguments),
@@ -74,11 +74,11 @@ class ExecuteFunctionWorker {
         executionPtr = executionPtr->withFilter(functionFilter);
       }
 
-      ResultCollectorPtr resultCollectorPtr(new StreamingResultCollector(resultStream));
+      ResultCollectorPtr resultCollectorPtr(new StreamingResultCollector(resultStreamPtr));
       executionPtr = executionPtr->withCollector(resultCollectorPtr);
 
       executionPtr->execute(functionName.c_str());
-      resultStream->waitUntilFinished();
+      resultStreamPtr->waitUntilFinished();
     } catch (const gemfire::Exception & exception) {
       errorMessage = gemfireExceptionMessage(exception);
     }
@@ -96,7 +96,7 @@ class ExecuteFunctionWorker {
 
     Local<Object> eventEmitter(NanNew(emitter));
 
-    CacheableVectorPtr resultsPtr(resultStream->nextResults());
+    CacheableVectorPtr resultsPtr(resultStreamPtr->nextResults());
     for (CacheableVector::Iterator iterator(resultsPtr->begin());
          iterator != resultsPtr->end();
          ++iterator) {
@@ -109,20 +109,20 @@ class ExecuteFunctionWorker {
       }
     }
 
-    resultStream->resultsProcessed();
+    resultStreamPtr->resultsProcessed();
   }
 
   void End() {
     NanScope();
 
     emitEvent(NanNew(emitter), "end");
-    resultStream->endProcessed();
+    resultStreamPtr->endProcessed();
   }
 
   uv_work_t request;
 
  private:
-  ResultStreamPtr resultStream;
+  ResultStreamPtr resultStreamPtr;
 
   ExecutionPtr executionPtr;
   std::string functionName;
