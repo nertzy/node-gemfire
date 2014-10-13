@@ -79,7 +79,7 @@ function benchmark(recordCount, callback) {
         const usecPerPut = Math.round(microseconds / queryCount);
 
         console.log(
-          "OQL (" + recordCount + " entries): ", + usecPerPut + " usec/query " + queriesPerSecond + " queries/sec"
+          "OQL (" + recordCount + " entries): ", + usecPerPut + " usec/op " + queriesPerSecond + " ops/sec"
         );
 
         next();
