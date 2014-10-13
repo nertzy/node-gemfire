@@ -66,7 +66,7 @@ function benchmark(numberOfPuts, title, functionToTest, callback) {
       const usecPerPut = Math.round(microseconds / numberOfPuts);
 
       console.log(
-        title + " put:" , + usecPerPut + " usec/put " + putsPerSecond + " puts/sec"
+        title + " put:" , + usecPerPut + " usec/op " + putsPerSecond + " ops/sec"
       );
 
       next();
