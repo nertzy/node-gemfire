@@ -21,7 +21,6 @@
       "-L$(GFCPP)/lib"
     ],
     "sources": [
-      "src/binding.cpp",
       "src/dependencies.cpp",
       "src/exceptions.cpp",
       "src/conversions.cpp",
@@ -38,6 +37,9 @@
   "targets": [
     {
       "target_name": "<(module_name)",
+      "sources": [
+        "src/binding.cpp"
+      ]
     },
     {
       "target_name": "action_after_build",
@@ -61,10 +63,7 @@
           ],
           "sources": [
             "spec/cpp/test.cpp",
-          ],
-          "sources!": [
-            "src/binding.cpp",
-          ],
+          ]
         }
       ]
     }]
