@@ -91,5 +91,5 @@ function benchmark(recordCount, callback) {
 async.series([
   function(next){ benchmark(100, next); },
   function(next){ benchmark(1000, next); },
-  function(next){ benchmark(5000, next); }
+  function(next){ benchmark(10000, next); }
 ]);
