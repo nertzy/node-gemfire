@@ -13,7 +13,9 @@
 
   <region name="createEventTest" refid="REPLICATE"/>
   <region name="updateEventTest" refid="REPLICATE"/>
+  <region name="destroyEventTest" refid="REPLICATE"/>
 
   <region name="createRegionCreateEventTest" refid="REPLICATE"/>
   <region name="createRegionUpdateEventTest" refid="REPLICATE"/>
+  <region name="createRegionDestroyEventTest" refid="REPLICATE"/>
 </cache>

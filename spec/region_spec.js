@@ -1454,5 +1454,84 @@ describe("gemfire.Region", function() {
         ], done);
       });
     });
+
+    describe("destroy", function() {
+      beforeEach(function() {
+        region = cache.getRegion("destroyEventTest");
+      });
+
+      it("is emitted when an entry is destroyed on a region from getRegion", function(done) {
+        region.on("destroy", function(event) {
+          expect(event).toEqual(jasmine.objectContaining({
+            key: "foo",
+            oldValue: "bar",
+            newValue: null
+          }));
+          done();
+        });
+
+        async.series([
+          function(next) { region.put("foo", "bar", next); },
+          function(next) { region.remove("foo"); }
+        ]);
+      });
+
+      it("is emitted when an entry is destroyed on a region from createRegion", function(done) {
+        const region = cache.createRegion("createRegionDestroyEventTest");
+
+        async.series([
+          function(next) { region.clear(next); },
+          function(next) {
+            region.on("destroy", function(event) {
+              expect(event).toEqual(jasmine.objectContaining({
+                key: "foo",
+                oldValue: "bar",
+                newValue: null
+              }));
+              done();
+            });
+
+            next();
+          },
+          function(next) { region.put("foo", "bar", next); },
+          function(next) { region.remove("foo"); }
+        ]);
+      });
+
+      it("emits events on each JS object for the GemFire region", function(done) {
+        const anotherRegion = cache.getRegion("anotherRegion");
+        const region1 = cache.getRegion("exampleRegion");
+        const region2 = cache.getRegion("exampleRegion");
+
+        var callback1Called = false;
+        region1.on('destroy', function() {
+          callback1Called = true;
+        });
+
+        var callback2Called = false;
+        region2.on('destroy', function() {
+          callback2Called = true;
+        });
+
+        var anotherCallbackCalled = false;
+        anotherRegion.on('destroy', function() {
+          anotherCallbackCalled = true;
+        });
+
+        async.series([
+          function(next) { region1.put("foo", "bar", next); },
+          function(next) { region1.remove("foo", next); },
+          function(next) {
+            waitUntil(function(){
+              return callback1Called && callback2Called;
+            }, next);
+          },
+          function(next) {
+            expect(anotherCallbackCalled).toBeFalsy();
+            next();
+          },
+        ], done);
+      });
+    });
   });
 });
