@@ -18,4 +18,6 @@
   <region name="createRegionCreateEventTest" refid="REPLICATE"/>
   <region name="createRegionUpdateEventTest" refid="REPLICATE"/>
   <region name="createRegionDestroyEventTest" refid="REPLICATE"/>
+
+  <region name="registerInterestTest" refid="REPLICATE"/>
 </cache>
