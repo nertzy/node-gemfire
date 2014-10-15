@@ -1292,25 +1292,28 @@ describe("gemfire.Region", function() {
   });
 
   describe("events", function() {
-    beforeEach(function() {
-      region = cache.getRegion("createEventTest");
-    });
+    function waitUntil(test, next) {
+      if(test()) {
+        next();
+      } else {
+        setImmediate(function(){
+          waitUntil(test, next);
+        });
+      }
+    }
 
     describe("create", function() {
-      function waitUntil(test, next) {
-        if(test()) {
-          next();
-        } else {
-          setImmediate(function(){
-            waitUntil(test, next);
-          });
-        }
-      }
+      beforeEach(function() {
+        region = cache.getRegion("createEventTest");
+      });
 
       it("is emitted when an entry is created on a region from getRegion", function(done) {
         region.on("create", function(event) {
-          expect(event.key).toEqual("foo");
-          expect(event.value).toEqual("bar");
+          expect(event).toEqual(jasmine.objectContaining({
+            key: "foo",
+            oldValue: null,
+            newValue: "bar"
+          }));
           done();
         });
 
@@ -1318,22 +1321,23 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is created on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionEventTest");
+        const region = cache.createRegion("createRegionCreateEventTest");
 
         async.series([
           function(next) { region.clear(next); },
           function(next) {
             region.on("create", function(event) {
-              expect(event.key).toEqual("foo");
-              expect(event.value).toEqual("bar");
+              expect(event).toEqual(jasmine.objectContaining({
+                key: "foo",
+                oldValue: null,
+                newValue: "bar"
+              }));
               done();
             });
 
             next();
           },
-          function(next) {
-            region.put("foo", "bar", next);
-          }
+          function(next) { region.put("foo", "bar", next); }
         ]);
       });
 
@@ -1359,6 +1363,85 @@ describe("gemfire.Region", function() {
 
         async.series([
           function(next) { region1.put("foo", "bar", next); },
+          function(next) {
+            waitUntil(function(){
+              return callback1Called && callback2Called;
+            }, next);
+          },
+          function(next) {
+            expect(anotherCallbackCalled).toBeFalsy();
+            next();
+          },
+        ], done);
+      });
+    });
+
+    describe("update", function() {
+      beforeEach(function() {
+        region = cache.getRegion("updateEventTest");
+      });
+
+      it("is emitted when an entry is updated on a region from getRegion", function(done) {
+        region.on("update", function(event) {
+          expect(event).toEqual(jasmine.objectContaining({
+            key: "foo",
+            oldValue: "bar",
+            newValue: "baz"
+          }));
+          done();
+        });
+
+        async.series([
+          function(next) { region.put("foo", "bar", next); },
+          function(next) { region.put("foo", "baz", next); }
+        ]);
+      });
+
+      it("is emitted when an entry is updated on a region from createRegion", function(done) {
+        const region = cache.createRegion("createRegionUpdateEventTest");
+
+        async.series([
+          function(next) { region.clear(next); },
+          function(next) {
+            region.on("update", function(event) {
+              expect(event).toEqual(jasmine.objectContaining({
+                key: "foo",
+                oldValue: "bar",
+                newValue: "baz"
+              }));
+              done();
+            });
+
+            next();
+          },
+          function(next) { region.put("foo", "bar", next); },
+          function(next) { region.put("foo", "baz", next); }
+        ]);
+      });
+
+      it("emits events on each JS object for the GemFire region", function(done) {
+        const anotherRegion = cache.getRegion("anotherRegion");
+        const region1 = cache.getRegion("exampleRegion");
+        const region2 = cache.getRegion("exampleRegion");
+
+        var callback1Called = false;
+        region1.on('update', function() {
+          callback1Called = true;
+        });
+
+        var callback2Called = false;
+        region2.on('update', function() {
+          callback2Called = true;
+        });
+
+        var anotherCallbackCalled = false;
+        anotherRegion.on('update', function() {
+          anotherCallbackCalled = true;
+        });
+
+        async.series([
+          function(next) { region1.put("foo", "bar", next); },
+          function(next) { region1.put("foo", "baz", next); },
           function(next) {
             waitUntil(function(){
               return callback1Called && callback2Called;

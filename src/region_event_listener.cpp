@@ -9,6 +9,10 @@ void RegionEventListener::afterCreate(const EntryEvent & event) {
   RegionEventRegistry::getInstance()->emit("create", event);
 }
 
+void RegionEventListener::afterUpdate(const EntryEvent & event) {
+  RegionEventRegistry::getInstance()->emit("update", event);
+}
+
 RegionEventRegistry RegionEventRegistry::instance = RegionEventRegistry();
 
 }  // namespace node_gemfire

@@ -320,19 +320,43 @@ region.put("foo", null, function(error) {});
 ### Event: 'create'
 
 * event: GemFire event payload object.
+  * event.key: The key that was inserted.
+  * event.oldValue: Always `null` because there is no old value.
+  * event.newValue: The value that was inserted.
 
-Emitted when a new key is added to the region. Not emitted when an existing key's value is updated.
+Emitted when an entry is added to the region. Not emitted when an existing entry's value is updated.
 
 Example:
 ```javascript
 region.on("create", function(event) {
-  console.log(event.key);
-  console.log(event.value);
+  // process event
 });
 
-// emits an event because "foo" is a new key in the region
+// emits an event because "foo" is a new entry in the region
 region.put("foo", "bar");
 
-// does not emit an event because "foo" is already a key in the region
+// does not emit an event because "foo" is already an entry in the region
+region.put("foo", "baz");
+```
+
+### Event: 'update'
+
+* event: GemFire event payload object.
+  * event.key: The key that was updated.
+  * event.oldValue: The previous value before the update.
+  * event.newValue: The new value after the update.
+
+Emitted when an existing entry's value is updated. Not emitted when an entry is added to the region.
+
+Example:
+```javascript
+region.on("update", function(event) {
+  // process event
+});
+
+// does not emit an event because "foo" is a new entry in the region
+region.put("foo", "bar");
+
+// emits an event because "foo" is already an entry in the region
 region.put("foo", "baz");
 ```
