@@ -366,19 +366,17 @@ describe("gemfire.Cache", function() {
   });
 
   describe(".rootRegions", function() {
-    it("returns an array of all the top level regions", function() {
+    it("returns an array of top level regions", function() {
       const cache = factories.getCache();
-      const expectedRegionNames = [ 
-        "exampleRegion", "anotherRegion", "oqlBenchmark", "createEventTest"
-      ];
-
       const rootRegions = cache.rootRegions();
 
-      expect(rootRegions.length).toEqual(expectedRegionNames.length);
       _.each(rootRegions, function(rootRegion) {
         expect(rootRegion.constructor.name).toEqual("Region");
-        expect(expectedRegionNames).toContain(rootRegion.name);
       });
+
+      const actualRegionNames = _.pluck(rootRegions, "name");
+      expect(actualRegionNames).toContain("exampleRegion");
+      expect(actualRegionNames).toContain("anotherRegion");
     });
   });
 
