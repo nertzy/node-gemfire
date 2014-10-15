@@ -5,6 +5,7 @@
 #include <nan.h>
 #include <node.h>
 #include <gfcpp/Region.hpp>
+#include "region_event_registry.hpp"
 
 using namespace v8;
 
@@ -12,13 +13,16 @@ namespace node_gemfire {
 
 class Region : public node::ObjectWrap {
  public:
-  Region(Local<Object> cacheHandle,
+  Region(Local<Object> regionHandle,
+         Local<Object> cacheHandle,
          gemfire::RegionPtr regionPtr) :
     regionPtr(regionPtr) {
+      Wrap(regionHandle);
       NanAssignPersistent(this->cacheHandle, cacheHandle);
     }
 
-  ~Region() {
+  virtual ~Region() {
+    RegionEventRegistry::getInstance()->remove(this);
     NanDisposePersistent(cacheHandle);
   }
 

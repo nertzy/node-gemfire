@@ -4,9 +4,9 @@
 #include <string>
 #include <sstream>
 
-namespace node_gemfire {
-
 using namespace v8;
+
+namespace node_gemfire {
 
 void ThrowGemfireException(const gemfire::Exception & e) {
   NanThrowError(gemfireExceptionMessage(e).c_str());

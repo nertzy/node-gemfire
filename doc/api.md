@@ -316,3 +316,23 @@ region.put("foo", null);
 // does not emit an error, because a callback was passed
 region.put("foo", null, function(error) {});
 ```
+
+### Event: 'create'
+
+* event: GemFire event payload object.
+
+Emitted when a new key is added to the region. Not emitted when an existing key's value is updated.
+
+Example:
+```javascript
+region.on("create", function(event) {
+  console.log(event.key);
+  console.log(event.value);
+});
+
+// emits an event because "foo" is a new key in the region
+region.put("foo", "bar");
+
+// does not emit an event because "foo" is already a key in the region
+region.put("foo", "baz");
+```

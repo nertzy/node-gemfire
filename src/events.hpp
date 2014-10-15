@@ -4,9 +4,9 @@
 #include <v8.h>
 #include <string>
 
-namespace node_gemfire {
-
 using namespace v8;
+
+namespace node_gemfire {
 
 void emitEvent(const Local<Object> & emitter, const char * eventName);
 void emitEvent(const Local<Object> & emitter, const char * eventName, const Local<Value> & payload);

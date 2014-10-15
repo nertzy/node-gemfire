@@ -3,9 +3,9 @@
 
 #include <v8.h>
 
-namespace node_gemfire {
-
 using namespace v8;
+
+namespace node_gemfire {
 
 extern Persistent<Object> dependencies;
 

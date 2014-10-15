@@ -6,15 +6,13 @@
 
 namespace node_gemfire {
 
-using namespace gemfire;
-
-class StreamingResultCollector : public ResultCollector {
+class StreamingResultCollector : public gemfire::ResultCollector {
  public:
   explicit StreamingResultCollector(ResultStreamPtr resultStream) :
       ResultCollector(),
       resultStream(resultStream) {}
 
-  virtual void addResult(CacheablePtr & resultPtr);
+  virtual void addResult(gemfire::CacheablePtr & resultPtr);
   virtual void endResults();
 
  private:
