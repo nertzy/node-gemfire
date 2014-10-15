@@ -5,6 +5,7 @@ const randomString = require("random-string");
 const factories = require('./support/factories.js');
 const errorMatchers = require("./support/error_matchers.js");
 const until = require("./support/until.js");
+const waitUntil = require("./support/wait_until.js");
 const itExecutesFunctions = require("./support/it_executes_functions.js");
 
 const invalidKeys = [null, undefined, []];
@@ -1292,16 +1293,6 @@ describe("gemfire.Region", function() {
   });
 
   describe("events", function() {
-    function waitUntil(test, next) {
-      if(test()) {
-        next();
-      } else {
-        setImmediate(function(){
-          waitUntil(test, next);
-        });
-      }
-    }
-
     describe("create", function() {
       beforeEach(function() {
         region = cache.getRegion("createEventTest");
@@ -1532,6 +1523,59 @@ describe("gemfire.Region", function() {
           },
         ], done);
       });
+    });
+  });
+
+  describe(".registerAllKeys", function() {
+    it("registers interest in all keys in the region for external events", function(done) {
+      const region = cache.getRegion("registerInterestTest");
+
+      function externalPut(key, value, next) {
+        region.executeFunction("io.pivotal.node_gemfire.Put", [key, value])
+          .on("error", function(error) { throw(error); })
+          .on("end", next);
+      }
+
+      const createCallback = jasmine.createSpy();
+      region.on("create", createCallback);
+
+      async.series([
+        function(next) {
+          region.registerAllKeys();
+          next();
+        },
+        function(next) { region.clear(next); },
+        function(next) { externalPut("foo", "bar", next); },
+        function(next) {
+          waitUntil(function(){
+            return createCallback.calls.length == 1;
+          }, next);
+        },
+        function(next) {
+          expect(createCallback).toHaveBeenCalledWith(jasmine.objectContaining({
+            key: "foo",
+            oldValue: null,
+            newValue: "bar"
+          }));
+          createCallback.reset();
+          next();
+        },
+        function(next) {
+          region.unregisterAllKeys();
+          next();
+        },
+        function(next) { region.clear(next); },
+        function(next) {
+          region.on("create", function(){
+            throw(
+              "create callback should not be called for external puts when interest is not registered"
+            );
+          });
+          next();
+        },
+        function(next) { externalPut("foo", "bar", next); },
+        function(next) { process.nextTick(next); }
+      ], done);
     });
   });
 });

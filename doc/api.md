@@ -298,6 +298,46 @@ region.query("this like '% Smith', function(error, response) {
 
 See also `region.selectValue` and `region.existsValue`.
 
+### region.registerAllKeys()
+
+Tells the GemFire server to trigger events for entry operations that were triggered by other clients in the system. By default, region entry operations (`region.put`, `region.remove`, etc.) that happen within a single Node process trigger events *only* within that same process. After calling `region.registerAllKeys`, all entry operations on the region will trigger events. In other words, the GemFire server will push notifications back to the Node process.
+
+Example:
+```javascript
+region.on("create", function(event) {
+  // handle event
+}
+
+// another client creates an entry in the region, and the callback is not triggered
+
+region.registerAllKeys();
+
+// another client creates an entry in the region, and the callback is triggered
+```
+
+See also Events and `region.unregisterAllKeys`.
+
+### region.unregisterAllKeys()
+
+Tells the GemFire server *not* to trigger events for entry operations that were triggered by other clients in the system. 
+
+Example:
+```javascript
+region.registerAllKeys();
+
+region.on("create", function(event) {
+  // handle event
+}
+
+// another client creates an entry in the region, and the callback is triggered
+
+region.unregisterAllKeys();
+
+// another client creates an entry in the region, and the callback is not triggered
+```
+
+See also Events and `region.registerAllKeys`.
+
 ### Event: 'error'
 
 * error: `Error` object.
@@ -339,6 +379,8 @@ region.put("foo", "bar");
 region.put("foo", "baz");
 ```
 
+See also `region.registerAllKeys`.
+
 ### Event: 'destroy'
 
 * event: GemFire event payload object.
@@ -356,6 +398,8 @@ region.on("destroy", function(event) {
 
 region.remove("foo");
 ```
+
+See also `region.registerAllKeys`.
 
 ### Event: 'update'
 
@@ -378,3 +422,5 @@ region.put("foo", "bar");
 // emits an event because "foo" is already an entry in the region
 region.put("foo", "baz");
 ```
+
+See also `region.registerAllKeys`.
