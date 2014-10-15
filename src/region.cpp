@@ -1,15 +1,17 @@
 #include "region.hpp"
 #include <gfcpp/Region.hpp>
-#include <gfcpp/FunctionService.hpp>
 #include <uv.h>
 #include <sstream>
 #include <string>
+#include <vector>
 #include "conversions.hpp"
 #include "exceptions.hpp"
 #include "cache.hpp"
 #include "gemfire_worker.hpp"
 #include "events.hpp"
 #include "functions.hpp"
+#include "region_event_registry.hpp"
+#include "dependencies.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -36,10 +38,11 @@ Local<Value> Region::New(Local<Object> cacheObject, RegionPtr regionPtr) {
     return NanEscapeScope(NanUndefined());
   }
 
-  Region * region = new Region(cacheObject, regionPtr);
   Local<Object> regionObject(NanNew(Region::constructor)->NewInstance(0, NULL));
+  node_gemfire::Region * region =
+    new node_gemfire::Region(regionObject, cacheObject, regionPtr);
 
-  region->Wrap(regionObject);
+  RegionEventRegistry::getInstance()->add(region);
 
   return NanEscapeScope(regionObject);
 }

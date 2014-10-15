@@ -20,10 +20,6 @@ describe("gemfire.Region", function() {
     region.clear(done);
   });
 
-  afterEach(function(done) {
-    setTimeout(done, 0);
-  });
-
   describe(".get", function() {
     it("throws an error if a key is not passed to .get", function() {
       function getWithoutKey() {
@@ -1292,6 +1288,88 @@ describe("gemfire.Region", function() {
       }
 
       expect(callWithNonFunction).toThrow("You must pass a function as the callback to keys().");
+    });
+  });
+
+  describe("events", function() {
+    beforeEach(function() {
+      region = cache.getRegion("createEventTest");
+    });
+
+    describe("create", function() {
+      function waitUntil(test, next) {
+        if(test()) {
+          next();
+        } else {
+          setImmediate(function(){
+            waitUntil(test, next);
+          });
+        }
+      }
+
+      it("is emitted when an entry is created on a region from getRegion", function(done) {
+        region.on("create", function(event) {
+          expect(event.key).toEqual("foo");
+          expect(event.value).toEqual("bar");
+          done();
+        });
+
+        region.put("foo", "bar");
+      });
+
+      it("is emitted when an entry is created on a region from createRegion", function(done) {
+        const region = cache.createRegion("createRegionEventTest");
+
+        async.series([
+          function(next) { region.clear(next); },
+          function(next) {
+            region.on("create", function(event) {
+              expect(event.key).toEqual("foo");
+              expect(event.value).toEqual("bar");
+              done();
+            });
+
+            next();
+          },
+          function(next) {
+            region.put("foo", "bar", next);
+          }
+        ]);
+      });
+
+      it("emits events on each JS object for the GemFire region", function(done) {
+        const anotherRegion = cache.getRegion("anotherRegion");
+        const region1 = cache.getRegion("exampleRegion");
+        const region2 = cache.getRegion("exampleRegion");
+
+        var callback1Called = false;
+        region1.on('create', function() {
+          callback1Called = true;
+        });
+
+        var callback2Called = false;
+        region2.on('create', function() {
+          callback2Called = true;
+        });
+
+        var anotherCallbackCalled = false;
+        anotherRegion.on('create', function() {
+          anotherCallbackCalled = true;
+        });
+
+        async.series([
+          function(next) { region1.put("foo", "bar", next); },
+          function(next) {
+            waitUntil(function(){
+              return callback1Called && callback2Called;
+            }, next);
+          },
+          function(next) {
+            expect(anotherCallbackCalled).toBeFalsy();
+            next();
+          },
+        ], done);
+      });
     });
   });
 });

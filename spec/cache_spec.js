@@ -368,7 +368,9 @@ describe("gemfire.Cache", function() {
   describe(".rootRegions", function() {
     it("returns an array of all the top level regions", function() {
       const cache = factories.getCache();
-      const expectedRegionNames = [ "exampleRegion", "anotherRegion", "oqlBenchmark" ];
+      const expectedRegionNames = [ 
+        "exampleRegion", "anotherRegion", "oqlBenchmark", "createEventTest"
+      ];
 
       const rootRegions = cache.rootRegions();
 

@@ -1,9 +1,9 @@
 #include "events.hpp"
 #include <nan.h>
 
-namespace node_gemfire {
-
 using namespace v8;
+
+namespace node_gemfire {
 
 void emitEvent(const Local<Object> & emitter, const char * eventName) {
   NanScope();

@@ -5,14 +5,13 @@
 #include <v8.h>
 #include <gfcpp/Cache.hpp>
 
+using namespace v8;
+
 namespace node_gemfire {
 
-using namespace v8;
-using namespace gemfire;
-
 Local<Value> executeFunction(_NAN_METHOD_ARGS,
-                             const CachePtr & cachePtr,
-                             const ExecutionPtr & executionPtr);
+                             const gemfire::CachePtr & cachePtr,
+                             const gemfire::ExecutionPtr & executionPtr);
 
 }  // namespace node_gemfire
 

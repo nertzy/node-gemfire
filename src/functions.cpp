@@ -9,10 +9,10 @@
 #include "events.hpp"
 #include "streaming_result_collector.hpp"
 
-namespace node_gemfire {
-
 using namespace v8;
 using namespace gemfire;
+
+namespace node_gemfire {
 
 class ExecuteFunctionWorker {
  public:

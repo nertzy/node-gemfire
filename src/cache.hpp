@@ -21,7 +21,7 @@ class Cache : public node::ObjectWrap {
       gemfire::CachePtr cachePtr) :
     cachePtr(cachePtr) {}
 
-  ~Cache() {
+  virtual ~Cache() {
     close();
   }
 

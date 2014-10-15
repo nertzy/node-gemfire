@@ -7,13 +7,11 @@
 
 namespace node_gemfire {
 
-using namespace gemfire;
-
-class ResultStream : public SharedBase {
+class ResultStream : public gemfire::SharedBase {
  public:
   explicit ResultStream(void * worker, uv_async_cb resultsCallback, uv_async_cb endCallback) :
     SharedBase(),
-    resultsPtr(CacheableVector::create()) {
+    resultsPtr(gemfire::CacheableVector::create()) {
       uv_mutex_init(&mutex);
       uv_cond_init(&endProcessedCond);
       uv_cond_init(&resultsProcessedCond);
@@ -23,7 +21,7 @@ class ResultStream : public SharedBase {
       uv_async_init(uv_default_loop(), &endAsync, endCallback);
     }
 
-  ~ResultStream() {
+  virtual ~ResultStream() {
     uv_close(reinterpret_cast<uv_handle_t *>(&endAsync), NULL);
     uv_close(reinterpret_cast<uv_handle_t *>(&resultsAsync), NULL);
     uv_mutex_destroy(&mutex);
@@ -31,13 +29,13 @@ class ResultStream : public SharedBase {
     uv_cond_destroy(&resultsProcessedCond);
   }
 
-  void add(const CacheablePtr & resultPtr);
+  void add(const gemfire::CacheablePtr & resultPtr);
   void end();
   void resultsProcessed();
   void endProcessed();
   void waitUntilFinished();
 
-  CacheableVectorPtr nextResults();
+  gemfire::CacheableVectorPtr nextResults();
 
  private:
   uv_mutex_t mutex;
@@ -48,10 +46,10 @@ class ResultStream : public SharedBase {
   uv_cond_t resultsProcessedCond;
   uv_cond_t endProcessedCond;
 
-  CacheableVectorPtr resultsPtr;
+  gemfire::CacheableVectorPtr resultsPtr;
 };
 
-typedef SharedPtr<ResultStream> ResultStreamPtr;
+typedef gemfire::SharedPtr<ResultStream> ResultStreamPtr;
 
 }  // namespace node_gemfire
 
