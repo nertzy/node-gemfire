@@ -10,6 +10,7 @@ class RegionEventListener : public gemfire::CacheListener {
   RegionEventListener() {}
   virtual void afterCreate(const gemfire::EntryEvent & event);
   virtual void afterUpdate(const gemfire::EntryEvent & event);
+  virtual void afterDestroy(const gemfire::EntryEvent & event);
 };
 
 }  // namespace node_gemfire

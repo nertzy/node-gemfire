@@ -339,6 +339,24 @@ region.put("foo", "bar");
 region.put("foo", "baz");
 ```
 
+### Event: 'destroy'
+
+* event: GemFire event payload object.
+  * event.key: The key that was destroyed.
+  * event.oldValue: The previous value before the destruction.
+  * event.newValue: Always `null` because there is no new value.
+
+Emitted when an existing entry is destroyed.
+
+Example:
+```javascript
+region.on("destroy", function(event) {
+  // process event
+});
+
+region.remove("foo");
+```
+
 ### Event: 'update'
 
 * event: GemFire event payload object.
