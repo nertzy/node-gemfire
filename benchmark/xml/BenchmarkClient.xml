@@ -13,4 +13,5 @@
   <region name="anotherRegion" refid="CACHING_PROXY"/>
   <region name="oqlBenchmark" refid="CACHING_PROXY"/>
   <region name="createEventTest" refid="CACHING_PROXY"/>
+  <region name="updateEventTest" refid="CACHING_PROXY"/>
 </client-cache>

@@ -6,8 +6,10 @@
 #include <gfcpp/CacheableBuiltins.hpp>
 #include <gfcpp/EntryEvent.hpp>
 #include <uv.h>
+#include <v8.h>
 #include <vector>
 #include <cassert>
+#include <string>
 
 namespace node_gemfire {
 
@@ -28,8 +30,29 @@ class EventStream: public gemfire::SharedBase {
     uv_mutex_destroy(&mutex);
   }
 
-  void add(const gemfire::EntryEvent & event);
-  std::vector<gemfire::EntryEventPtr> nextEvents();
+  class Event {
+   public:
+    Event(const std::string & eventName,
+               const gemfire::EntryEvent & event) :
+      eventName(eventName),
+      entryEventPtr(new gemfire::EntryEvent(event.getRegion(),
+                                            event.getKey(),
+                                            event.getOldValue(),
+                                            event.getNewValue(),
+                                            event.getCallbackArgument(),
+                                            event.remoteOrigin())) {}
+
+    v8::Local<v8::Object> v8Object();
+    std::string getName();
+    gemfire::RegionPtr getRegion();
+
+   private:
+    gemfire::EntryEventPtr entryEventPtr;
+    std::string eventName;
+  };
+
+  void add(Event * event);
+  std::vector<Event *> nextEvents();
 
  private:
   static void teardownCallback(uv_work_t * request);
@@ -39,7 +62,7 @@ class EventStream: public gemfire::SharedBase {
   uv_mutex_t mutex;
   uv_async_t async;
 
-  std::vector<gemfire::EntryEventPtr> entryEventVector;
+  std::vector<Event *> eventVector;
 };
 
 }  // namespace node_gemfire

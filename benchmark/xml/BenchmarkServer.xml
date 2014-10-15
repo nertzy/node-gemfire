@@ -10,6 +10,10 @@
   <region name="anotherRegion" refid="REPLICATE"/>
   <region name="oqlBenchmark" refid="REPLICATE"/>
   <region name="shadow" refid="REPLICATE"/>
-  <region name="createRegionEventTest" refid="REPLICATE"/>
+
   <region name="createEventTest" refid="REPLICATE"/>
+  <region name="updateEventTest" refid="REPLICATE"/>
+
+  <region name="createRegionCreateEventTest" refid="REPLICATE"/>
+  <region name="createRegionUpdateEventTest" refid="REPLICATE"/>
 </cache>

@@ -4,7 +4,6 @@
 #include <cassert>
 #include <set>
 #include <vector>
-#include "conversions.hpp"
 #include "events.hpp"
 
 using namespace gemfire;
@@ -25,7 +24,7 @@ void RegionEventRegistry::remove(node_gemfire::Region * region) {
 }
 
 void RegionEventRegistry::emit(const std::string & eventName, const EntryEvent & event) {
-  eventStream->add(event);
+  eventStream->add(new EventStream::Event(eventName, event));
 }
 
 RegionEventRegistry * RegionEventRegistry::getInstance() {
@@ -44,26 +43,25 @@ void RegionEventRegistry::emitCallback(uv_async_t * async, int status) {
 void RegionEventRegistry::publishEvents() {
   NanScope();
 
-  std::vector<gemfire::EntryEventPtr> eventVector(eventStream->nextEvents());
+  std::vector<EventStream::Event *> eventVector(eventStream->nextEvents());
 
-  for (std::vector<EntryEventPtr>::iterator iterator(eventVector.begin());
+  for (std::vector<EventStream::Event *>::iterator iterator(eventVector.begin());
        iterator != eventVector.end();
        ++iterator) {
-    EntryEventPtr eventPtr(*iterator);
-
-    Local<Object> eventPayload(NanNew<Object>());
-    eventPayload->Set(NanNew("key"), v8Value(eventPtr->getKey()));
-    eventPayload->Set(NanNew("value"), v8Value(eventPtr->getNewValue()));
+    EventStream::Event * event(*iterator);
+    Local<Object> eventPayload(event->v8Object());
 
     for (std::set<Region *>::iterator iterator(regionSet.begin());
          iterator != regionSet.end();
          ++iterator) {
       Region * region(*iterator);
       Local<Object> regionObject(NanObjectWrapHandle(region));
-      if (region->regionPtr == eventPtr->getRegion()) {
-        emitEvent(regionObject, "create", eventPayload);
+      if (region->regionPtr == event->getRegion()) {
+        emitEvent(regionObject, event->getName().c_str(), eventPayload);
       }
     }
+
+    delete event;
   }
 }
 
