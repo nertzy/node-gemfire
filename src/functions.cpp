@@ -22,7 +22,10 @@ class ExecuteFunctionWorker {
       const CacheablePtr & functionArguments,
       const CacheableVectorPtr & functionFilter,
       const Local<Object> & emitter) :
-    resultStreamPtr(new ResultStream(this, DataAsyncCallback, EndAsyncCallback)),
+    resultStreamPtr(
+        new ResultStream(this,
+                        (uv_async_cb) DataAsyncCallback,
+                        (uv_async_cb) EndAsyncCallback)),
     executionPtr(executionPtr),
     functionName(functionName),
     functionArguments(functionArguments),
@@ -46,22 +49,14 @@ class ExecuteFunctionWorker {
     delete worker;
   }
 
-  static void DataAsyncCallback(uv_async_t * async) {
+  static void DataAsyncCallback(uv_async_t * async, int status) {
     ExecuteFunctionWorker * worker = reinterpret_cast<ExecuteFunctionWorker *>(async->data);
     worker->Data();
   }
 
-  static void DataAsyncCallback(uv_async_t * async, int status) {
-    DataAsyncCallback(async);
-  }
-
-  static void EndAsyncCallback(uv_async_t * async) {
+  static void EndAsyncCallback(uv_async_t * async, int status) {
     ExecuteFunctionWorker * worker = reinterpret_cast<ExecuteFunctionWorker *>(async->data);
     worker->End();
-  }
-
-  static void EndAsyncCallback(uv_async_t * async, int status) {
-    EndAsyncCallback(async);
   }
 
   void Execute() {

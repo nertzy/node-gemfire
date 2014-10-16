@@ -16,9 +16,8 @@ class RegionEventRegistry {
  public:
   RegionEventRegistry() :
     listener(new RegionEventListener),
-    eventStream(new EventStream(this, emitCallback)) {}
+    eventStream(new EventStream(this, (uv_async_cb) emitCallback)) {}
 
-  static void emitCallback(uv_async_t * async);
   static void emitCallback(uv_async_t * async, int status);
 
   void add(node_gemfire::Region * region);
