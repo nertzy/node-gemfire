@@ -47,8 +47,8 @@ class EventStream: public gemfire::SharedBase {
     gemfire::RegionPtr getRegion();
 
    private:
-    gemfire::EntryEventPtr entryEventPtr;
     std::string eventName;
+    gemfire::EntryEventPtr entryEventPtr;
   };
 
   void add(Event * event);
