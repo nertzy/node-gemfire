@@ -8,7 +8,7 @@ namespace node_gemfire {
 
 class StreamingResultCollector : public gemfire::ResultCollector {
  public:
-  explicit StreamingResultCollector(ResultStreamPtr resultStream) :
+  explicit StreamingResultCollector(ResultStream * resultStream) :
       ResultCollector(),
       resultStream(resultStream) {}
 
@@ -16,7 +16,7 @@ class StreamingResultCollector : public gemfire::ResultCollector {
   virtual void endResults();
 
  private:
-  ResultStreamPtr resultStream;
+  ResultStream * resultStream;
 };
 
 }  // namespace node_gemfire

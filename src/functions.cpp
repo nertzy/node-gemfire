@@ -21,21 +21,24 @@ class ExecuteFunctionWorker {
       const std::string & functionName,
       const CacheablePtr & functionArguments,
       const CacheableVectorPtr & functionFilter,
-      const Local<Object> & emitter) :
-    resultStreamPtr(
+      const Local<Object> & emitterHandle) :
+    resultStream(
         new ResultStream(this,
                         (uv_async_cb) DataAsyncCallback,
                         (uv_async_cb) EndAsyncCallback)),
     executionPtr(executionPtr),
     functionName(functionName),
     functionArguments(functionArguments),
-    functionFilter(functionFilter) {
-      NanAssignPersistent(this->emitter, emitter);
+    functionFilter(functionFilter),
+    ended(false),
+    executeCompleted(false) {
+      NanAssignPersistent(emitter, emitterHandle);
       request.data = reinterpret_cast<void *>(this);
     }
 
   ~ExecuteFunctionWorker() {
     NanDisposePersistent(emitter);
+    delete resultStream;
   }
 
   static void Execute(uv_work_t * request) {
@@ -46,7 +49,6 @@ class ExecuteFunctionWorker {
   static void ExecuteComplete(uv_work_t * request, int status) {
     ExecuteFunctionWorker * worker = static_cast<ExecuteFunctionWorker *>(request->data);
     worker->ExecuteComplete();
-    delete worker;
   }
 
   static void DataAsyncCallback(uv_async_t * async, int status) {
@@ -69,11 +71,11 @@ class ExecuteFunctionWorker {
         executionPtr = executionPtr->withFilter(functionFilter);
       }
 
-      ResultCollectorPtr resultCollectorPtr(new StreamingResultCollector(resultStreamPtr));
+      ResultCollectorPtr resultCollectorPtr
+        (new StreamingResultCollector(resultStream));
       executionPtr = executionPtr->withCollector(resultCollectorPtr);
 
       executionPtr->execute(functionName.c_str());
-      resultStreamPtr->waitUntilFinished();
     } catch (const gemfire::Exception & exception) {
       errorMessage = gemfireExceptionMessage(exception);
     }
@@ -84,6 +86,9 @@ class ExecuteFunctionWorker {
       NanScope();
       emitError(NanNew(emitter), NanError(errorMessage.c_str()));
     }
+
+    executeCompleted = true;
+    teardownIfReady();
   }
 
   void Data() {
@@ -91,7 +96,7 @@ class ExecuteFunctionWorker {
 
     Local<Object> eventEmitter(NanNew(emitter));
 
-    CacheableVectorPtr resultsPtr(resultStreamPtr->nextResults());
+    CacheableVectorPtr resultsPtr(resultStream->nextResults());
     for (CacheableVector::Iterator iterator(resultsPtr->begin());
          iterator != resultsPtr->end();
          ++iterator) {
@@ -104,20 +109,28 @@ class ExecuteFunctionWorker {
       }
     }
 
-    resultStreamPtr->resultsProcessed();
+    resultStream->resultsProcessed();
   }
 
   void End() {
     NanScope();
 
-    resultStreamPtr->endProcessed();
     emitEvent(NanNew(emitter), "end");
+
+    ended = true;
+    teardownIfReady();
+  }
+
+  void teardownIfReady() {
+    if (ended && executeCompleted) {
+      delete this;
+    }
   }
 
   uv_work_t request;
 
  private:
-  ResultStreamPtr resultStreamPtr;
+  ResultStream * resultStream;
 
   ExecutionPtr executionPtr;
   std::string functionName;
@@ -125,6 +138,9 @@ class ExecuteFunctionWorker {
   CacheableVectorPtr functionFilter;
   Persistent<Object> emitter;
   std::string errorMessage;
+
+  bool ended;
+  bool executeCompleted;
 };
 
 Local<Value> executeFunction(_NAN_METHOD_ARGS,
