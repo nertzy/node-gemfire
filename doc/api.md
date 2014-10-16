@@ -85,7 +85,7 @@ Example:
 var region = cache.getRegion('exampleRegion');
 ```
 
-### cache.rootRegions(callback)
+### cache.rootRegions()
 
 Retrieves an array of all root Regions from the Cache. 
 
