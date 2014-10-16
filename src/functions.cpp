@@ -110,8 +110,8 @@ class ExecuteFunctionWorker {
   void End() {
     NanScope();
 
-    emitEvent(NanNew(emitter), "end");
     resultStreamPtr->endProcessed();
+    emitEvent(NanNew(emitter), "end");
   }
 
   uv_work_t request;
