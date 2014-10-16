@@ -6,6 +6,7 @@
 #include <vector>
 #include "events.hpp"
 
+using namespace v8;
 using namespace gemfire;
 
 namespace node_gemfire {

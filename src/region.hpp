@@ -7,14 +7,12 @@
 #include <gfcpp/Region.hpp>
 #include "region_event_registry.hpp"
 
-using namespace v8;
-
 namespace node_gemfire {
 
 class Region : public node::ObjectWrap {
  public:
-  Region(Local<Object> regionHandle,
-         Local<Object> cacheHandle,
+  Region(v8::Local<v8::Object> regionHandle,
+         v8::Local<v8::Object> cacheHandle,
          gemfire::RegionPtr regionPtr) :
     regionPtr(regionPtr) {
       Wrap(regionHandle);
@@ -26,8 +24,9 @@ class Region : public node::ObjectWrap {
     NanDisposePersistent(cacheHandle);
   }
 
-  static void Init(Local<Object> exports);
-  static Local<Value> New(Local<Object> cacheObject, gemfire::RegionPtr regionPtr);
+  static void Init(v8::Local<v8::Object> exports);
+  static v8::Local<v8::Value> New(v8::Local<v8::Object> cacheObject,
+                                  gemfire::RegionPtr regionPtr);
   static NAN_METHOD(Clear);
   static NAN_METHOD(Put);
   static NAN_METHOD(Get);
@@ -47,8 +46,8 @@ class Region : public node::ObjectWrap {
   gemfire::RegionPtr regionPtr;
 
  private:
-  Persistent<Object> cacheHandle;
-  static Persistent<Function> constructor;
+  v8::Persistent<v8::Object> cacheHandle;
+  static v8::Persistent<v8::Function> constructor;
 };
 
 }  // namespace node_gemfire

@@ -6,13 +6,11 @@
 #include <node.h>
 #include <gfcpp/Cache.hpp>
 
-using namespace v8;
-
 namespace node_gemfire {
 
 class Cache : public node::ObjectWrap {
  public:
-  static void Init(Local<Object> exports);
+  static void Init(v8::Local<v8::Object> exports);
 
   gemfire::CachePtr cachePtr;
 
@@ -39,7 +37,7 @@ class Cache : public node::ObjectWrap {
   gemfire::QueryPtr newQuery(char * queryString);
 
  private:
-  Local<Function> exitCallback();
+  v8::Local<v8::Function> exitCallback();
 };
 
 }  // namespace node_gemfire
