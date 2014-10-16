@@ -9,7 +9,9 @@ namespace node_gemfire {
 
 class ResultStream : public gemfire::SharedBase {
  public:
-  explicit ResultStream(void * worker, uv_async_cb resultsCallback, uv_async_cb endCallback) :
+  explicit ResultStream(void * worker,
+                        uv_async_cb resultsCallback,
+                        uv_async_cb endCallback) :
     SharedBase(),
     resultsPtr(gemfire::CacheableVector::create()) {
       uv_mutex_init(&mutex);

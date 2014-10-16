@@ -6,8 +6,6 @@
 #include <gfcpp/SelectResults.hpp>
 #include <node.h>
 
-using namespace v8;
-
 namespace node_gemfire {
 
 class SelectResults : public node::ObjectWrap {
@@ -15,15 +13,16 @@ class SelectResults : public node::ObjectWrap {
   explicit SelectResults(gemfire::SelectResultsPtr selectResultsPtr) :
     selectResultsPtr(selectResultsPtr) {}
 
-  static void Init(Local<Object> exports);
-  static Local<Object> NewInstance(const gemfire::SelectResultsPtr & selectResultsPtr);
+  static void Init(v8::Local<v8::Object> exports);
+  static v8::Local<v8::Object> NewInstance(
+      const gemfire::SelectResultsPtr & selectResultsPtr);
   static NAN_METHOD(ToArray);
   static NAN_METHOD(Each);
   static NAN_METHOD(Inspect);
 
  private:
   gemfire::SelectResultsPtr selectResultsPtr;
-  static Persistent<Function> constructor;
+  static v8::Persistent<v8::Function> constructor;
 };
 
 

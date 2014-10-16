@@ -4,13 +4,17 @@
 #include <v8.h>
 #include <string>
 
-using namespace v8;
-
 namespace node_gemfire {
 
-void emitEvent(const Local<Object> & emitter, const char * eventName);
-void emitEvent(const Local<Object> & emitter, const char * eventName, const Local<Value> & payload);
-void emitError(const Local<Object> & emitter, const Local<Value> & error);
+void emitEvent(const v8::Local<v8::Object> & emitter,
+               const char * eventName);
+
+void emitEvent(const v8::Local<v8::Object> & emitter,
+               const char * eventName,
+               const v8::Local<v8::Value> & payload);
+
+void emitError(const v8::Local<v8::Object> & emitter,
+               const v8::Local<v8::Value> & error);
 
 }  // namespace node_gemfire
 
