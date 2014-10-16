@@ -31,13 +31,9 @@ RegionEventRegistry * RegionEventRegistry::getInstance() {
   return &instance;
 }
 
-void RegionEventRegistry::emitCallback(uv_async_t * async) {
+void RegionEventRegistry::emitCallback(uv_async_t * async, int status) {
   RegionEventRegistry * regionEventRegistry = reinterpret_cast<RegionEventRegistry *>(async->data);
   regionEventRegistry->publishEvents();
-}
-
-void RegionEventRegistry::emitCallback(uv_async_t * async, int status) {
-  emitCallback(async);
 }
 
 void RegionEventRegistry::publishEvents() {
