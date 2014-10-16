@@ -7,5 +7,4 @@ npm install
 gem install bundler
 rbenv rehash
 bundle install
-grunt
-
+bin/ci
