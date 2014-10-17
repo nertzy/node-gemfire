@@ -107,7 +107,7 @@ NAN_METHOD(run) {
   NanScope();
 
   int argc = 0;
-  char ** argv = {};
+  char * argv[0] = {};
   ::testing::InitGoogleTest(&argc, argv);
 
   int testReturnCode = RUN_ALL_TESTS();
