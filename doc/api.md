@@ -284,7 +284,7 @@ Retrieves all values from the Region matching the OQL `predicate`. The callback 
 
 Example:
 ```javascript
-region.query("this like '% Smith', function(error, response) {
+region.query("this like '% Smith'", function(error, response) {
   if(error) { throw error; }
   
   var results = response.toArray();
