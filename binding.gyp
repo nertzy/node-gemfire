@@ -9,10 +9,6 @@
       '-fno-rtti', 
       '-fno-exceptions'
     ],
-    'cflags_cc+': [
-      '-std=c++0x',
-      '-frtti'
-    ],
     "defines": [
       "_REENTRANT"
     ],
