@@ -85,6 +85,7 @@ class ExecuteFunctionWorker {
     if (!errorMessage.empty()) {
       NanScope();
       emitError(NanNew(emitter), NanError(errorMessage.c_str()));
+      ended = true;
     }
 
     executeCompleted = true;
