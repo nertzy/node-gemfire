@@ -6,12 +6,12 @@ module.exports = function until(fn, test, done) {
 
   async.doUntil(
     function(next) {
-      _.defer(function(){
+      _.delay(function(){
         fn(function(){
           args = arguments;
           next();
         });
-      });
+      }, 50);
     },
     function() {
       return test.apply(this, args);
