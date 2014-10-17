@@ -27,7 +27,7 @@ public class Benchmark {
         ClientCache cache = new ClientCacheFactory()
                 .set("log-level", "warning")
                 .set("name", "BenchmarkClient")
-                .set("cache-xml-file", "../xml/BenchmarkClient.xml")
+                .set("cache-xml-file", "../../xml/ExampleClient.xml")
                 .create();
 
         Region region = cache.getRegion("exampleRegion");

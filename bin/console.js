@@ -5,7 +5,7 @@ const repl = require("repl");
 
 (function(){
   const gemfire = require("../spec/support/gemfire.js");
-  const cache = new gemfire.Cache("benchmark/xml/BenchmarkClient.xml");
+  const cache = new gemfire.Cache("xml/ExampleClient.xml");
   const region = cache.getRegion("exampleRegion");
 
   region.on('error', console.log);
