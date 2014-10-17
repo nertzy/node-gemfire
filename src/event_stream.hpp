@@ -21,8 +21,10 @@ class EventStream: public gemfire::SharedBase {
     SharedBase() {
       uv_mutex_init(&mutex);
       async.data = target;
+      uv_mutex_lock(&mutex);
       uv_async_init(uv_default_loop(), &async, callback);
       uv_unref(reinterpret_cast<uv_handle_t *>(&async));
+      uv_mutex_unlock(&mutex);
     }
 
   virtual ~EventStream() {
