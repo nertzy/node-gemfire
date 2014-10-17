@@ -1,5 +1,4 @@
 #!/bin/bash
-S3_PREFIX="http://download.pivotal.com.s3.amazonaws.com/gemfire/8.0.0/"
 GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0-48398.el6.noarch.rpm"
 NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8000_b6169.zip"
 JAVA_RPM_FILENAME="jdk-7u65-linux-x64.rpm"
@@ -33,7 +32,14 @@ yum -y install \
 
 if [ ! -e /usr/bin/gemfire ]; then
   if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
-    wget --no-verbose -O /project/tmp/$GEMFIRE_SERVER_FILENAME $S3_PREFIX$GEMFIRE_SERVER_FILENAME
+    echo "----------------------------------------------------"
+    echo "Please download $GEMFIRE_SERVER_FILENAME"
+    echo "from https://network.pivotal.io/products/pivotal-gemfire"
+    echo "(Pivotal GemFire v8.0.0 Linux RH6 RPM - 8.0.0)"
+    echo "and place it in the ./tmp subdirectory of node-gemfire."
+    echo "Then re-run \`vagrant provision\`."
+    echo "----------------------------------------------------"
+    exit 1
   fi
   rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
 fi
@@ -43,7 +49,15 @@ cp /opt/pivotal/gemfire/Pivotal_GemFire_800/lib/antlr.jar /vagrant/tmp/antlr.jar
 
 if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
   if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
-    wget --no-verbose -O /project/tmp/$NATIVE_CLIENT_FILENAME $S3_PREFIX$NATIVE_CLIENT_FILENAME
+    echo "----------------------------------------------------"
+    echo "Please download $NATIVE_CLIENT_FILENAME"
+    echo "from https://network.pivotal.io/products/pivotal-gemfire"
+    echo "(Pivotal GemFire Native Client Linux 64bit v8.0.0.0 - 8.0.0.0)"
+    echo "and place it in the ./tmp subdirectory of node-gemfire."
+    echo "Then re-run \`vagrant provision\`."
+    echo "----------------------------------------------------"
+    exit 1
+    exit 1
   fi
   cd /opt/pivotal
   unzip /project/tmp/$NATIVE_CLIENT_FILENAME
