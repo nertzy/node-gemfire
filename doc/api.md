@@ -2,7 +2,7 @@
 
 ## Cache
 
-A GemFire cache is an in-memory data store composed of many Regions, which may or may not participate in a cluster. A cache is constructed with an xml configuration file:
+A GemFire cache is an in-memory data store composed of many Regions. A cache is constructed with an xml configuration file:
 
 ```javascript
 var gemfire = require('gemfire');
