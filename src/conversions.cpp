@@ -234,9 +234,9 @@ HashMapOfCacheablePtr gemfireHashMap(const Local<Object> & v8Object,
   unsigned int length = v8Keys->Length();
 
   for (unsigned int i = 0; i < length; i++) {
-    Local<Value> v8Key(v8Keys->Get(i));
+    Local<String> v8Key(v8Keys->Get(i)->ToString());
 
-    CacheablePtr keyPtr(gemfireValue(v8Key, cachePtr));
+    CacheableKeyPtr keyPtr(gemfireKey(v8Key, cachePtr));
     CacheablePtr valuePtr(gemfireValue(v8Object->Get(v8Key), cachePtr));
 
     if (valuePtr == NULLPTR) {
