@@ -234,49 +234,25 @@ region.put('key', { foo: 'bar' }, function(error) {
 
 Stores multiple entries in the region. The callback will be called with an `error` argument. If the callback is not supplied, and an error occurs, the Region will emit an `error` event.
 
+**NOTE**: Keys on a JavaScript object are always strings. Thus, all entries will have string keys.
+
 Example:
 ```javascript
 region.putAll(
   {
     key1: 'value1', 
     key2: { foo: 'bar' } 
+    3: "three"
   }, 
   function(error) {
     if(error) { throw error; }
     // the entry at key "key1" now has value "value1"
     // the entry at key "key2" now has value { foo: 'bar' }
+    // the entry at key 3 (Number) is unaffected
+    // the entry at key "3" (String) now has value "three"
   }
 );
 ```
-
-### region.remove(key, [callback])
-
-Removes the entry specified by the indicated key from the Region, or, if no such entry is present, passes an `error` to the callback. If the argument is not supplied, and an error occurs, the Region will emit an `error` event.
-
-Example:
-```javascript
-region.remove('key1', function(error) {
-  if(error) { throw error; }
-  // the entry with key 'key1' has been removed from the region
-});
-```
-
-### region.selectValue(predicate, callback)
-
-Retrieves exactly one entry from the Region matching the OQL `predicate`. The callback will be called with an `error` argument, and a `result`.
-
-If more than one result matches the predicate, an error will be passed to the callback. If you want to select multiple results for a predicate, see `region.query`.
-
-Example:
-```javascript
-region.selectValue("this = 'value1'", function(error, result) {
-  if(error) { throw error; }
-  // if there is exactly one entry with value 'value1' in the region,
-  // result will now be set to 'value1'
-});
-```
-
-See also `region.query` and `region.existsValue`.
 
 ### region.query(predicate, callback)
 
@@ -316,6 +292,35 @@ region.registerAllKeys();
 ```
 
 See also Events and `region.unregisterAllKeys`.
+
+### region.remove(key, [callback])
+
+Removes the entry specified by the indicated key from the Region, or, if no such entry is present, passes an `error` to the callback. If the argument is not supplied, and an error occurs, the Region will emit an `error` event.
+
+Example:
+```javascript
+region.remove('key1', function(error) {
+  if(error) { throw error; }
+  // the entry with key 'key1' has been removed from the region
+});
+```
+
+### region.selectValue(predicate, callback)
+
+Retrieves exactly one entry from the Region matching the OQL `predicate`. The callback will be called with an `error` argument, and a `result`.
+
+If more than one result matches the predicate, an error will be passed to the callback. If you want to select multiple results for a predicate, see `region.query`.
+
+Example:
+```javascript
+region.selectValue("this = 'value1'", function(error, result) {
+  if(error) { throw error; }
+  // if there is exactly one entry with value 'value1' in the region,
+  // result will now be set to 'value1'
+});
+```
+
+See also `region.query` and `region.existsValue`.
 
 ### region.unregisterAllKeys()
 
