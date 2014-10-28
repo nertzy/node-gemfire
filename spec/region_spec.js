@@ -1064,7 +1064,7 @@ describe("gemfire.Region", function() {
     it("sets multiple values at once", function(done) {
       async.series([
         function(next) {
-          region.putAll({ key1: 'foo', key2: 'bar' }, next);
+          region.putAll({ key1: 'foo', key2: 'bar', "1": "one"}, next);
         },
         function(next) {
           region.get('key1', function(error, value) {
@@ -1078,6 +1078,14 @@ describe("gemfire.Region", function() {
           region.get('key2', function(error, value) {
             expect(error).not.toBeError();
             expect(value).toEqual('bar');
+
+            next();
+          });
+        },
+        function(next) {
+          region.get("1", function(error, value) {
+            expect(error).not.toBeError();
+            expect(value).toEqual('one');
 
             next();
           });
