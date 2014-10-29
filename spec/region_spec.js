@@ -340,6 +340,25 @@ describe("gemfire.Region", function() {
       testRoundTrip(sparseArray, done);
     });
 
+    // see https://www.pivotaltracker.com/story/show/81671186
+    it("stores and retrieves objects that throw OutOfRangeException inside the PdxInstance", function(done) {
+      testRoundTrip({
+        someArray: [
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+          '000000000000000000000000',
+        ]
+      }, done);
+    });
+
     _.each([
       1,
       1.23,
