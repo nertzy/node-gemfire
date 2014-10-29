@@ -343,13 +343,29 @@ Local<Value> v8Value(const PdxInstancePtr & pdxInstance) {
       const char * key = gemfireKeys[i]->asChar();
 
       CacheablePtr value;
+      bool fallbackToArray = false;
+
+      // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
+      // triggers an exception. We don't know a better way to detect that we are about to read in
+      // an array, so for now we catch the exception and assume we are receiving an array.
       try {
         pdxInstance->getField(key, value);
+      } catch(const IllegalStateException & exception) {
+        fallbackToArray = true;
+      } catch(const OutOfRangeException & exception) {
+        fallbackToArray = true;
+      } catch(const gemfire::Exception & exception) {
+        std::stringstream errorMessageStream;
+        errorMessageStream << "PdxInstance field `" << key << "` ";
+        errorMessageStream << "triggered an unexpected GemFire exception, which might indicate the need ";
+        errorMessageStream << "for another fallbackToArray case in node-gemfire: ";
+        errorMessageStream << exception.getName() << ": " << exception.getMessage();
+
+        NanThrowError(errorMessageStream.str().c_str());
+        return NanEscapeScope(NanUndefined());
       }
-      catch(const IllegalStateException & exception) {
-        // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
-        // triggers an exception. We don't know a better way to detect that we are about to read in
-        // an array, so for now we catch the exception and assume we are receiving an array.
+
+      if (fallbackToArray) {
         CacheableObjectArrayPtr valueArray;
         pdxInstance->getField(key, valueArray);
         value = valueArray;
