@@ -343,32 +343,41 @@ Local<Value> v8Value(const PdxInstancePtr & pdxInstance) {
       const char * key = gemfireKeys[i]->asChar();
 
       CacheablePtr value;
-      bool fallbackToArray = false;
 
-      // Unfortunately, getting an object array field from Gemfire as a vanilla CacheablePtr
-      // triggers an exception. We don't know a better way to detect that we are about to read in
-      // an array, so for now we catch the exception and assume we are receiving an array.
+      // FIXME: This workaround is necessary for GemFire 8.0.0.
+      //
+      // There is no API in the GemFire Native Client for detecting whether or not a
+      // PdxInstance field is an array. So we must guess whether to use a CacheablePtr or
+      // a CacheableObjectArrayPtr.
+      //
+      // Unfortunately, getting an array field from Gemfire as a CacheablePtr either throws
+      // an exception or returns a corrupted CacheablePtr. So we must try to read each field
+      // as a CacheableObjectArrayPtr first, since that seems to reliably throw an exception
+      // on failure.
+      bool notArray = false;
       try {
-        pdxInstance->getField(key, value);
-      } catch(const IllegalStateException & exception) {
-        fallbackToArray = true;
+        CacheableObjectArrayPtr valueArray;
+        pdxInstance->getField(key, valueArray);
+        value = valueArray;
       } catch(const OutOfRangeException & exception) {
-        fallbackToArray = true;
+        notArray = true;
+      } catch(const IllegalStateException & exception) {
+        notArray = true;
       } catch(const gemfire::Exception & exception) {
         std::stringstream errorMessageStream;
         errorMessageStream << "PdxInstance field `" << key << "` ";
         errorMessageStream << "triggered an unexpected GemFire exception, which might indicate the need ";
-        errorMessageStream << "for another fallbackToArray case in node-gemfire: ";
+        errorMessageStream << "for another special case in node-gemfire: ";
         errorMessageStream << exception.getName() << ": " << exception.getMessage();
 
         NanThrowError(errorMessageStream.str().c_str());
         return NanEscapeScope(NanUndefined());
       }
 
-      if (fallbackToArray) {
-        CacheableObjectArrayPtr valueArray;
-        pdxInstance->getField(key, valueArray);
-        value = valueArray;
+      if (notArray) {
+        // When reading as an array throws an exception, we learn we are dealing with
+        // a non-array type. So we read as a CacheablePtr field instead.
+        pdxInstance->getField(key, value);
       }
 
       v8Object->Set(NanNew(key), v8Value(value));
