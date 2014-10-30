@@ -1,6 +1,6 @@
 {
   "name": "gemfire",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Pivotal Gemfire Node package proof-of-concept",
   "main": "./lib",
   "files": [
