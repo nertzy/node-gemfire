@@ -258,9 +258,13 @@ NAN_METHOD(Cache::ExecuteFunction) {
     }
   }
 
-  ExecutionPtr executionPtr(FunctionService::onServer(cachePtr));
-
-  NanReturnValue(executeFunction(args, cachePtr, executionPtr));
+  try {
+    ExecutionPtr executionPtr(FunctionService::onServer(cachePtr));
+    NanReturnValue(executeFunction(args, cachePtr, executionPtr));
+  } catch (const gemfire::Exception & exception) {
+    ThrowGemfireException(exception);
+    NanReturnUndefined();
+  }
 }
 
 }  // namespace node_gemfire

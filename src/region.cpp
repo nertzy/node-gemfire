@@ -125,7 +125,7 @@ CachePtr getCacheFromRegion(RegionPtr regionPtr) {
 
   try {
     return regionPtr->getCache();
-  } catch (const RegionDestroyedException exception) {
+  } catch (const RegionDestroyedException & exception) {
     ThrowGemfireException(exception);
     return NULLPTR;
   }
@@ -461,10 +461,15 @@ NAN_METHOD(Region::ExecuteFunction) {
     NanReturnUndefined();
   }
 
-  ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
-
-  NanReturnValue(executeFunction(args, cachePtr, executionPtr));
+  try {
+    ExecutionPtr executionPtr(FunctionService::onRegion(regionPtr));
+    NanReturnValue(executeFunction(args, cachePtr, executionPtr));
+  } catch (const gemfire::Exception & exception) {
+    ThrowGemfireException(exception);
+    NanReturnUndefined();
+  }
 }
+
 
 NAN_METHOD(Region::Inspect) {
   NanScope();
