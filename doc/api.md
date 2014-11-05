@@ -2,7 +2,7 @@
 
 ## Cache
 
-A GemFire cache is an in-memory data store composed of many Regions. A cache is constructed with an xml configuration file:
+A GemFire cache is an in-memory data store composed of many Regions. A cache is constructed with an XML configuration file:
 
 ```javascript
 var gemfire = require('gemfire');
@@ -26,6 +26,8 @@ cache.executeFunction returns an EventEmitter which emits the following events:
  * `end`: Called after the Java function has finally returned.
 
 > **Warning:** As of GemFire 8.0.0.0, there are some situations where the Java function can throw an uncaught Exception, but the node `error` callback never gets called. This is due to a known bug in how the GemFire 8.0.0.0 Native Client handles exceptions. This bug is only present for cache.executeFunction. region.executeFunction works as expected.
+
+> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, all functions executed by cache.executeFunction() will be executed on exactly one server in the first pool defined in the XML configuration file.
 
 Example:
 ```javascript
