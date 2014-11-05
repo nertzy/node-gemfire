@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE client-cache PUBLIC
+    "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+    "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<client-cache>
+  <pool name="client" subscription-enabled="true">
+    <server host="localhost" port="40404" />
+  </pool>
+  <pdx read-serialized="true" />
+</client-cache>

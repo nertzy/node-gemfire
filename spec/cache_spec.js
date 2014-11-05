@@ -416,6 +416,10 @@ describe("gemfire.Cache", function() {
         "You cannot pass a filter to executeFunction for a Cache."
       );
     });
+
+    it("successfully executes the function even if there are no regions in the client XML", function(done) {
+      expectExternalSuccess("execute_function_without_regions", done);
+    });
   });
 
   describe(".createRegion", function() {
