@@ -1,7 +1,7 @@
 {
   "name": "gemfire",
-  "version": "0.0.6",
-  "description": "Pivotal Gemfire Node package proof-of-concept",
+  "version": "0.0.7",
+  "description": "Pivotal GemFire client",
   "main": "./lib",
   "files": [
     "lib/**/*.js",
@@ -30,6 +30,10 @@
     {
       "name": "Adam Berlin",
       "url": "https://github.com/berlin-ab"
+    },
+    {
+      "name": "David Edwards",
+      "url": "https://github.com/davwards"
     }
   ],
   "repository": {
