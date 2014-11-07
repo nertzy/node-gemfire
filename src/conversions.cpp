@@ -344,42 +344,13 @@ Local<Value> v8Value(const PdxInstancePtr & pdxInstance) {
 
       CacheablePtr value;
 
-      // FIXME: This workaround is necessary for GemFire 8.0.0.
-      //
-      // There is no API in the GemFire Native Client for detecting whether or not a
-      // PdxInstance field is an array. So we must guess whether to use a CacheablePtr or
-      // a CacheableObjectArrayPtr.
-      //
-      // Unfortunately, getting an array field from Gemfire as a CacheablePtr either throws
-      // an exception or returns a corrupted CacheablePtr. So we must try to read each field
-      // as a CacheableObjectArrayPtr first, since that seems to reliably throw an exception
-      // on failure.
-      bool notArray = false;
-      try {
+      if (pdxInstance->getFieldType(key) == gemfire::PdxFieldTypes::OBJECT_ARRAY) {
         CacheableObjectArrayPtr valueArray;
         pdxInstance->getField(key, valueArray);
         value = valueArray;
-      } catch(const OutOfRangeException & exception) {
-        notArray = true;
-      } catch(const IllegalStateException & exception) {
-        notArray = true;
-      } catch(const gemfire::Exception & exception) {
-        std::stringstream errorMessageStream;
-        errorMessageStream << "PdxInstance field `" << key << "` ";
-        errorMessageStream << "triggered an unexpected GemFire exception, which might indicate the need ";
-        errorMessageStream << "for another special case in node-gemfire: ";
-        errorMessageStream << exception.getName() << ": " << exception.getMessage();
-
-        NanThrowError(errorMessageStream.str().c_str());
-        return NanEscapeScope(NanUndefined());
-      }
-
-      if (notArray) {
-        // When reading as an array throws an exception, we learn we are dealing with
-        // a non-array type. So we read as a CacheablePtr field instead.
+      } else {
         pdxInstance->getField(key, value);
       }
-
       v8Object->Set(NanNew(key), v8Value(value));
     }
 
