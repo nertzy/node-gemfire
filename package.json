@@ -1,6 +1,6 @@
 {
   "name": "gemfire",
-  "version": "0.0.7",
+  "version": "0.0.7-pre",
   "description": "Pivotal GemFire client",
   "main": "./lib",
   "files": [
