@@ -168,6 +168,6 @@ module.exports = function(grunt) {
   grunt.registerTask('ci:other', ['benchmark:java', 'license_finder']);
 
   grunt.registerTask('ci', ["shell:ci"]);
-  grunt.registerTask('release', ['ci', 'shell:release']);
+  grunt.registerTask('release', ['shell:release']);
 };
 
