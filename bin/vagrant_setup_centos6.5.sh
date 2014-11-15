@@ -1,6 +1,10 @@
 #!/bin/bash
-GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0-48398.el6.noarch.rpm"
-NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8000_b6169.zip"
+GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0.3-49715.el6.noarch.rpm"
+GEMFIRE_DIRECTORY="/opt/pivotal/gemfire/Pivotal_GemFire_8003"
+
+NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8001_b6212.zip"
+NATIVE_CLIENT_DIRECTORY="/opt/pivotal/gemfire/NativeClient_Linux_64bit_8001_b6212"
+
 JAVA_RPM_FILENAME="jdk-7u65-linux-x64.rpm"
 JAVA_RPM_URL="http://download.oracle.com/otn-pub/java/jdk/7u65-b17/$JAVA_RPM_FILENAME"
 
@@ -30,12 +34,12 @@ yum -y install \
   yum-utils \
   yum-plugin-auto-update-debug-info.noarch
 
-if [ ! -e /usr/bin/gemfire ]; then
+if [ ! -e $GEMFIRE_DIRECTORY ]; then
   if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
     echo "----------------------------------------------------"
     echo "Please download $GEMFIRE_SERVER_FILENAME"
     echo "from https://network.pivotal.io/products/pivotal-gemfire"
-    echo "(Pivotal GemFire v8.0.0 Linux RH6 RPM - 8.0.0)"
+    echo "(Pivotal GemFire v8.0.0.1 Linux RH6 RPM - 8.0.0.1)"
     echo "and place it in the ./tmp subdirectory of node-gemfire."
     echo "Then re-run \`vagrant provision\`."
     echo "----------------------------------------------------"
@@ -44,21 +48,21 @@ if [ ! -e /usr/bin/gemfire ]; then
   rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
 fi
 
-cp /opt/pivotal/gemfire/Pivotal_GemFire_800/lib/gemfire.jar /vagrant/tmp/gemfire.jar
-cp /opt/pivotal/gemfire/Pivotal_GemFire_800/lib/antlr.jar /vagrant/tmp/antlr.jar
+cp $GEMFIRE_DIRECTORY/lib/gemfire.jar /vagrant/tmp/gemfire.jar
+cp $GEMFIRE_DIRECTORY/lib/antlr.jar /vagrant/tmp/antlr.jar
 
-if [ ! -e /opt/pivotal/NativeClient_Linux_64bit_8000_b6169 ]; then
+if [ ! -e $NATIVE_CLIENT_DIRECTORY ]; then
   if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
     echo "----------------------------------------------------"
     echo "Please download $NATIVE_CLIENT_FILENAME"
     echo "from https://network.pivotal.io/products/pivotal-gemfire"
-    echo "(Pivotal GemFire Native Client Linux 64bit v8.0.0.0 - 8.0.0.0)"
+    echo "(Pivotal GemFire Native Client Linux 64bit v8.0.0.3 - 8.0.0.3)"
     echo "and place it in the ./tmp subdirectory of node-gemfire."
     echo "Then re-run \`vagrant provision\`."
     echo "----------------------------------------------------"
     exit 1
   fi
-  cd /opt/pivotal
+  cd /opt/pivotal/gemfire
   unzip /project/tmp/$NATIVE_CLIENT_FILENAME
 fi
 
@@ -69,9 +73,11 @@ if [ ! -e /usr/bin/javac ]; then
   rpm -ivh /project/tmp/$JAVA_RPM_FILENAME
 fi
 
-sh -c "cat > /etc/profile.d/gfcpp.sh" <<'EOF'
-export GFCPP=/opt/pivotal/NativeClient_Linux_64bit_8000_b6169
-export GEMFIRE=/opt/pivotal/gemfire/Pivotal_GemFire_800
+sh -c "cat > /etc/profile.d/gfcpp.sh" <<EOF
+export GFCPP=$NATIVE_CLIENT_DIRECTORY
+export GEMFIRE=$GEMFIRE_DIRECTORY
+EOF
+sh -c "cat >> /etc/profile.d/gfcpp.sh" <<'EOF'
 export JAVA_HOME=/usr/java/default
 export PATH=$GFCPP/bin:/usr/local/bin:$PATH
 export LD_LIBRARY_PATH=$GFCPP/lib:$LD_LIBRARY_PATH
