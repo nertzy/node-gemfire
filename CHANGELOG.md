@@ -1,6 +1,8 @@
 # v0.0.7
 
+- Require GemFire Native Client 8.0.0.1 or later
 - Add workaround for issue where `cache.executeFunction()` throws `gemfire::NullPointerException` if no regions have been defined in the XML configuration.
+- Fix issue where arrays would sometimes come back from GemFire as corrupted non-array objects.
 
 # v0.0.6
 
