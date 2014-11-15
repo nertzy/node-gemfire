@@ -12,7 +12,7 @@ NodeJS client for Pivotal GemFire
 
 ### Prerequisites
 
-1. Download and install the GemFire 8.0.0 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
+1. Download and install the GemFire 8.0.0.1 Native Client for your platform from [Pivotal Network](https://network.pivotal.io/products/pivotal-gemfire).
 2. Set the environment variables described by the [GemFire Native Client installation instructions](http://gemfire.docs.pivotal.io/latest/userguide/index.html#gemfire_nativeclient/introduction/install-overview.html) for your platform.
 
 ### Installing the NPM package
