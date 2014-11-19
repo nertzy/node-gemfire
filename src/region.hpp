@@ -39,6 +39,7 @@ class Region : public node::ObjectWrap {
   static NAN_METHOD(UnregisterAllKeys);
   static NAN_METHOD(Inspect);
   static NAN_GETTER(Name);
+  static NAN_GETTER(Attributes);
 
   template<typename T>
   static NAN_METHOD(Query);

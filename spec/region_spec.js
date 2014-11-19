@@ -802,6 +802,67 @@ describe("gemfire.Region", function() {
     });
   });
 
+  describe(".attributes", function() {
+    describe(".cachingEnabled", function() {
+      describe("for a caching proxy region", function() {
+        it("is set to true", function() {
+          expect(region.attributes.cachingEnabled).toEqual(true);
+        });
+      });
+
+      describe("for a caching proxy region", function() {
+        it("is set to false", function() {
+          const proxyRegion = cache.getRegion("exampleProxyRegion");
+          expect(proxyRegion.attributes.cachingEnabled).toEqual(false);
+        });
+      });
+    });
+
+    it("has a clientNotificationEnabled property", function() {
+      expect(region.attributes.clientNotificationEnabled).toEqual(true);
+    });
+
+    it("has a concurrencyChecksEnabled property", function() {
+      expect(region.attributes.concurrencyChecksEnabled).toEqual(true);
+    });
+
+    it("has a concurrencyLevel property", function() {
+      expect(region.attributes.concurrencyLevel).toEqual(16);
+    });
+
+    it("has a entryIdleTimeout property", function() {
+      expect(region.attributes.entryIdleTimeout).toEqual(0);
+    });
+
+    it("has a entryTimeToLive property", function() {
+      expect(region.attributes.entryTimeToLive).toEqual(0);
+    });
+
+    it("has a initialCapacity property", function() {
+      expect(region.attributes.initialCapacity).toEqual(10000);
+    });
+
+    it("has a loadFactor property", function() {
+      expect(region.attributes.loadFactor).toEqual(0.75);
+    });
+
+    it("has a lruEntriesLimit property", function() {
+      expect(region.attributes.lruEntriesLimit).toEqual(0);
+    });
+
+    it("has a poolName property", function() {
+      expect(region.attributes.poolName).toEqual("client");
+    });
+
+    it("has a regionIdleTimeout property", function() {
+      expect(region.attributes.regionIdleTimeout).toEqual(0);
+    });
+
+    it("has a regionTimeToLive property", function() {
+      expect(region.attributes.regionTimeToLive).toEqual(0);
+    });
+  });
+
   describe(".remove", function() {
     it("throws an error if no key is given", function() {
       function callNoArgs() {

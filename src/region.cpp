@@ -493,6 +493,68 @@ NAN_GETTER(Region::Name) {
   NanReturnValue(NanNew(regionPtr->getName()));
 }
 
+
+NAN_GETTER(Region::Attributes) {
+  NanScope();
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+
+  RegionAttributesPtr regionAttributesPtr(regionPtr->getAttributes());
+
+  Local<Object> returnValue(NanNew<Object>());
+
+  returnValue->Set(NanNew("cachingEnabled"),
+      NanNew(regionAttributesPtr->getCachingEnabled()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("clientNotificationEnabled"),
+      NanNew(regionAttributesPtr->getClientNotificationEnabled()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("concurrencyChecksEnabled"),
+      NanNew(regionAttributesPtr->getConcurrencyChecksEnabled()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("concurrencyLevel"),
+      NanNew(regionAttributesPtr->getConcurrencyLevel()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("entryIdleTimeout"),
+      NanNew(regionAttributesPtr->getEntryIdleTimeout()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("entryTimeToLive"),
+      NanNew(regionAttributesPtr->getEntryTimeToLive()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("initialCapacity"),
+      NanNew(regionAttributesPtr->getInitialCapacity()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("loadFactor"),
+      NanNew(regionAttributesPtr->getLoadFactor()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("lruEntriesLimit"),
+      NanNew(regionAttributesPtr->getLruEntriesLimit()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("poolName"),
+      NanNew(regionAttributesPtr->getPoolName()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("regionIdleTimeout"),
+      NanNew(regionAttributesPtr->getRegionIdleTimeout()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("regionTimeToLive"),
+      NanNew(regionAttributesPtr->getRegionTimeToLive()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  NanReturnValue(returnValue);
+}
+
 template <typename T>
 class AbstractQueryWorker : public GemfireWorker {
  public:
@@ -705,6 +767,7 @@ void Region::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Region::UnregisterAllKeys)->GetFunction());
 
   constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
+  constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("attributes"), Region::Attributes);
 
   NanAssignPersistent(Region::constructor, constructorTemplate->GetFunction());
   exports->Set(NanNew("Region"), NanNew(Region::constructor));
