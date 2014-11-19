@@ -151,7 +151,7 @@ Example:
 ```javascript
 region.clear(function(error){
   if(error) { throw error; }
-  // region is clear
+  // region is empty
 });
 ```
 
