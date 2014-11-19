@@ -116,6 +116,33 @@ var regions = cache.rootRegions();
 
 A GemFire region is a collection of key-value pair entries. The most common way to get a region is to call `cache.getRegion('regionName')` on a Cache.
 
+### region.attributes
+
+Returns an object describing the attributes of the GemFire region. This can be useful for debugging your region configuration.
+
+Several of these values are described in the [GemFire documentation for region attributes](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/client-cache/region-attributes.html).
+
+Example output of `region.attributes`:
+```javascript
+{
+  cachingEnabled: true,
+  clientNotificationEnabled: true,
+  concurrencyChecksEnabled: true,
+  concurrencyLevel: 16,
+  diskPolicy: 'none',
+  entryIdleTimeout: 0,
+  entryTimeToLive: 0,
+  initialCapacity: 10000,
+  loadFactor: 0.75,
+  lruEntriesLimit: 0,
+  lruEvicationAction: 'LOCAL_DESTROY',
+  poolName: 'client',
+  regionIdleTimeout: 0,
+  regionTimeToLive: 0,
+  scope: 'DISTRIBUTED_NO_ACK'
+}
+```
+
 ### region.clear([callback])
 
 Removes all entries from the region. The callback will be called with an `error` argument. If the callback is not supplied, and an error occurs, the region will emit an `error` event.
