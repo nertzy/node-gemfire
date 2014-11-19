@@ -1,6 +1,6 @@
 #!/bin/bash
-GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0.3-49715.el6.noarch.rpm"
-GEMFIRE_DIRECTORY="/opt/pivotal/gemfire/Pivotal_GemFire_8003"
+GEMFIRE_SERVER_FILENAME="pivotal-gemfire-8.0.0-48398.el6.noarch.rpm"
+GEMFIRE_DIRECTORY="/opt/pivotal/gemfire/Pivotal_GemFire_800"
 
 NATIVE_CLIENT_FILENAME="Pivotal_GemFire_NativeClient_Linux_64bit_8001_b6212.zip"
 NATIVE_CLIENT_DIRECTORY="/opt/pivotal/gemfire/NativeClient_Linux_64bit_8001_b6212"
