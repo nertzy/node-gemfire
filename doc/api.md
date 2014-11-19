@@ -11,6 +11,20 @@ var cache = new gemfire.Cache('config/gemfire.xml');
 
 For more information on cache configuration files, see [the documentation](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/cache-init-file/chapter-overview.html#chapter-overview).
 
+### cache.createRegion(regionName)
+
+Adds a region to the GemFire cache. Once the region is created, it will remain in the client for the lifetime of the process.
+
+> **Note**: The region will be defined as a CACHING_PROXY region, so the region must also be present on the GemFire server in order to be used.
+
+```javascript
+cache.getRegion("myRegion") // returns undefined
+
+var myRegion = cache.createRegion("myRegion");
+
+cache.getRegion("myRegion") // returns the same region as myRegion
+```
+
 ### cache.executeFunction(functionName, options)
 
 Executes a Java function on a server in the cluster containing the cache. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object containing the optional field `arguments`.
