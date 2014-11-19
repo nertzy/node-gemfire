@@ -830,11 +830,15 @@ describe("gemfire.Region", function() {
       expect(region.attributes.concurrencyLevel).toEqual(16);
     });
 
-    it("has a entryIdleTimeout property", function() {
+    it("has a diskPolicy property", function() {
+      expect(region.attributes.diskPolicy).toEqual("none");
+    });
+
+    it("has an entryIdleTimeout property", function() {
       expect(region.attributes.entryIdleTimeout).toEqual(0);
     });
 
-    it("has a entryTimeToLive property", function() {
+    it("has an entryTimeToLive property", function() {
       expect(region.attributes.entryTimeToLive).toEqual(0);
     });
 
@@ -850,6 +854,10 @@ describe("gemfire.Region", function() {
       expect(region.attributes.lruEntriesLimit).toEqual(0);
     });
 
+    it("has a lruEvicationAction property", function() {
+      expect(region.attributes.lruEvicationAction).toEqual("LOCAL_DESTROY");
+    });
+
     it("has a poolName property", function() {
       expect(region.attributes.poolName).toEqual("client");
     });
@@ -860,6 +868,10 @@ describe("gemfire.Region", function() {
 
     it("has a regionTimeToLive property", function() {
       expect(region.attributes.regionTimeToLive).toEqual(0);
+    });
+
+    it("has a scope property", function() {
+      expect(region.attributes.scope).toEqual("DISTRIBUTED_NO_ACK");
     });
   });
 

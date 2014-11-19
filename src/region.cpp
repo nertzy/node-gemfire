@@ -520,6 +520,10 @@ NAN_GETTER(Region::Attributes) {
       NanNew(regionAttributesPtr->getConcurrencyLevel()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
+  returnValue->Set(NanNew("diskPolicy"),
+      NanNew(DiskPolicyType::fromOrdinal(regionAttributesPtr->getDiskPolicy())),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
   returnValue->Set(NanNew("entryIdleTimeout"),
       NanNew(regionAttributesPtr->getEntryIdleTimeout()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
@@ -540,6 +544,10 @@ NAN_GETTER(Region::Attributes) {
       NanNew(regionAttributesPtr->getLruEntriesLimit()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
+  returnValue->Set(NanNew("lruEvicationAction"),
+      NanNew(ExpirationAction::fromOrdinal(regionAttributesPtr->getLruEvictionAction())),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
   returnValue->Set(NanNew("poolName"),
       NanNew(regionAttributesPtr->getPoolName()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
@@ -550,6 +558,10 @@ NAN_GETTER(Region::Attributes) {
 
   returnValue->Set(NanNew("regionTimeToLive"),
       NanNew(regionAttributesPtr->getRegionTimeToLive()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  returnValue->Set(NanNew("scope"),
+      NanNew(ScopeType::fromOrdinal(regionAttributesPtr->getScope())),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
   NanReturnValue(returnValue);
