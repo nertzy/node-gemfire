@@ -284,7 +284,7 @@ Example:
 ```javascript
 region.on("create", function(event) {
   // handle event
-}
+});
 
 // another client creates an entry in the region, and the callback is not triggered
 
