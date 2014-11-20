@@ -1,4 +1,3 @@
-const childProcess = require('child_process');
 const async = require("async");
 const _ = require("lodash");
 
@@ -7,31 +6,8 @@ const factories = require("./support/factories.js");
 const errorMatchers = require("./support/error_matchers.js");
 const itExecutesFunctions = require("./support/it_executes_functions.js");
 
-function runExternalTest(name, done, callback) {
-  if(!done) { throw("You must run this test asynchronously and pass done");  }
-  if(!callback) { throw("You must pass a callback");  }
-
-  var filename = "spec/support/cache/" + name + ".js";
-
-  childProcess.execFile("node", [filename], function(error, stdout, stderr) {
-    callback(error, stdout, stderr);
-    done();
-  });
-}
-
-function expectExternalSuccess(name, done){
-  runExternalTest(name, done, function(error, stdout, stderr) {
-    expect(error).not.toBeError();
-    expect(stderr).toEqual('');
-  });
-}
-
-function expectExternalFailure(name, done, message){
-  runExternalTest(name, done, function(error, stdout, stderr) {
-    expect(error).toBeError();
-    expect(stderr).toContain(message);
-  });
-}
+const expectExternalSuccess = require("./support/external_scripts.js").expectExternalSuccess;
+const expectExternalFailure = require("./support/external_scripts.js").expectExternalFailure;
 
 describe("gemfire.Cache", function() {
   beforeEach(function() {
