@@ -1434,7 +1434,7 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is created on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionCreateEventTest");
+        const region = cache.createRegion("createRegionCreateEventTest", {type: "CACHING_PROXY"});
 
         async.series([
           function(next) { region.clear(next); },
@@ -1511,7 +1511,7 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is updated on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionUpdateEventTest");
+        const region = cache.createRegion("createRegionUpdateEventTest", {type: "CACHING_PROXY"});
 
         async.series([
           function(next) { region.clear(next); },
@@ -1590,7 +1590,7 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is destroyed on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionDestroyEventTest");
+        const region = cache.createRegion("createRegionDestroyEventTest", {type: "CACHING_PROXY"});
 
         async.series([
           function(next) { region.clear(next); },

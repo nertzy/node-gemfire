@@ -20,5 +20,8 @@
   <region name="createRegionUpdateEventTest" refid="REPLICATE"/>
   <region name="createRegionDestroyEventTest" refid="REPLICATE"/>
 
+  <region name="createRegionCachingProxyTest" refid="REPLICATE"/>
+  <region name="createRegionProxyTest" refid="REPLICATE"/>
+
   <region name="registerInterestTest" refid="REPLICATE"/>
 </cache>

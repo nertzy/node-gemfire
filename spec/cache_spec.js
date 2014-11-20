@@ -428,7 +428,7 @@ describe("gemfire.Cache", function() {
 
       expect(cache.getRegion("newRegion")).toBeUndefined();
 
-      const newRegion = cache.createRegion("newRegion");
+      const newRegion = cache.createRegion("newRegion", {type: "LOCAL"});
 
       expect(newRegion).toBeDefined();
       expect(cache.getRegion("newRegion")).toEqual(newRegion);
@@ -438,7 +438,7 @@ describe("gemfire.Cache", function() {
       const cache = factories.getCache();
 
       function createExistingRegion(){
-        cache.createRegion("exampleRegion");
+        cache.createRegion("exampleRegion", {type: "CACHING_PROXY"});
       }
 
       expect(createExistingRegion).toThrow(
@@ -454,7 +454,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithNoArguments).toThrow(
-        "You must pass the name of a GemFire region to createRegion."
+        "createRegion: You must pass the name of a GemFire region to create and a region configuration object."
       );
     });
 
@@ -466,25 +466,73 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithNonStringArguments).toThrow(
-        "You must pass a string as the name of a GemFire region to createRegion."
+        "createRegion: You must pass a string as the name of a GemFire region."
       );
     });
 
-    it("creates a caching proxy region", function(done) {
-      async.series([
-        function(next) {
-          expectExternalSuccess("populate_shadow_region", next);
-        },
-        function(next) {
-          const cache = factories.getCache();
-          const shadowRegion = cache.createRegion("shadow");
-          shadowRegion.get("proxy", function(error, value) {
-            expect(error).not.toBeError();
-            expect(value).toEqual(true);
-            next();
-          });
-        }
-      ], done);
+    it("throws an error when no configuration object is passed in", function() {
+      const cache = factories.getCache();
+
+      function createRegionWithOnlyName(){
+        cache.createRegion("regionName");
+      }
+
+      expect(createRegionWithOnlyName).toThrow(
+        'createRegion: You must pass a configuration object as the second argument.'
+      );
+    });
+
+    it("throws an error when the passed-in configuration object has no type property", function() {
+      const cache = factories.getCache();
+
+      function createRegionWithOnlyName(){
+        cache.createRegion("regionName", {});
+      }
+
+      expect(createRegionWithOnlyName).toThrow(
+        'createRegion: The region configuration object must have a type property.'
+      );
+    });
+
+    it("throws an error when the passed-in type is not a valid GemFire client region type", function() {
+      const cache = factories.getCache();
+
+      function createRegionWithOnlyName(){
+        cache.createRegion("regionName", {type: 123});
+      }
+
+      expect(createRegionWithOnlyName).toThrow(
+        'createRegion: This type is not a valid GemFire client region type'
+      );
+    });
+
+    describe("when the client type is set to PROXY", function() {
+      it("creates a PROXY region", function() {
+        const cache = factories.getCache();
+        const region = cache.createRegion("createRegionCachingProxyTest", { type: "PROXY" });
+
+        expect(region.attributes.cachingEnabled).toBeFalsy();
+        expect(region.attributes.scope).toEqual("DISTRIBUTED_NO_ACK");
+      });
+    });
+
+    describe("when the client type is set to CACHING_PROXY", function() {
+      it("creates a CACHING_PROXY region", function() {
+        const cache = factories.getCache();
+        const region = cache.createRegion("createRegionProxyTest", { type: "CACHING_PROXY" });
+
+        expect(region.attributes.cachingEnabled).toBeTruthy();
+        expect(region.attributes.scope).toEqual("DISTRIBUTED_NO_ACK");
+      });
+    });
+
+    describe("when the client type is set to LOCAL", function() {
+      it("creates a LOCAL region", function() {
+        const cache = factories.getCache();
+        const region = cache.createRegion("createRegionLocalTest", { type: "LOCAL" });
+        expect(region.attributes.cachingEnabled).toBeTruthy();
+        expect(region.attributes.scope).toEqual("LOCAL");
+      });
     });
   });
 });
