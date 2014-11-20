@@ -859,7 +859,7 @@ describe("gemfire.Region", function() {
     });
 
     it("has a poolName property", function() {
-      expect(region.attributes.poolName).toEqual("client");
+      expect(region.attributes.poolName).toEqual("default_gemfireClientPool");
     });
 
     it("has a regionIdleTimeout property", function() {
