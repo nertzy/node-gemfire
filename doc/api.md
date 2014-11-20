@@ -11,16 +11,17 @@ var cache = new gemfire.Cache('config/gemfire.xml');
 
 For more information on cache configuration files, see [the documentation](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/cache-init-file/chapter-overview.html#chapter-overview).
 
-### cache.createRegion(regionName)
+### cache.createRegion(regionName, options)
 
-Adds a region to the GemFire cache. Once the region is created, it will remain in the client for the lifetime of the process.
+Adds a region to the GemFire cache. Once the region is created, it will remain in the client for the lifetime of the process. The `regionName` should be a string and the `options` object has a required type property. 
 
-> **Note**: The region will be defined as a CACHING_PROXY region, so the region must also be present on the GemFire server in order to be used.
+ * `options.type`: the type of GemFire region to create. The value should be the string name of one of the GemFire region shortcuts, such as "LOCAL", "PROXY", or "CACHING_PROXY". See the GemFire documentation for [Region Shortcuts](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/client-cache/region-shortcuts.html) and the [gemfire::RegionShortcut C++ enumeration](http://gemfire.docs.pivotal.io/latest/cpp_api/cppdocs/namespacegemfire.html#596bc5edab9d1e7c232e53286b338183) for more details.  
 
+Example:
 ```javascript
 cache.getRegion("myRegion") // returns undefined
 
-var myRegion = cache.createRegion("myRegion");
+var myRegion = cache.createRegion("myRegion", {type: "LOCAL"});
 
 cache.getRegion("myRegion") // returns the same region as myRegion
 ```

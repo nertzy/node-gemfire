@@ -10,6 +10,7 @@
 #include "gemfire_worker.hpp"
 #include "dependencies.hpp"
 #include "functions.hpp"
+#include "region_shortcuts.hpp"
 
 using namespace v8;
 using namespace gemfire;
@@ -172,13 +173,34 @@ NAN_METHOD(Cache::ExecuteQuery) {
 NAN_METHOD(Cache::CreateRegion) {
   NanScope();
 
-  if (args.Length() != 1) {
-    NanThrowError("You must pass the name of a GemFire region to createRegion.");
+  if (args.Length() < 1) {
+    NanThrowError(
+        "createRegion: You must pass the name of a GemFire region to create "
+        "and a region configuration object.");
     NanReturnUndefined();
   }
 
   if (!args[0]->IsString()) {
-    NanThrowError("You must pass a string as the name of a GemFire region to createRegion.");
+    NanThrowError("createRegion: You must pass a string as the name of a GemFire region.");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsObject()) {
+    NanThrowError("createRegion: You must pass a configuration object as the second argument.");
+    NanReturnUndefined();
+  }
+
+  Local<Object> regionConfiguration(args[1]->ToObject());
+  Local<Value> regionType(regionConfiguration->Get(NanNew("type")));
+
+  if (regionType->IsUndefined()) {
+    NanThrowError("createRegion: The region configuration object must have a type property.");
+    NanReturnUndefined();
+  }
+
+  RegionShortcut regionShortcut(getRegionShortcut(*NanUtf8String(regionType)));
+  if (regionShortcut == invalidRegionShortcut) {
+    NanThrowError("createRegion: This type is not a valid GemFire client region type");
     NanReturnUndefined();
   }
 
@@ -187,7 +209,7 @@ NAN_METHOD(Cache::CreateRegion) {
 
   RegionPtr regionPtr;
   try {
-    RegionFactoryPtr regionFactoryPtr(cachePtr->createRegionFactory(CACHING_PROXY));
+    RegionFactoryPtr regionFactoryPtr(cachePtr->createRegionFactory(regionShortcut));
     regionPtr = regionFactoryPtr->create(*NanUtf8String(args[0]));
   } catch (const gemfire::Exception & exception) {
     NanThrowError(gemfireExceptionMessage(exception).c_str());

@@ -31,6 +31,7 @@
       "src/region_event_listener.cpp",
       "src/region_event_registry.cpp",
       "src/event_stream.cpp",
+      "src/region_shortcuts.cpp",
     ]
   },
   "targets": [
