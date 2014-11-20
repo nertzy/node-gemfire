@@ -137,7 +137,7 @@ Example output of `region.attributes`:
   loadFactor: 0.75,
   lruEntriesLimit: 0,
   lruEvicationAction: 'LOCAL_DESTROY',
-  poolName: 'client',
+  poolName: 'default_gemfireClientPool',
   regionIdleTimeout: 0,
   regionTimeToLive: 0,
   scope: 'DISTRIBUTED_NO_ACK'

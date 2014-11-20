@@ -52,9 +52,9 @@ NAN_METHOD(Cache::New) {
     NanReturnUndefined();
   }
 
-  CacheFactoryPtr cacheFactory(
-      CacheFactory::createCacheFactory()
-          ->set("cache-xml-file", *NanAsciiString(args[0])));
+  CacheFactoryPtr cacheFactory(CacheFactory::createCacheFactory());
+  cacheFactory->set("cache-xml-file", *NanAsciiString(args[0]));
+  cacheFactory->setSubscriptionEnabled(true);
 
   CachePtr cachePtr;
   try {
