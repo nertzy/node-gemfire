@@ -493,7 +493,6 @@ NAN_GETTER(Region::Name) {
   NanReturnValue(NanNew(regionPtr->getName()));
 }
 
-
 NAN_GETTER(Region::Attributes) {
   NanScope();
 
@@ -548,9 +547,16 @@ NAN_GETTER(Region::Attributes) {
       NanNew(ExpirationAction::fromOrdinal(regionAttributesPtr->getLruEvictionAction())),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("poolName"),
-      NanNew(regionAttributesPtr->getPoolName()),
-      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+  const char * poolName = regionAttributesPtr->getPoolName();
+  if (poolName == NULL) {
+    returnValue->Set(NanNew("poolName"),
+        NanNull(),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+  } else {
+    returnValue->Set(NanNew("poolName"),
+        NanNew(poolName),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+  }
 
   returnValue->Set(NanNew("regionIdleTimeout"),
       NanNew(regionAttributesPtr->getRegionIdleTimeout()),
