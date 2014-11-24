@@ -67,6 +67,18 @@ describe("Interoperability", function() {
       });
   });
 
+  it("interprets Java List as JavaScript Array", function(done) {
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnList",
+                           ["foo", "bar", 1, 2.2, [3, 4.4]],
+                           done);
+  });
+
+  it("interprets Java Object[] as JavaScript Array", function(done) {
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnObjectArray",
+                           ["foo", "bar", 1, 2.2, [3, 4.4]],
+                           done);
+  });
+
   it("provides a warning when a Java long greater than Number.MAX_SAFE_INTEGER is received", function(done) {
     spyOn(console, "warn");
 
