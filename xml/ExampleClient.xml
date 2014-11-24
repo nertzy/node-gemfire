@@ -4,7 +4,7 @@
     "http://www.gemstone.com/dtd/cache7_0.dtd">
 
 <client-cache>
-  <pool name="client">
+  <pool name="myPool">
     <server host="localhost" port="40404" />
   </pool>
   <pdx read-serialized="true" />

@@ -396,6 +396,39 @@ describe("gemfire.Cache", function() {
     it("successfully executes the function even if there are no regions in the client XML", function(done) {
       expectExternalSuccess("execute_function_without_regions", done);
     });
+
+    describe("when a valid pool is given", function() {
+      it("executes the function on that pool", function(done) {
+        const cache = factories.getCache();
+        const functionName = "io.pivotal.node_gemfire.Passthrough";
+
+        var result;
+
+        cache.executeFunction(functionName, { arguments: [1,2], pool: "myPool" })
+          .on("data", function(data) {
+            result = data;
+          })
+          .on("end", function(){
+            expect(result).toEqual([1,2]);
+            done();
+          });
+      });
+    });
+
+    describe("when an invalid poolName is given", function() {
+      it("throws an error", function() {
+        const cache = factories.getCache();
+        const functionName = "io.pivotal.node_gemfire.Passthrough";
+
+        function executeFunctionWithInvalidPoolName() {
+          cache.executeFunction(functionName, { arguments: [1,2], pool: "invalidPool" });
+        }
+
+        expect(executeFunctionWithInvalidPoolName).toThrow(
+          "executeFunction: `invalidPool` is not a valid pool name"
+        );
+      });
+    });
   });
 
   describe(".createRegion", function() {

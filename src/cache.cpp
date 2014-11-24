@@ -4,6 +4,8 @@
 #include <gfcpp/Cache.hpp>
 #include <gfcpp/CacheFactory.hpp>
 #include <gfcpp/Region.hpp>
+#include <string>
+#include <sstream>
 #include "exceptions.hpp"
 #include "conversions.hpp"
 #include "region.hpp"
@@ -272,30 +274,48 @@ NAN_METHOD(Cache::ExecuteFunction) {
     NanReturnUndefined();
   }
 
+  Local<Value> poolNameValue(NanUndefined());
   if (args[1]->IsObject() && !args[1]->IsArray()) {
-    Local<Value> filter = args[1]->ToObject()->Get(NanNew("filter"));
+    Local<Object> optionsObject = args[1]->ToObject();
+
+    Local<Value> filter = optionsObject->Get(NanNew("filter"));
     if (!filter->IsUndefined()) {
       NanThrowError("You cannot pass a filter to executeFunction for a Cache.");
       NanReturnUndefined();
     }
+
+    poolNameValue = optionsObject->Get(NanNew("pool"));
   }
 
+  PoolPtr poolPtr;
   try {
-    // FIXME: Workaround for the situation where there are no regions yet.
-    //
-    // As of GemFire Native Client 8.0.0.0, if no regions have ever been present, it's possible that
-    // the cachePtr has no default pool set. Attempting to execute a function on this cachePtr will
-    // throw a NullPointerException.
-    //
-    // To avoid this problem, we grab the first pool we can find and execute the function on that
-    // pool's poolPtr instead of on the cachePtr. Note that this might not be the best choice of
-    // poolPtr at the moment.
-    //
-    // See https://www.pivotaltracker.com/story/show/82079194 for the original bug.
-    // See https://www.pivotaltracker.com/story/show/82125288 for a potential enhancement.
-    HashMapOfPools hashMapOfPools(PoolManager::getAll());
-    HashMapOfPools::Iterator iterator(hashMapOfPools.begin());
-    PoolPtr poolPtr(iterator.second());
+    if (!poolNameValue->IsUndefined()) {
+      std::string poolName(*NanUtf8String(poolNameValue));
+
+      poolPtr = PoolManager::find(poolName.c_str());
+      if (poolPtr == NULLPTR) {
+        std::stringstream errorMessageStream;
+        errorMessageStream << "executeFunction: `" << poolName << "` is not a valid pool name";
+        NanThrowError(errorMessageStream.str().c_str());
+        NanReturnUndefined();
+      }
+    } else {
+      // FIXME: Workaround for the situation where there are no regions yet.
+      //
+      // As of GemFire Native Client 8.0.0.0, if no regions have ever been present, it's possible that
+      // the cachePtr has no default pool set. Attempting to execute a function on this cachePtr will
+      // throw a NullPointerException.
+      //
+      // To avoid this problem, we grab the first pool we can find and execute the function on that
+      // pool's poolPtr instead of on the cachePtr. Note that this might not be the best choice of
+      // poolPtr at the moment.
+      //
+      // See https://www.pivotaltracker.com/story/show/82079194 for the original bug.
+      // See https://www.pivotaltracker.com/story/show/82125288 for a potential enhancement.
+      HashMapOfPools hashMapOfPools(PoolManager::getAll());
+      HashMapOfPools::Iterator iterator(hashMapOfPools.begin());
+      poolPtr = iterator.second();
+    }
 
     ExecutionPtr executionPtr(FunctionService::onServer(poolPtr));
     NanReturnValue(executeFunction(args, cachePtr, executionPtr));
