@@ -28,11 +28,14 @@ cache.getRegion("myRegion") // returns the same region as myRegion
 
 ### cache.executeFunction(functionName, options)
 
-Executes a Java function on a server in the cluster containing the cache. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object containing the optional field `arguments`.
+Executes a Java function on a server in the cluster containing the cache. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object.
 
  * `options.arguments`: the arguments to be passed to the Java function
+ * `options.pool`: the name of the GemFire pool where the function should be run
 
 > **Note**: Unlike region.executeFunction(), `options.filter` is not allowed.
+
+> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.pool` is not specified, functions executed by cache.executeFunction() will be executed on exactly one server in the first pool defined in the XML configuration file.
 
 cache.executeFunction returns an EventEmitter which emits the following events:
 
@@ -42,12 +45,13 @@ cache.executeFunction returns an EventEmitter which emits the following events:
 
 > **Warning:** As of GemFire 8.0.0.0, there are some situations where the Java function can throw an uncaught Exception, but the node `error` callback never gets called. This is due to a known bug in how the GemFire 8.0.0.0 Native Client handles exceptions. This bug is only present for cache.executeFunction. region.executeFunction works as expected.
 
-> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, all functions executed by cache.executeFunction() will be executed on exactly one server in the first pool defined in the XML configuration file.
-
 Example:
 ```javascript
 cache.executeFunction("com.example.FunctionName", 
-    { arguments: [1, 2, 3] }
+    {
+      arguments: [1, 2, 3],
+      pool: "myPool"
+    }
   )
   .on("error", function(error) { throw error; })
   .on("data", function(result) {
@@ -158,10 +162,10 @@ region.clear(function(error){
 
 ### region.executeFunction(functionName, options)
 
-Executes a Java function on any servers in the cluster containing the region. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object containing the optional fields `arguments` and `filters`.
+Executes a Java function on any servers in the cluster containing the region. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object.
 
  * `options.arguments`: the arguments to be passed to the Java function
- * `options.filter`: an array of keys to be sent to the Java function as the filter. 
+ * `options.filter`: an array of keys to be sent to the Java function as the filter
 
 region.executeFunction returns an EventEmitter which emits the following events:
 
