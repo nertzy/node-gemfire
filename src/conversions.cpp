@@ -158,11 +158,7 @@ PdxInstancePtr gemfireValue(const Local<Object> & v8Object, const CachePtr & cac
       NanUtf8String fieldName(v8Key);
 
       CacheablePtr cacheablePtr(gemfireValue(v8Value, cachePtr));
-      if (v8Value->IsArray()) {
-        pdxInstanceFactory->writeObjectArray(*fieldName, cacheablePtr);
-      } else {
-        pdxInstanceFactory->writeObject(*fieldName, cacheablePtr);
-      }
+      pdxInstanceFactory->writeObject(*fieldName, cacheablePtr);
     }
 
     return pdxInstanceFactory->create();
@@ -173,16 +169,16 @@ PdxInstancePtr gemfireValue(const Local<Object> & v8Object, const CachePtr & cac
   }
 }
 
-gemfire::CacheableObjectArrayPtr gemfireValue(const Local<Array> & v8Array,
+gemfire::CacheableArrayListPtr gemfireValue(const Local<Array> & v8Array,
                                          const gemfire::CachePtr & cachePtr) {
-  CacheableObjectArrayPtr objectArrayPtr(CacheableObjectArray::create());
+  CacheableArrayListPtr arrayListPtr(CacheableArrayList::create());
 
   unsigned int length = v8Array->Length();
   for (unsigned int i = 0; i < length; i++) {
-    objectArrayPtr->push_back(gemfireValue(v8Array->Get(i), cachePtr));
+    arrayListPtr->push_back(gemfireValue(v8Array->Get(i), cachePtr));
   }
 
-  return objectArrayPtr;
+  return arrayListPtr;
 }
 
 gemfire::CacheableDatePtr gemfireValue(const Local<Date> & v8Date) {
@@ -297,6 +293,8 @@ Local<Value> v8Value(const CacheablePtr & valuePtr) {
       return NanEscapeScope(v8Value(static_cast<StructPtr>(valuePtr)));
     case GemfireTypeIds::CacheableObjectArray:
       return NanEscapeScope(v8Array(static_cast<CacheableObjectArrayPtr>(valuePtr)));
+    case GemfireTypeIds::CacheableArrayList:
+      return NanEscapeScope(v8Array(static_cast<CacheableArrayListPtr>(valuePtr)));
     case GemfireTypeIds::CacheableVector:
       return NanEscapeScope(v8Array(static_cast<CacheableVectorPtr>(valuePtr)));
     case GemfireTypeIds::CacheableHashMap:
