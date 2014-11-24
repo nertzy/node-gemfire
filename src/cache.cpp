@@ -311,7 +311,6 @@ NAN_METHOD(Cache::ExecuteFunction) {
       // poolPtr at the moment.
       //
       // See https://www.pivotaltracker.com/story/show/82079194 for the original bug.
-      // See https://www.pivotaltracker.com/story/show/82125288 for a potential enhancement.
       HashMapOfPools hashMapOfPools(PoolManager::getAll());
       HashMapOfPools::Iterator iterator(hashMapOfPools.begin());
       poolPtr = iterator.second();
