@@ -19,22 +19,34 @@ describe("gemfire.Cache", function() {
   });
 
   describe(".configure", function() {
-    it("throws an error if the file is not found", function(done) {
+    it("throws an error if .configure has been called already", function() {
+      function callConfigureAgain() {
+        gemfire.configure("./config/ExampleClient.xml");
+      }
+
+      expect(callConfigureAgain).toThrow(
+        "gemfire: configure() can only be called once per process. " +
+        "Please call configure() once in an application initializer. " +
+        "Afterwards, you can call getCache() multiple times to get the cache singleton object."
+      );
+    });
+  });
+
+  describe(".configure/.getCache", function(){
+    it("accepts a correct XML file path", function(done) {
+      expectExternalSuccess("correct_xml_file", done);
+    });
+
+    it("throws an error if the XML file is not found", function(done) {
       var expectedMessage = 'I/O warning : failed to load external entity "/bad/path.xml"';
       expectExternalFailure("missing_xml_file", done, expectedMessage);
     });
 
-    it("throws an error if setReadSerialized not set to true", function(done) {
+    it("throws an error if setReadSerialized not set to true in the XML", function(done) {
       var expectedMessage = "<pdx read-serialized='true' /> must be set in your cache xml";
       expectExternalFailure("not_pdx_read_serialized", done, expectedMessage);
     });
 
-    it("accepts an xml file path", function(done) {
-      expectExternalSuccess("correct_xml_file", done);
-    });
-  });
-
-  describe(".getCache", function(){
     it("returns the Cache singleton", function() {
       const cache = gemfire.getCache();
       expect(cache.constructor.name).toEqual("Cache");
