@@ -1,5 +1,5 @@
-#ifndef __BINDING_HPP__
-#define __BINDING_HPP__
+#ifndef __DEPENDENCIES_HPP__
+#define __DEPENDENCIES_HPP__
 
 #include <v8.h>
 
