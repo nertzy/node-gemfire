@@ -3,7 +3,8 @@ const _ = require('lodash');
 const async = require('async');
 
 const gemfire = require('../..');
-const cache = new gemfire.Cache('xml/ExampleClient.xml');
+gemfire.configure('xml/ExampleClient.xml');
+const cache = gemfire.getCache();
 const region = cache.getRegion("oqlBenchmark");
 
 const keyOptions = {

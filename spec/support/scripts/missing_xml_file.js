@@ -1,2 +1,3 @@
 const gemfire = require("../gemfire.js");
-new gemfire.Cache("/bad/path.xml");
+gemfire.configure("/bad/path.xml");
+gemfire.getCache();

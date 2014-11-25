@@ -1,2 +1,3 @@
 const gemfire = require("../gemfire.js");
-new gemfire.Cache("spec/support/scripts/NotPdxReadSerialized.xml");
+gemfire.configure("spec/support/scripts/NotPdxReadSerialized.xml");
+gemfire.getCache();
