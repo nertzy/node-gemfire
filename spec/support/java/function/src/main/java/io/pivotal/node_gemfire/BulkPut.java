@@ -5,6 +5,8 @@ import com.gemstone.gemfire.cache.execute.FunctionAdapter;
 import com.gemstone.gemfire.cache.execute.FunctionContext;
 import com.gemstone.gemfire.cache.execute.RegionFunctionContext;
 
+import java.util.List;
+
 public class BulkPut extends FunctionAdapter {
 
     private static final int KEY_SIZE = 32;
@@ -13,10 +15,10 @@ public class BulkPut extends FunctionAdapter {
         RegionFunctionContext regionFunctionContext = (RegionFunctionContext) fc;
         Region<Object, Object> region = regionFunctionContext.getDataSet();
 
-        Object[] arguments = (Object[]) fc.getArguments();
+        List arguments = (List) fc.getArguments();
 
-        Object objectToPut = arguments[0];
-        int numberOfPuts = ((Double) arguments[1]).intValue();
+        Object objectToPut = arguments.get(0);
+        int numberOfPuts = ((Double) arguments.get(1)).intValue();
 
         for (int i = 0; i < numberOfPuts; i++) {
            String key = "foo" + i;
