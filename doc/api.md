@@ -1,15 +1,42 @@
 # API Documentation
 
-## Cache
+## gemfire
 
-A GemFire cache is an in-memory data store composed of many Regions. A cache is constructed with an XML configuration file:
+### gemfire.configure(xmlFilePath)
 
-```javascript
-var gemfire = require('gemfire');
-var cache = new gemfire.Cache('config/gemfire.xml');
-```
+Tells gemfire which cache configuration file to use. `xmlFilePath` can be either absolute or relative to the current working directory in the application's environment. Once set, the configuration cannot be changed.
 
 For more information on cache configuration files, see [the documentation](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/cache-init-file/chapter-overview.html#chapter-overview).
+
+Example:
+```javascript
+var gemfire = require('gemfire');
+
+gemfire.configure("config/myGemfireConfiguration.xml");
+gemfire.configure("config/anotherGemfireConfiguration.xml"); // throws an error
+```
+
+### gemfire.getCache()
+
+Returns the cache singleton object. `gemfire.configure()` must have been called prior to calling `gemfire.getCache()`.
+
+> **Warning:** Due to a limitation of the GemFire C++ Native Client library that backs the Cache, there can only be one Cache instance in the lifetime of a Node process. If you want to construct a new cache instance, you must restart your application.
+
+Example:
+```javascript
+var gemfire = require('gemfire');
+
+gemfire.getCache(); // throws an error, because gemfire has not been configured yet
+
+gemfire.configure("config/gemfire.xml");
+
+gemfire.getCache(); // returns the cache singleton object
+gemfire.getCache(); // returns the same cache singleton object on subsequent calls
+```
+
+## Cache
+
+The GemFire cache is an in-memory data store singleton object composed of many Regions. The cache instance is configured with an XML configuration file via `gemfire.configure()` and returned by calling `gemfire.getCache()`:
 
 ### cache.createRegion(regionName, options)
 
