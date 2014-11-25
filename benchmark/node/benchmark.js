@@ -1,6 +1,8 @@
 const randomString = require('random-string');
 const _ = require('lodash');
 const async = require('async');
+const exec = require("child_process").exec;
+const spawn = require("child_process").spawn;
 
 const gemfire = require('../..');
 gemfire.configure('xml/ExampleClient.xml');
@@ -108,7 +110,7 @@ async.series([
   function(next){ smokeTest(next); },
   function(next){ benchmarkStrings(10000, next); },
   function(next){ benchmarkSimpleObjects(1000, next); },
-  function(next){ benchmarkComplexObjects(100, next); }
-], function(){
-  require('./oql.js');
-});
+  function(next){ benchmarkComplexObjects(100, next); },
+  function(next){ spawn("node", ["benchmark/node/oql.js"], {stdio: "inherit"}, next); }
+]);
+
