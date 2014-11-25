@@ -18,7 +18,7 @@ describe("gemfire.Cache", function() {
     setTimeout(done, 0);
   });
 
-  describe("constructor", function(){
+  describe(".configure", function() {
     it("throws an error if the file is not found", function(done) {
       var expectedMessage = 'I/O warning : failed to load external entity "/bad/path.xml"';
       expectExternalFailure("missing_xml_file", done, expectedMessage);
@@ -32,9 +32,26 @@ describe("gemfire.Cache", function() {
     it("accepts an xml file path", function(done) {
       expectExternalSuccess("correct_xml_file", done);
     });
+  });
+
+  describe(".getCache", function(){
+    it("returns the Cache singleton", function() {
+      const cache = gemfire.getCache();
+      expect(cache.constructor.name).toEqual("Cache");
+    });
+
+    it("returns the same object on subsequent calls", function() {
+      const cache1 = gemfire.getCache();
+      const cache2 = gemfire.getCache();
+      expect(cache1 === cache2).toBeTruthy();
+    });
 
     it("throws an error if there are no parameters", function(done) {
-      expectExternalFailure("no_parameters", done, "Cache constructor requires a path to an XML configuration file as its first argument.");
+      expectExternalFailure(
+        "no_parameters",
+        done,
+        "gemfire: You must call configure() before calling getCache()."
+      );
     });
   });
 
