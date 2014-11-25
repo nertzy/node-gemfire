@@ -42,8 +42,9 @@ You can see the available options for `gfcpp.properties` in the [GemFire documen
 
 ```javascript
 var gemfire = require('gemfire');
+gemfire.configure('config/cache.xml');
 
-var cache = new gemfire.Cache('config/cache.xml');
+var cache = gemfire.getCache();
 var region = cache.getRegion('myRegion');
 
 region.put('foo', { bar: ['baz', 'qux'] }, function(error) { 
