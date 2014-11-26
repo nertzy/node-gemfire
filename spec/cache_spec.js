@@ -30,9 +30,7 @@ describe("gemfire.Cache", function() {
         "Afterwards, you can call getCache() multiple times to get the cache singleton object."
       );
     });
-  });
 
-  describe(".configure/.getCache", function(){
     it("accepts a correct XML file path", function(done) {
       expectExternalSuccess("correct_xml_file", done);
     });
@@ -47,6 +45,9 @@ describe("gemfire.Cache", function() {
       expectExternalFailure("not_pdx_read_serialized", done, expectedMessage);
     });
 
+  });
+
+  describe(".configure/.getCache", function(){
     it("returns the Cache singleton", function() {
       const cache = gemfire.getCache();
       expect(cache.constructor.name).toEqual("Cache");
@@ -58,9 +59,9 @@ describe("gemfire.Cache", function() {
       expect(cache1 === cache2).toBeTruthy();
     });
 
-    it("throws an error if there are no parameters", function(done) {
+    it("throws an error if gemfire is not configured", function(done) {
       expectExternalFailure(
-        "no_parameters",
+        "not_configured",
         done,
         "gemfire: You must call configure() before calling getCache()."
       );
