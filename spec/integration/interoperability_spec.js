@@ -79,6 +79,24 @@ describe("Interoperability", function() {
                            done);
   });
 
+  // see https://www.pivotaltracker.com/story/show/81671186
+  it("interprets Object[] that does not throw OutOfRangeException", function(done) {
+    expectFunctionToReturn("io.pivotal.node_gemfire.ReturnObjectArrayTriggersError",
+                           { someArray: [
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                            '000000000000000000000000',
+                          ]}, done);
+  });
+
   it("provides a warning when a Java long greater than Number.MAX_SAFE_INTEGER is received", function(done) {
     spyOn(console, "warn");
 
