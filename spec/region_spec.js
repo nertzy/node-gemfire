@@ -340,47 +340,6 @@ describe("gemfire.Region", function() {
       testRoundTrip(sparseArray, done);
     });
 
-    // see https://www.pivotaltracker.com/story/show/81671186
-    it("stores and retrieves objects that throw OutOfRangeException inside the PdxInstance", function(done) {
-      testRoundTrip({
-        someArray: [
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-          '000000000000000000000000',
-        ]
-      }, done);
-    });
-
-    // see https://www.pivotaltracker.com/story/show/81718204
-    it("stores and retrieves objects that return an incorrect typeId inside the PdxInstance", function(done) {
-      testRoundTrip({
-        someArray: [
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999',
-          '999999999999999999999999'
-        ]
-      }, done);
-    });
-
     _.each([
       1,
       1.23,
