@@ -747,18 +747,38 @@ NAN_METHOD(Region::UnregisterAllKeys) {
   NanReturnUndefined();
 }
 
+class DestroyRegionWorker : public GemfireEventedWorker {
+ public:
+  DestroyRegionWorker(
+    const Local<Object> & regionObject,
+    Region * region,
+    NanCallback * callback) :
+      GemfireEventedWorker(regionObject, callback),
+      region(region) {}
+
+  void ExecuteGemfireWork() {
+    region->regionPtr->destroyRegion();
+  }
+
+ private:
+  Region * region;
+};
+
 NAN_METHOD(Region::DestroyRegion) {
   NanScope();
 
-  Region * region = ObjectWrap::Unwrap<Region>(args.This());
-
-  try {
-    region->regionPtr->destroyRegion();
-  } catch (const gemfire::Exception & exception) {
-    ThrowGemfireException(exception);
+  if (!isFunctionOrUndefined(args[0])) {
+    NanThrowError("You must pass a function as the callback to destroyRegion().");
+    NanReturnUndefined();
   }
 
-  NanReturnUndefined();
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
+  NanCallback * callback = getCallback(args[0]);
+  DestroyRegionWorker * worker = new DestroyRegionWorker(args.This(), region, callback);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnValue(args.This());
 }
 
 void Region::Init(Local<Object> exports) {
