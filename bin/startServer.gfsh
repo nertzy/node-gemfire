@@ -2,7 +2,7 @@ connect
 start server \
   --dir=server \
   --log-level=warning \
-  --cache-xml-file=/project/xml/ExampleServer.xml \
+  --cache-xml-file=/vagrant/xml/ExampleServer.xml \
   --name=server \
   --J=-Dgemfire.start-dev-rest-api=true \
   --J=-Dgemfire.http-service-port=8080

@@ -35,7 +35,7 @@ yum -y install \
   yum-plugin-auto-update-debug-info.noarch
 
 if [ ! -e $GEMFIRE_DIRECTORY ]; then
-  if [ ! -e /project/tmp/$GEMFIRE_SERVER_FILENAME ]; then
+  if [ ! -e /vagrant/tmp/$GEMFIRE_SERVER_FILENAME ]; then
     echo "----------------------------------------------------"
     echo "Please download $GEMFIRE_SERVER_FILENAME"
     echo "from https://network.pivotal.io/products/pivotal-gemfire"
@@ -45,14 +45,14 @@ if [ ! -e $GEMFIRE_DIRECTORY ]; then
     echo "----------------------------------------------------"
     exit 1
   fi
-  rpm -ivh /project/tmp/$GEMFIRE_SERVER_FILENAME
+  rpm -ivh /vagrant/tmp/$GEMFIRE_SERVER_FILENAME
 fi
 
 cp $GEMFIRE_DIRECTORY/lib/gemfire.jar /vagrant/tmp/gemfire.jar
 cp $GEMFIRE_DIRECTORY/lib/antlr.jar /vagrant/tmp/antlr.jar
 
 if [ ! -e $NATIVE_CLIENT_DIRECTORY ]; then
-  if [ ! -e /project/tmp/$NATIVE_CLIENT_FILENAME ]; then
+  if [ ! -e /vagrant/tmp/$NATIVE_CLIENT_FILENAME ]; then
     echo "----------------------------------------------------"
     echo "Please download $NATIVE_CLIENT_FILENAME"
     echo "from https://network.pivotal.io/products/pivotal-gemfire"
@@ -63,14 +63,14 @@ if [ ! -e $NATIVE_CLIENT_DIRECTORY ]; then
     exit 1
   fi
   cd /opt/pivotal/gemfire
-  unzip /project/tmp/$NATIVE_CLIENT_FILENAME
+  unzip /vagrant/tmp/$NATIVE_CLIENT_FILENAME
 fi
 
 if [ ! -e /usr/bin/javac ]; then
-  if [ ! -e /project/tmp/$JAVA_RPM_FILENAME ]; then
-    wget --no-verbose -O /project/tmp/$JAVA_RPM_FILENAME --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $JAVA_RPM_URL
+  if [ ! -e /vagrant/tmp/$JAVA_RPM_FILENAME ]; then
+    wget --no-verbose -O /vagrant/tmp/$JAVA_RPM_FILENAME --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $JAVA_RPM_URL
   fi
-  rpm -ivh /project/tmp/$JAVA_RPM_FILENAME
+  rpm -ivh /vagrant/tmp/$JAVA_RPM_FILENAME
 fi
 
 sh -c "cat > /etc/profile.d/gfcpp.sh" <<EOF
@@ -86,10 +86,10 @@ EOF
 wget --no-verbose https://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py -O /usr/local/bin/cpplint.py
 chmod +x /usr/local/bin/cpplint.py
 
-if [ ! -e /project/tmp/gppfs-0.2 ]; then
-  if [ ! -e /project/tmp/gppfs-0.2.tar.bz2 ]; then
-    wget --no-verbose -O /project/tmp/gppfs-0.2.tar.bz2 http://www.joachim-reichel.de/software/gppfs/gppfs-0.2.tar.bz2
+if [ ! -e /vagrant/tmp/gppfs-0.2 ]; then
+  if [ ! -e /vagrant/tmp/gppfs-0.2.tar.bz2 ]; then
+    wget --no-verbose -O /vagrant/tmp/gppfs-0.2.tar.bz2 http://www.joachim-reichel.de/software/gppfs/gppfs-0.2.tar.bz2
   fi
-  cd /project/tmp
+  cd /vagrant/tmp
   tar jxf gppfs-0.2.tar.bz2
 fi

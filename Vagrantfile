@@ -19,8 +19,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 7070, host: 7070
   config.vm.network "forwarded_port", guest: 8080, host: 8080
 
-  config.vm.synced_folder ".", "/project"
-
   # View the documentation for the provider you're using for more
   # information on available options.
   config.vm.provider "virtualbox" do |vb|
