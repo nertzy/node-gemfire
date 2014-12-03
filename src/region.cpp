@@ -752,16 +752,23 @@ class DestroyRegionWorker : public GemfireEventedWorker {
   DestroyRegionWorker(
     const Local<Object> & regionObject,
     Region * region,
-    NanCallback * callback) :
+    NanCallback * callback,
+    bool local = true) :
       GemfireEventedWorker(regionObject, callback),
+      local(local),
       region(region) {}
 
   void ExecuteGemfireWork() {
-    region->regionPtr->destroyRegion();
+    if (local) {
+      region->regionPtr->localDestroyRegion();
+    } else {
+      region->regionPtr->destroyRegion();
+    }
   }
 
  private:
   Region * region;
+  bool local;
 };
 
 NAN_METHOD(Region::DestroyRegion) {
@@ -769,6 +776,23 @@ NAN_METHOD(Region::DestroyRegion) {
 
   if (!isFunctionOrUndefined(args[0])) {
     NanThrowError("You must pass a function as the callback to destroyRegion().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
+  NanCallback * callback = getCallback(args[0]);
+  DestroyRegionWorker * worker = new DestroyRegionWorker(args.This(), region, callback, false);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnValue(args.This());
+}
+
+NAN_METHOD(Region::LocalDestroyRegion) {
+  NanScope();
+
+  if (!isFunctionOrUndefined(args[0])) {
+    NanThrowError("You must pass a function as the callback to localDestroyRegion().");
     NanReturnUndefined();
   }
 
@@ -819,6 +843,8 @@ void Region::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Region::UnregisterAllKeys)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "destroyRegion",
       NanNew<FunctionTemplate>(Region::DestroyRegion)->GetFunction());
+  NanSetPrototypeTemplate(constructorTemplate, "localDestroyRegion",
+      NanNew<FunctionTemplate>(Region::LocalDestroyRegion)->GetFunction());
 
   constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
   constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("attributes"), Region::Attributes);

@@ -191,16 +191,18 @@ region.clear(function(error){
 
 Destroys the region, deleting all entries. The callback will be called with an `error` argument. If the callback is not supplied, and an error occurs, the region will emit an `error` event.
 
-> **Warning:** Destroying a `PROXY` or `CACHING_PROXY` region in the NodeJS client also destroys the region on the GemFire cluster. Be careful.
+> **Warning:** Destroying a `PROXY` or `CACHING_PROXY` region via `destroyRegion` also destroys the corresponding region on the GemFire cluster. If you don't want this behavior, call `region.localDestroyRegion()` instead.
 
 Example:
 ```javascript
-region.clear(function(error){
+region.destroyRegion(function(error){
   if(error) { throw error; }
   // region is destroyed
   region.put("foo", "bar", callbackFn); // throws gemfire::RegionDestroyedException
 });
 ```
+
+See also `region.localDestroyRegion`.
 
 ### region.executeFunction(functionName, options)
 
@@ -299,6 +301,23 @@ region.keys(function(error, keys) {
   //   [ 'key1', 'key2', 'key3' ]
 });
 ```
+
+### region.localDestroyRegion([callback])
+
+Destroys the local region, deleting all entries. The callback will be called with an `error` argument. If the callback is not supplied, and an error occurs, the region will emit an `error` event.
+
+> **Note:** Destroying a `PROXY` or `CACHING_PROXY` region via `localDestoryRegion` does not destroy the corresponding region on the GemFire cluster. If you want this behavior, call `region.destroyRegion()` instead.
+
+Example:
+```javascript
+region.localDestroyRegion(function(error){
+  if(error) { throw error; }
+  // local region is destroyed
+  region.put("foo", "bar", callbackFn); // throws gemfire::RegionDestroyedException
+});
+```
+
+See also `region.destroyRegion`.
 
 ### region.name
 
