@@ -187,17 +187,19 @@ region.clear(function(error){
 });
 ```
 
-### region.destroyRegion()
+### region.destroyRegion([callback])
 
-Immediately destroys the region, deleting all entries.
+Destroys the region, deleting all entries. The callback will be called with an `error` argument. If the callback is not supplied, and an error occurs, the region will emit an `error` event.
 
 > **Warning:** Destroying a `PROXY` or `CACHING_PROXY` region in the NodeJS client also destroys the region on the GemFire cluster. Be careful.
 
 Example:
 ```javascript
-region.destroyRegion();
-
-region.put("foo", "bar", callbackFn); // throws gemfire::RegionDestroyedException
+region.clear(function(error){
+  if(error) { throw error; }
+  // region is destroyed
+  region.put("foo", "bar", callbackFn); // throws gemfire::RegionDestroyedException
+});
 ```
 
 ### region.executeFunction(functionName, options)
