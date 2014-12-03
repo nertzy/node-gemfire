@@ -187,6 +187,19 @@ region.clear(function(error){
 });
 ```
 
+### region.destroyRegion()
+
+Immediately destroys the region, deleting all entries.
+
+> **Warning:** Destroying a `PROXY` or `CACHING_PROXY` region in the NodeJS client also destroys the region on the GemFire cluster. Be careful.
+
+Example:
+```javascript
+region.destroyRegion();
+
+region.put("foo", "bar", callbackFn); // throws gemfire::RegionDestroyedException
+```
+
 ### region.executeFunction(functionName, options)
 
 Executes a Java function on any servers in the cluster containing the region. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object.
