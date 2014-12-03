@@ -12,7 +12,6 @@
   <region name="exampleRegion" refid="CACHING_PROXY"/>
   <region name="exampleProxyRegion" refid="PROXY"/>
   <region name="anotherRegion" refid="CACHING_PROXY"/>
-  <region name="oqlBenchmark" refid="CACHING_PROXY"/>
   <region name="createEventTest" refid="CACHING_PROXY"/>
   <region name="updateEventTest" refid="CACHING_PROXY"/>
   <region name="destroyEventTest" refid="CACHING_PROXY"/>

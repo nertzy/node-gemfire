@@ -39,9 +39,6 @@ module.exports = function(grunt) {
         rebuildRelease: {
           command: './node_modules/.bin/node-pre-gyp rebuild'
         },
-        benchmarkNode: {
-          command: runNode('benchmark/node/benchmark.js')
-        },
         ensureServerRunning: {
           command: ensureServerRunning
         },
@@ -73,9 +70,6 @@ module.exports = function(grunt) {
             'tmp/gemfire/server/vf.gf.server.pid',
             'spec/support/java/function/build/libs/function.jar'
           ]
-        },
-        benchmarkJava: {
-          command: 'cd benchmark/java && ./gradlew clean run -q'
         },
         lint: {
           command: "cpplint.py --verbose=1 --linelength=110 --extensions=cpp,hpp src/*"
@@ -121,7 +115,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', ['shell:buildDebug']);
   grunt.registerTask('rebuild', ['shell:rebuildDebug']);
-  grunt.registerTask('test', ['shell:cppUnitTests', 'server:ensure', 'server:deploy', 'shell:jasmineNode']);
+  grunt.registerTask('test', ['build', 'shell:cppUnitTests', 'server:ensure', 'server:deploy', 'shell:jasmineNode']);
   grunt.registerTask('lint', ['shell:lint', 'jshint']);
   grunt.registerTask('console', ['build', 'shell:console']);
   grunt.registerTask('license_finder', ['shell:licenseFinder']);
@@ -135,9 +129,6 @@ module.exports = function(grunt) {
   grunt.registerTask('locator:stop', ['server:stop', 'shell:stopLocator']);
   grunt.registerTask('locator:restart', ['locator:stop', 'locator:start', 'server:start']);
   grunt.registerTask('locator:ensure', ['shell:ensureLocatorRunning']);
-
-  grunt.registerTask('benchmark:node', ['shell:buildRelease', 'server:ensure', 'shell:benchmarkNode']);
-  grunt.registerTask('benchmark:java', ['server:ensure', 'shell:benchmarkJava']);
 
   grunt.registerTask('server:deploy', ['newer:shell:buildTestFunction', 'newer:shell:deployTestFunction']);
 
@@ -157,15 +148,10 @@ module.exports = function(grunt) {
     postNodeCommand = "pprof --callgrind `which node` tmp/cpuprofiler.out > callgrind.gperftools.out.$$";
   });
 
-  grunt.registerTask('benchmark', [
-    'benchmark:node',
-    'benchmark:java'
-  ]);
+  grunt.registerTask('default', ['test', 'lint']);
 
-  grunt.registerTask('default', ['build', 'test', 'lint']);
-
-  grunt.registerTask('ci:node', ['default', 'benchmark:node']);
-  grunt.registerTask('ci:other', ['benchmark:java', 'license_finder']);
+  grunt.registerTask('ci:node', ['default']);
+  grunt.registerTask('ci:other', ['license_finder']);
 
   grunt.registerTask('ci', ["shell:ci"]);
   grunt.registerTask('release', ['shell:release']);
