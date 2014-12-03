@@ -747,6 +747,20 @@ NAN_METHOD(Region::UnregisterAllKeys) {
   NanReturnUndefined();
 }
 
+NAN_METHOD(Region::DestroyRegion) {
+  NanScope();
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+
+  try {
+    region->regionPtr->destroyRegion();
+  } catch (const gemfire::Exception & exception) {
+    ThrowGemfireException(exception);
+  }
+
+  NanReturnUndefined();
+}
+
 void Region::Init(Local<Object> exports) {
   NanScope();
 
@@ -783,6 +797,8 @@ void Region::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Region::RegisterAllKeys)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "unregisterAllKeys",
       NanNew<FunctionTemplate>(Region::UnregisterAllKeys)->GetFunction());
+  NanSetPrototypeTemplate(constructorTemplate, "destroyRegion",
+      NanNew<FunctionTemplate>(Region::DestroyRegion)->GetFunction());
 
   constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("name"), Region::Name);
   constructorTemplate->PrototypeTemplate()->SetAccessor(NanNew("attributes"), Region::Attributes);

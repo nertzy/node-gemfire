@@ -1659,4 +1659,46 @@ describe("gemfire.Region", function() {
       ], done);
     });
   });
+
+  describe(".destroyRegion", function() {
+    var cache;
+    var region;
+    var otherCopyOfRegion;
+
+    beforeEach(function() {
+      cache = factories.getCache();
+
+      expect(cache.getRegion("regionToDestroy")).toBeUndefined();
+
+      region = cache.createRegion("regionToDestroy", {type: "LOCAL"});
+      otherCopyOfRegion = cache.getRegion("regionToDestroy");
+    });
+
+    it("destroys the region", function() {
+      region.destroyRegion();
+      expect(cache.getRegion("regionToDestroy")).not.toBeDefined();
+    });
+
+    it("prevents subsequent operations on the region object that received the call", function() {
+      region.destroyRegion();
+      expect(function(){
+        region.put("foo", "bar");
+      }).toThrow("gemfire::RegionDestroyedException: LocalRegion::getCache: region /regionToDestroy destroyed");
+    });
+
+    it("prevents subsequent operations on other pre-existing region objects", function() {
+      region.destroyRegion();
+      expect(function(){
+        otherCopyOfRegion.put("foo", "bar");
+      }).toThrow("gemfire::RegionDestroyedException: LocalRegion::getCache: region /regionToDestroy destroyed");
+    });
+
+    it("throws any exceptions from GemFire (e.g. when destroying an already destroyed region)", function() {
+      region.destroyRegion();
+
+      expect(function(){
+        region.destroyRegion();
+      }).toThrow("gemfire::RegionDestroyedException: Region::destroyRegion: Named Region Destroyed");
+    });
+  });
 });
