@@ -2,7 +2,7 @@
 
 set -e
 
-cd /project
+cd /vagrant
 npm install
 gem install bundler
 rbenv rehash

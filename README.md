@@ -20,7 +20,7 @@ NodeJS client for Pivotal GemFire
 Note that for the time being, if you want to be able to use the precompiled binary, you'll need to set `NODE_TLS_REJECT_UNAUTHORIZED=0` when running `npm install`. Otherwise, `npm install` will fallback to compiling from source, which may only work on certain platforms.
 
 ```
-$ cd /my/node/project
+$ cd /my/node/vagrant
 $ NODE_TLS_REJECT_UNAUTHORIZED=0 npm install --save pivotal/node-gemfire
 ```
 
@@ -76,27 +76,27 @@ After pulling down updated code, you may need to re-provision your VM to get any
 
 ### Developer workflow
 
-This directory is mounted on the VM as `/project`. You can make edits here or on the VM.
+This directory is mounted on the VM as `/vagrant`. You can make edits here or on the VM.
 
     $ vagrant ssh
-    $ cd /project
+    $ cd /vagrant
 
 ### Rebuild the node module and run Jasmine tests
 
     $ vagrant ssh
-    $ cd /project
+    $ cd /vagrant
     $ grunt
 
 ### Run every benchmark
 
     $ vagrant ssh
-    $ cd /project
+    $ cd /vagrant
     $ grunt benchmark
 
 ### Run benchmarks individually
 
     $ vagrant ssh
-    $ cd /project
+    $ cd /vagrant
     $ grunt benchmark:node
     $ grunt benchmark:node:async
     $ grunt benchmark:java

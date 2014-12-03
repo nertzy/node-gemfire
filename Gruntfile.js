@@ -1,10 +1,10 @@
 const _ = require("lodash");
 
 module.exports = function(grunt) {
-  var startServer = 'cd tmp/gemfire && gfsh run --file /project/bin/startServer.gfsh';
+  var startServer = 'cd tmp/gemfire && gfsh run --file /vagrant/bin/startServer.gfsh';
   var ensureServerRunning = 'test -e tmp/gemfire/server/vf.gf.server.pid && ps ax | grep `cat tmp/gemfire/server/vf.gf.server.pid` | grep -qv grep && echo "Server already running..." || (' + startServer + ')';
 
-  var startLocator = 'cd tmp/gemfire && gfsh run --file /project/bin/startLocator.gfsh';
+  var startLocator = 'cd tmp/gemfire && gfsh run --file /vagrant/bin/startLocator.gfsh';
   var ensureLocatorRunning = 'test -e tmp/gemfire/locator/vf.gf.locator.pid && ps ax | grep `cat tmp/gemfire/locator/vf.gf.locator.pid` | grep -qv grep && echo "Locator already running..." || (' + startLocator + ')';
 
   var nodeCommand = "node";
@@ -49,7 +49,7 @@ module.exports = function(grunt) {
           command: startServer
         },
         stopServer: {
-          command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopServer.gfsh'
+          command: 'cd tmp/gemfire && gfsh run --file /vagrant/bin/stopServer.gfsh'
         },
         ensureLocatorRunning: {
           command: ensureLocatorRunning
@@ -58,7 +58,7 @@ module.exports = function(grunt) {
           command: startLocator
         },
         stopLocator: {
-          command: 'cd tmp/gemfire && gfsh run --file /project/bin/stopLocator.gfsh'
+          command: 'cd tmp/gemfire && gfsh run --file /vagrant/bin/stopLocator.gfsh'
         },
         buildTestFunction: {
           command: 'cd spec/support/java/function/ && ./gradlew build',
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
           ]
         },
         deployTestFunction: {
-          command: 'cd tmp/gemfire && gfsh run --file /project/bin/deployTestFunction.gfsh',
+          command: 'cd tmp/gemfire && gfsh run --file /vagrant/bin/deployTestFunction.gfsh',
           src: [
             'tmp/gemfire/server/vf.gf.server.pid',
             'spec/support/java/function/build/libs/function.jar'
