@@ -87,20 +87,6 @@ This directory is mounted on the VM as `/vagrant`. You can make edits here or on
     $ cd /vagrant
     $ grunt
 
-### Run every benchmark
-
-    $ vagrant ssh
-    $ cd /vagrant
-    $ grunt benchmark
-
-### Run benchmarks individually
-
-    $ vagrant ssh
-    $ cd /vagrant
-    $ grunt benchmark:node
-    $ grunt benchmark:node:async
-    $ grunt benchmark:java
-
 ### Server Management
 
 The GemFire server should be automatically started for you as part of the above tasks. If you

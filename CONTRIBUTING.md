@@ -60,9 +60,4 @@ To increase the chances of a pull request being merged, we recommend that you fo
 
 * Minimize dependencies, especially those required by end users. Also don't introduce dependencies with restrictive licenses.
 
-* Avoid introducing memory leaks or unnecessarily inefficient operations. We use the following tools to detect or debug issues like these:
-  * Valgrind (Memcheck) (`grunt valgrind benchmark:node`) 
-  * Callgrind (`grunt callgrind benchmark:node`)
-  * gperftools (`grunt gperftools benchmark:node`)
-
 * If you allocate V8 handles, you should do so inside of a HandleScope using NanScope()/NanEscapableScope() so that the handles will be freed as soon as possible.
