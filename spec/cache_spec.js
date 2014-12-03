@@ -149,6 +149,8 @@ describe("gemfire.Cache", function() {
 
           cache.executeQuery(query, function(error, response) {
             expect(error).not.toBeError();
+            if(error) { return; }
+
             const results = response.toArray();
 
             expect(results.length).toEqual(2);
@@ -172,6 +174,8 @@ describe("gemfire.Cache", function() {
 
           cache.executeQuery(query, function(error, response) {
             expect(error).not.toBeError();
+            if(error) { return; }
+
             const results = response.toArray();
 
             expect(results.length).toEqual(1);
@@ -197,6 +201,7 @@ describe("gemfire.Cache", function() {
 
           cache.executeQuery(query, function(error, response) {
             expect(error).not.toBeError();
+            if(error) { return; }
 
             const results = response.toArray();
 
@@ -222,6 +227,7 @@ describe("gemfire.Cache", function() {
 
           cache.executeQuery(query, function(error,response) {
             expect(error).not.toBeError();
+            if(error) { return; }
 
             const results = response.toArray();
 
@@ -237,11 +243,14 @@ describe("gemfire.Cache", function() {
     it("executes a query that returns a GemFire struct", function(done) {
       region.put("object", { foo: 1, bar: 2, baz: 3 }, function(error) {
         expect(error).not.toBeError();
+        if(error) { return; }
 
         const query = "SELECT foo, bar FROM /exampleRegion";
 
         cache.executeQuery(query, function(error, response){
           expect(error).not.toBeError();
+          if(error) { return; }
+
           const results = response.toArray();
 
           expect(results.length).toEqual(1);
@@ -263,6 +272,8 @@ describe("gemfire.Cache", function() {
 
           cache.executeQuery(query, function(error, response) {
             expect(error).not.toBeError();
+            if(error) { return; }
+
             const results = response.toArray();
 
             expect(results.length).toEqual(2);
@@ -284,6 +295,8 @@ describe("gemfire.Cache", function() {
             const narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
             cache.executeQuery(narrowQuery, function(error, response){
               expect(error).not.toBeError();
+              if(error) { return; }
+
               const results = response.toArray();
               expect(results).toEqual(["narrow string"]);
               callback();
@@ -293,6 +306,8 @@ describe("gemfire.Cache", function() {
             const wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
             cache.executeQuery(wideQuery, function(error, response){
               expect(error).not.toBeError();
+              if(error) { return; }
+
               const results = response.toArray();
               expect(results).toEqual(["wide string"]);
               callback();
@@ -310,6 +325,7 @@ describe("gemfire.Cache", function() {
         function(next) {
           cache.executeQuery("SELECT my_field_name FROM /exampleRegion", function(error, response) {
             expect(error).not.toBeError();
+            if(error) { return; }
 
             const results = response.toArray();
             expect(results.length).toEqual(2);
