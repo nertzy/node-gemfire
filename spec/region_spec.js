@@ -2,11 +2,13 @@ const _ = require("lodash");
 const util = require("util");
 const async = require('async');
 const randomString = require("random-string");
+
 const factories = require('./support/factories.js');
 const errorMatchers = require("./support/error_matchers.js");
 const until = require("./support/until.js");
 const waitUntil = require("./support/wait_until.js");
 const itExecutesFunctions = require("./support/it_executes_functions.js");
+const itDestroysTheRegion = require("./support/it_destroys_the_region.js");
 
 const invalidKeys = [null, undefined, []];
 const invalidValues = [null];
@@ -1661,112 +1663,38 @@ describe("gemfire.Region", function() {
   });
 
   describe(".destroyRegion", function() {
-    var cache;
-    var region;
-    var regionName;
-    var otherCopyOfRegion;
+    itDestroysTheRegion('destroyRegion');
 
-    beforeEach(function() {
-      cache = factories.getCache();
+    // NOTE: The C++ Native Client documentation contradicts this finding.
+    //   http://gemfire.docs.pivotal.io/latest/cpp_api/cppdocs/classgemfire_1_1Region.html#2b07a940ee17e375c45421e85b27a8ff
+    it("fails to destroy a CACHING_PROXY region that is not backed by a server region", function(done) {
+      const regionName = "destroyCachingProxyRegionWithoutServerRegion";
+      const region = cache.createRegion(regionName, {type: "CACHING_PROXY"});
 
-      regionName = "regionToDestroy" + Date.now();
-      expect(cache.getRegion(regionName)).toBeUndefined();
+      expect(cache.getRegion(regionName)).toBeDefined();
 
-      region = cache.createRegion(regionName, {type: "LOCAL"});
-      otherCopyOfRegion = cache.getRegion(regionName);
-    });
-
-    it("destroys the region", function(done) {
-      region.destroyRegion(function (error) {
-        expect(error).not.toBeError();
-        expect(cache.getRegion(regionName)).not.toBeDefined();
-        done();
-      });
-    });
-
-    it("throws an error if the callback is not a function", function() {
-      function callWithNonFunction() {
-        region.destroyRegion("this is not a function");
-      }
-
-      expect(callWithNonFunction).toThrow("You must pass a function as the callback to destroyRegion().");
-    });
-
-    it("emits an event when an error occurs and there is no callback", function(done) {
-      region.destroyRegion();
-
-      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+      region.destroyRegion(function(error) {
         expect(error).toBeError();
+        expect(cache.getRegion(regionName)).toBeDefined();
         done();
       });
-
-      region.on("error", errorHandler);
-
-      region.destroyRegion(); // destroying already destroyed region should emit an error
-
-      _.delay(function(){
-        expect(errorHandler).toHaveBeenCalled();
-        done();
-      }, 1000);
     });
+  });
 
-    // if an error event is emitted, the test suite will crash here
-    it("does not emit an event when no error occurs and there is no callback", function(done) {
-      until(
-        function(test) { test(cache.getRegion(regionName)); },
-        function(destroyedRegion) { return !destroyedRegion; },
-        done
-      );
+  describe(".localDestroyRegion", function() {
+    itDestroysTheRegion('localDestroyRegion');
 
-      region.destroyRegion();
-    });
+    it(" destroys a CACHING_PROXY region that is not backed by a server region", function(done) {
+      const regionName = "localDestroyCachingProxyRegionWithoutServerRegion";
+      const region = cache.createRegion(regionName, {type: "CACHING_PROXY"});
 
-    it("prevents subsequent operations on the region object that received the call", function(done) {
-      region.destroyRegion(function (error) {
+      expect(cache.getRegion(regionName)).toBeDefined();
+
+      region.localDestroyRegion(function(error) {
         expect(error).not.toBeError();
-
-        expect(function(){
-          region.put("foo", "bar");
-        }).toThrow("gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed");
-
+        expect(cache.getRegion(regionName)).toBeUndefined();
         done();
       });
-    });
-
-    it("prevents subsequent operations on other pre-existing region objects", function(done) {
-      region.destroyRegion(function (error) {
-        expect(error).not.toBeError();
-
-        expect(function(){
-          otherCopyOfRegion.put("foo", "bar");
-        }).toThrow("gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed");
-
-        done();
-      });
-    });
-
-    it("passes GemFire exceptions into the callback", function(done) {
-      async.series([
-
-        function(next) {
-          region.destroyRegion(function(error) {
-            expect(error).not.toBeError();
-            next();
-          });
-        },
-
-        function(next) {
-          // destroying an already destroyed region causes an error
-          region.destroyRegion(function (error) {
-            expect(error).toBeError(
-              "gemfire::RegionDestroyedException: Region::destroyRegion: Named Region Destroyed"
-            );
-
-            next();
-          });
-        }
-
-      ], done);
     });
   });
 });
