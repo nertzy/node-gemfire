@@ -249,7 +249,7 @@ In the predicate, you can use `this` to refer to the entire value. If you use an
 
 Example:
 ```javascript
-region.existsValue("this > 'value1'", function(error, response) {
+region.existsValue("this = 'value1'", function(error, response) {
   if(error) { throw error; }
   // response will be set to true if any value is the string 'value1'
 });
