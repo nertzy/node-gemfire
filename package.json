@@ -1,6 +1,6 @@
 {
   "name": "gemfire",
-  "version": "0.0.7-pre2",
+  "version": "0.0.8",
   "description": "Pivotal GemFire client",
   "main": "./lib",
   "files": [
@@ -34,6 +34,14 @@
     {
       "name": "David Edwards",
       "url": "https://github.com/davwards"
+    },
+    {
+      "name": "Dan Finnie",
+      "url": "https://github.com/danfinnie"
+    },
+    {
+      "name": "Aaron Triantafyllidis",
+      "url": "https://github.com/azzamallow"
     }
   ],
   "repository": {

@@ -1,6 +1,6 @@
 # Node Gemfire
 
-As of September 24, 2014  8:24pm. 11 total
+As of December  4, 2014  3:20pm. 11 total
 
 ## Summary
 * 9 MIT

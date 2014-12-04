@@ -1,3 +1,12 @@
+# v0.0.8
+
+- **Breaking Change**: `new gemfire.Cache()` constructor removed, replaced with `gemfire.configure()` and `gemfire.getCache()`
+- **Breaking Change**: JavaScript Arrays are now sent to GemFire as the Java type `ArrayList` instead of `Object[]`.
+- Add `cache.createRegion()`
+- Add `region.destroyRegion()` and `region.localDestroyRegion()`
+- Add ability to target a particular GemFire pool when executing a function using `cache.executeFunction`
+- Add `region.attributes`
+
 # v0.0.7
 
 - Require GemFire Native Client 8.0.0.1 or later
