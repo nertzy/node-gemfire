@@ -6,7 +6,7 @@ describe("SelectResults", function() {
   var selectResults;
 
   beforeEach(function(done) {
-    this.addMatchers(errorMatchers);
+    jasmine.addMatchers(errorMatchers);
     const region = cache.getRegion('exampleRegion');
 
     async.series([
@@ -48,7 +48,7 @@ describe("SelectResults", function() {
 
       selectResults.each(callback);
 
-      expect(callback.callCount).toEqual(3);
+      expect(callback.calls.count()).toEqual(3);
       expect(callback).toHaveBeenCalledWith("one");
       expect(callback).toHaveBeenCalledWith("two");
       expect(callback).toHaveBeenCalledWith("three");
@@ -59,7 +59,7 @@ describe("SelectResults", function() {
         selectResults.each();
       }
 
-      expect(callWithoutCallback).toThrow("You must pass a callback to each()");
+      expect(callWithoutCallback).toThrow(new Error("You must pass a callback to each()"));
     });
   });
 

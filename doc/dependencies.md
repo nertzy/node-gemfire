@@ -1,6 +1,6 @@
 # Node Gemfire
 
-As of December  4, 2014  3:20pm. 11 total
+As of December  8, 2014  4:30pm. 11 total
 
 ## Summary
 * 9 MIT
@@ -21,7 +21,7 @@ As of December  4, 2014  3:20pm. 11 total
 Higher-order functions and common patterns for asynchronous code
 
 <a name="aws-sdk"></a>
-### <a href="https://github.com/aws/aws-sdk-js">aws-sdk</a> v2.0.17
+### <a href="https://github.com/aws/aws-sdk-js">aws-sdk</a> v2.0.30
 #### 
 
 <a href="http://www.apache.org/licenses/LICENSE-2.0.txt">Apache 2.0</a> whitelisted
@@ -60,13 +60,13 @@ Run Grunt tasks with only those source files modified since the last successful 
 
 Run shell commands
 
-<a name="jasmine-node"></a>
-### <a href="https://github.com/mhevery/jasmine-node">jasmine-node</a> v1.14.5
+<a name="jasmine"></a>
+### <a href="http://jasmine.github.io/">jasmine</a> v2.1.1
 #### 
 
 <a href="http://opensource.org/licenses/mit-license">MIT</a> whitelisted
 
-DOM-less simple JavaScript BDD testing framework for Node
+Command line jasmine
 
 <a name="lodash"></a>
 ### <a href="http://lodash.com/">lodash</a> v2.4.1
@@ -85,7 +85,7 @@ A utility library delivering consistency, customization, performance, & extras.
 Native Abstractions for Node.js: C++ header for Node 0.8->0.12 compatibility
 
 <a name="node-pre-gyp"></a>
-### <a href="https://github.com/mapbox/node-pre-gyp">node-pre-gyp</a> v0.5.27
+### <a href="https://github.com/mapbox/node-pre-gyp">node-pre-gyp</a> v0.5.31
 #### 
 
 <a href="http://en.wikipedia.org/wiki/BSD_licenses#4-clause_license_.28original_.22BSD_License.22.29">BSD</a> whitelisted

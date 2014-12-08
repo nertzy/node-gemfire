@@ -11,7 +11,7 @@ const expectExternalFailure = require("./support/external_scripts.js").expectExt
 
 describe("gemfire.Cache", function() {
   beforeEach(function() {
-    this.addMatchers(errorMatchers);
+    jasmine.addMatchers(errorMatchers);
   });
 
   afterEach(function(done) {
@@ -102,9 +102,9 @@ describe("gemfire.Cache", function() {
         cache.getRegion("exampleRegion", "foo");
       }
 
-      expect(callWithZeroArguments).toThrow("You must pass the name of a GemFire region to getRegion.");
+      expect(callWithZeroArguments).toThrow(new Error("You must pass the name of a GemFire region to getRegion."));
       expect(callWithOneArgument).not.toThrow();
-      expect(callWithTwoArguments).toThrow("You must pass the name of a GemFire region to getRegion.");
+      expect(callWithTwoArguments).toThrow(new Error("You must pass the name of a GemFire region to getRegion."));
     });
 
     it("returns a gemfire.Region object", function() {
@@ -122,7 +122,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(getRegionWithNonStringArguments).toThrow(
-        "You must pass a string as the name of a GemFire region to getRegion."
+        new Error("You must pass a string as the name of a GemFire region to getRegion.")
       );
     });
 
@@ -343,7 +343,7 @@ describe("gemfire.Cache", function() {
         cache.executeQuery();
       }
 
-      expect(callWithoutQuery).toThrow("You must pass a query string and callback to executeQuery().");
+      expect(callWithoutQuery).toThrow(new Error("You must pass a query string and callback to executeQuery()."));
     });
 
     it("throws an error if you don't pass a callback", function(){
@@ -351,7 +351,7 @@ describe("gemfire.Cache", function() {
         cache.executeQuery("SELECT * FROM /exampleRegion");
       }
 
-      expect(callWithoutCallback).toThrow("You must pass a callback to executeQuery().");
+      expect(callWithoutCallback).toThrow(new Error("You must pass a callback to executeQuery()."));
     });
 
     it("throws an error if you pass a non-function as the callback", function(){
@@ -359,7 +359,7 @@ describe("gemfire.Cache", function() {
         cache.executeQuery("SELECT * FROM /exampleRegion", "Not a callback");
       }
 
-      expect(callWithNonCallback).toThrow("You must pass a function as the callback to executeQuery().");
+      expect(callWithNonCallback).toThrow(new Error("You must pass a function as the callback to executeQuery()."));
     });
 
     it("returns the cache for chaining", function(done) {
@@ -435,7 +435,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(callWithFilter).toThrow(
-        "You cannot pass a filter to executeFunction for a Cache."
+        new Error("You cannot pass a filter to executeFunction for a Cache.")
       );
     });
 
@@ -471,7 +471,7 @@ describe("gemfire.Cache", function() {
         }
 
         expect(executeFunctionWithInvalidPoolName).toThrow(
-          "executeFunction: `invalidPool` is not a valid pool name"
+          new Error("executeFunction: `invalidPool` is not a valid pool name")
         );
       });
     });
@@ -497,7 +497,9 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createExistingRegion).toThrow(
-        'gemfire::RegionExistsException: Cache::createRegion: "exampleRegion" region exists in local cache'
+        new Error(
+          'gemfire::RegionExistsException: Cache::createRegion: "exampleRegion" region exists in local cache'
+        )
       );
     });
 
@@ -509,7 +511,9 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithNoArguments).toThrow(
-        "createRegion: You must pass the name of a GemFire region to create and a region configuration object."
+        new Error(
+          "createRegion: You must pass the name of a GemFire region to create and a region configuration object."
+        )
       );
     });
 
@@ -521,7 +525,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithNonStringArguments).toThrow(
-        "createRegion: You must pass a string as the name of a GemFire region."
+        new Error("createRegion: You must pass a string as the name of a GemFire region.")
       );
     });
 
@@ -533,7 +537,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithOnlyName).toThrow(
-        'createRegion: You must pass a configuration object as the second argument.'
+        new Error('createRegion: You must pass a configuration object as the second argument.')
       );
     });
 
@@ -545,7 +549,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithOnlyName).toThrow(
-        'createRegion: The region configuration object must have a type property.'
+        new Error('createRegion: The region configuration object must have a type property.')
       );
     });
 
@@ -557,7 +561,7 @@ describe("gemfire.Cache", function() {
       }
 
       expect(createRegionWithOnlyName).toThrow(
-        'createRegion: This type is not a valid GemFire client region type'
+        new Error('createRegion: This type is not a valid GemFire client region type')
       );
     });
 

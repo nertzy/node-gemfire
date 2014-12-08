@@ -72,7 +72,7 @@
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-newer": "^0.7.0",
     "grunt-shell": "^1.1.1",
-    "jasmine-node": "^1.14.5",
+    "jasmine": "^2.1.1",
     "lodash": "^2.4.1",
     "random-string": "^0.1.1"
   }

@@ -6,7 +6,7 @@ const region = cache.getRegion("exampleRegion");
 
 describe("OQL integration", function() {
   beforeEach(function(done) {
-    this.addMatchers(errorMatchers);
+    jasmine.addMatchers(errorMatchers);
     region.clear(done);
   });
 
