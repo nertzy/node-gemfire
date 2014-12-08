@@ -40,6 +40,16 @@ gemfire.configure("config/myGemfireConfiguration.xml");
 gemfire.configure("config/anotherGemfireConfiguration.xml"); // throws an error
 ```
 
+### gemfire.gemfireVersion
+
+Returns the version of the GemFire C++ Native Client that has been compiled into node-gemfire.
+
+Example:
+```javascript
+var gemfire = require('gemfire');
+gemfire.gemfireVersion // returns "8.0.0.1"
+```
+
 ### gemfire.getCache()
 
 Returns the cache singleton object. `gemfire.configure()` must have been called prior to calling `gemfire.getCache()`.
@@ -56,6 +66,16 @@ gemfire.configure("config/gemfire.xml");
 
 gemfire.getCache(); // returns the cache singleton object
 gemfire.getCache(); // returns the same cache singleton object on subsequent calls
+```
+
+### gemfire.version
+
+Returns the version of node-gemfire.
+
+Example:
+```javascript
+var gemfire = require('gemfire');
+gemfire.gemfireVersion // returns "0.0.8"
 ```
 
 ## Cache
