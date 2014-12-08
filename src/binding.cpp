@@ -9,8 +9,15 @@
 #include "select_results.hpp"
 
 using namespace v8;
+using namespace gemfire;
 
 namespace node_gemfire {
+
+NAN_METHOD(Connected) {
+  NanScope();
+  DistributedSystemPtr distributedSystemPtr = DistributedSystem::getInstance();
+  NanReturnValue(NanNew(distributedSystemPtr->isConnected()));
+}
 
 NAN_METHOD(Initialize) {
   NanScope();
@@ -23,6 +30,10 @@ NAN_METHOD(Initialize) {
 
   gemfire->Set(NanNew("gemfireVersion"),
       NanNew(gemfire::CacheFactory::getVersion()),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+
+  gemfire->Set(NanNew("connected"),
+      NanNew<FunctionTemplate>(Connected)->GetFunction(),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
   node_gemfire::Cache::Init(gemfire);
