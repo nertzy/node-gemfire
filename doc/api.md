@@ -75,7 +75,7 @@ Returns the version of node-gemfire.
 Example:
 ```javascript
 var gemfire = require('gemfire');
-gemfire.gemfireVersion // returns "0.0.8"
+gemfire.gemfireVersion // returns "0.0.9"
 ```
 
 ## Cache
