@@ -2,6 +2,30 @@
 
 ## gemfire
 
+The `gemfire` object is returned by `require("gemfire")` and is the global entry point into node-gemfire.
+
+### gemfire.connected()
+
+Returns true if the GemFire client is connected to a GemFire distributed system, and false if not.
+
+Example:
+```javascript
+var gemfire = require('gemfire');
+gemfire.connected(); // returns false
+
+gemfire.configure("config/gemfire.xml");
+gemfire.connected(); // returns true
+
+// ... network troubles cause a disconnection ...
+
+gemfire.connected(); // returns false
+
+// ... client automatically reconnects to the GemFire system ...
+
+gemfire.connected(); // returns true
+```
+
+
 ### gemfire.configure(xmlFilePath)
 
 Tells gemfire which cache configuration file to use. `xmlFilePath` can be either absolute or relative to the current working directory in the application's environment. Once set, the configuration cannot be changed.
