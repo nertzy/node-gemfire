@@ -1,3 +1,6 @@
+# v0.0.9
+- Add `gemfire.connected()`
+
 # v0.0.8
 
 - **Breaking Change**: `new gemfire.Cache()` constructor removed, replaced with `gemfire.configure()` and `gemfire.getCache()`
