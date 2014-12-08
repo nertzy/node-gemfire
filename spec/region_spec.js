@@ -17,7 +17,7 @@ describe("gemfire.Region", function() {
   var region, cache;
 
   beforeEach(function(done) {
-    this.addMatchers(errorMatchers);
+    jasmine.addMatchers(errorMatchers);
     cache = factories.getCache();
     region = cache.getRegion("exampleRegion");
     region.clear(done);
@@ -28,7 +28,7 @@ describe("gemfire.Region", function() {
       function getWithoutKey() {
         region.get();
       }
-      expect(getWithoutKey).toThrow("You must pass a key and callback to get().");
+      expect(getWithoutKey).toThrow(new Error("You must pass a key and callback to get()."));
     });
 
     it("throws an error if a callback is not passed to .get", function() {
@@ -36,7 +36,7 @@ describe("gemfire.Region", function() {
         region.get("foo");
       }
 
-      expect(getWithoutCallback).toThrow("You must pass a callback to get().");
+      expect(getWithoutCallback).toThrow(new Error("You must pass a callback to get()."));
     });
 
     it("throws an error if a non-function is passed as a callback", function() {
@@ -44,7 +44,7 @@ describe("gemfire.Region", function() {
         region.get("foo", "bar");
       }
 
-      expect(getWithNonFunctionCallback).toThrow("The second argument to get() must be a callback.");
+      expect(getWithNonFunctionCallback).toThrow(new Error("The second argument to get() must be a callback."));
     });
 
     it("returns the region object to support chaining", function(done) {
@@ -78,7 +78,7 @@ describe("gemfire.Region", function() {
         region.get(function(){}, function(){});
       }
 
-      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithFunctionKey).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
 
     it("passes the value into the callback", function(done) {
@@ -99,7 +99,7 @@ describe("gemfire.Region", function() {
         region.put();
       }
 
-      expect(putWithNoArgs).toThrow("You must pass a key and value to put().");
+      expect(putWithNoArgs).toThrow(new Error("You must pass a key and value to put()."));
     });
 
     it("throws an error when no value is passed", function() {
@@ -107,7 +107,7 @@ describe("gemfire.Region", function() {
         region.put('foo');
       }
 
-      expect(putWithOnlyKey).toThrow("You must pass a key and value to put().");
+      expect(putWithOnlyKey).toThrow(new Error("You must pass a key and value to put()."));
 
     });
 
@@ -116,7 +116,7 @@ describe("gemfire.Region", function() {
         region.put('foo', 'bar', 'not a function');
       }
 
-      expect(putWithNonFunctionCallback).toThrow("You must pass a function as the callback to put().");
+      expect(putWithNonFunctionCallback).toThrow(new Error("You must pass a function as the callback to put()."));
     });
 
     it("returns the region object to support chaining", function(done) {
@@ -148,7 +148,7 @@ describe("gemfire.Region", function() {
         region.put("foo", function(){}, function(){});
       }
 
-      expect(callWithFunctionValue).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithFunctionValue).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
 
     _.each(invalidKeys, function(invalidKey) {
@@ -165,11 +165,11 @@ describe("gemfire.Region", function() {
         region.put(function(){}, "foo", function(){});
       }
 
-      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithFunctionKey).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
 
     it("emits an event when an error occurs and there is no callback", function(done) {
-      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+      const errorHandler = jasmine.createSpy("errorHandler").and.callFake(function(error){
         expect(error).toBeError();
         done();
       });
@@ -649,7 +649,7 @@ describe("gemfire.Region", function() {
         region.clear("this is not a function");
       }
 
-      expect(callWithNonFunction).toThrow("You must pass a function as the callback to clear().");
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to clear()."));
     });
 
     // Pending us figuring out how to cause an error in clear()
@@ -693,7 +693,7 @@ describe("gemfire.Region", function() {
           region.executeFunction(functionName)
             .on("data", dataCallback)
             .on("end", function(){
-              expect(dataCallback.callCount).toEqual(1);
+              expect(dataCallback.calls.count()).toEqual(1);
               expect(dataCallback).toHaveBeenCalledWith(3);
               next();
             });
@@ -704,7 +704,7 @@ describe("gemfire.Region", function() {
           anotherRegion.executeFunction(functionName)
             .on("data", dataCallback)
             .on("end", function(){
-              expect(dataCallback.callCount).toEqual(1);
+              expect(dataCallback.calls.count()).toEqual(1);
               expect(dataCallback).toHaveBeenCalledWith(1000);
               next();
             });
@@ -721,7 +721,7 @@ describe("gemfire.Region", function() {
         }
       ) .on("data", dataCallback)
         .on("end", function(){
-          expect(dataCallback.callCount).toEqual(3);
+          expect(dataCallback.calls.count()).toEqual(3);
           expect(dataCallback).toHaveBeenCalledWith("key1");
           expect(dataCallback).toHaveBeenCalledWith(2);
           expect(dataCallback).toHaveBeenCalledWith(3.1);
@@ -746,7 +746,7 @@ describe("gemfire.Region", function() {
       }
 
       expect(callWithBadFilter).toThrow(
-        "You must pass an Array of keys as the filter for executeFunction()."
+        new Error("You must pass an Array of keys as the filter for executeFunction().")
       );
     });
   });
@@ -842,7 +842,7 @@ describe("gemfire.Region", function() {
         region.remove();
       }
 
-      expect(callNoArgs).toThrow("You must pass a key to remove().");
+      expect(callNoArgs).toThrow(new Error("You must pass a key to remove()."));
     });
 
     it("throws an error if a non-function is passed as the callback", function() {
@@ -850,7 +850,7 @@ describe("gemfire.Region", function() {
         region.remove('foo', 'not a function');
       }
 
-      expect(callNoCallback).toThrow("You must pass a function as the callback to remove().");
+      expect(callNoCallback).toThrow(new Error("You must pass a function as the callback to remove()."));
     });
 
     it("removes the entry at the given key", function(done) {
@@ -906,11 +906,11 @@ describe("gemfire.Region", function() {
         region.remove(function(){}, function(){});
       }
 
-      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithFunctionKey).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
 
     it("emits an event when an error occurs and there is no callback", function(done) {
-      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+      const errorHandler = jasmine.createSpy("errorHandler").and.callFake(function(error){
         expect(error).toBeError();
         done();
       });
@@ -974,7 +974,7 @@ describe("gemfire.Region", function() {
         region.query();
       }
 
-      expect(queryWithoutPredicate).toThrow("You must pass a query predicate string and a callback to query().");
+      expect(queryWithoutPredicate).toThrow(new Error("You must pass a query predicate string and a callback to query()."));
     });
 
     it("requires a callback", function() {
@@ -982,7 +982,7 @@ describe("gemfire.Region", function() {
         region.query("true");
       }
 
-      expect(queryWithoutCallback).toThrow("You must pass a query predicate string and a callback to query().");
+      expect(queryWithoutCallback).toThrow(new Error("You must pass a query predicate string and a callback to query()."));
     });
 
     it("requires the callback to be a function", function() {
@@ -990,7 +990,7 @@ describe("gemfire.Region", function() {
         region.query("true", "not a function");
       }
 
-      expect(queryWithNonCallback).toThrow("You must pass a function as the callback to query().");
+      expect(queryWithNonCallback).toThrow(new Error("You must pass a function as the callback to query()."));
     });
 
     it("passes along errors from an invalid query", function(done) {
@@ -1045,7 +1045,7 @@ describe("gemfire.Region", function() {
         region.selectValue();
       }
 
-      expect(queryWithoutPredicate).toThrow("You must pass a query predicate string and a callback to selectValue().");
+      expect(queryWithoutPredicate).toThrow(new Error("You must pass a query predicate string and a callback to selectValue()."));
     });
 
     it("requires a callback", function() {
@@ -1053,7 +1053,7 @@ describe("gemfire.Region", function() {
         region.selectValue("true");
       }
 
-      expect(queryWithoutCallback).toThrow("You must pass a query predicate string and a callback to selectValue().");
+      expect(queryWithoutCallback).toThrow(new Error("You must pass a query predicate string and a callback to selectValue()."));
     });
 
     it("requires the callback to be a function", function() {
@@ -1061,7 +1061,7 @@ describe("gemfire.Region", function() {
         region.selectValue("true", "not a function");
       }
 
-      expect(queryWithNonCallback).toThrow("You must pass a function as the callback to selectValue().");
+      expect(queryWithNonCallback).toThrow(new Error("You must pass a function as the callback to selectValue()."));
     });
 
     it("passes along errors from an invalid query", function(done) {
@@ -1104,7 +1104,7 @@ describe("gemfire.Region", function() {
         region.existsValue();
       }
 
-      expect(queryWithoutPredicate).toThrow("You must pass a query predicate string and a callback to existsValue().");
+      expect(queryWithoutPredicate).toThrow(new Error("You must pass a query predicate string and a callback to existsValue()."));
     });
 
     it("requires a callback", function() {
@@ -1112,7 +1112,7 @@ describe("gemfire.Region", function() {
         region.existsValue("true");
       }
 
-      expect(queryWithoutCallback).toThrow("You must pass a query predicate string and a callback to existsValue().");
+      expect(queryWithoutCallback).toThrow(new Error("You must pass a query predicate string and a callback to existsValue()."));
     });
 
     it("requires the callback to be a function", function() {
@@ -1120,7 +1120,7 @@ describe("gemfire.Region", function() {
         region.existsValue("true", "not a function");
       }
 
-      expect(queryWithNonCallback).toThrow("You must pass a function as the callback to existsValue().");
+      expect(queryWithNonCallback).toThrow(new Error("You must pass a function as the callback to existsValue()."));
     });
 
     it("passes along errors from an invalid query", function(done) {
@@ -1182,7 +1182,7 @@ describe("gemfire.Region", function() {
         region.putAll({"foo": "bar", "baz": function(){}}, function(){});
       }
 
-      expect(callWithFunctionValue).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithFunctionValue).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
 
     it("returns the region for chaining", function() {
@@ -1194,7 +1194,7 @@ describe("gemfire.Region", function() {
         region.putAll();
       }
 
-      expect(callWithNoArgs).toThrow("You must pass an object and a callback to putAll().");
+      expect(callWithNoArgs).toThrow(new Error("You must pass an object and a callback to putAll()."));
     });
 
     it("requires the callback to be a function", function() {
@@ -1202,7 +1202,7 @@ describe("gemfire.Region", function() {
         region.putAll({ foo: 'foo' }, 'this thing is not a function');
       }
 
-      expect(callWithNonFunction).toThrow("You must pass a function as the callback to putAll().");
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to putAll()."));
     });
 
     it("requires the object argument to be an object", function() {
@@ -1215,12 +1215,12 @@ describe("gemfire.Region", function() {
       }
 
       errorMessage = "You must pass an object and a callback to putAll().";
-      expect(callWithNull).toThrow(errorMessage);
-      expect(callWithString).toThrow(errorMessage);
+      expect(callWithNull).toThrow(new Error(errorMessage));
+      expect(callWithString).toThrow(new Error(errorMessage));
     });
 
     it("emits an event when an error occurs and there is no callback", function(done) {
-      const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+      const errorHandler = jasmine.createSpy("errorHandler").and.callFake(function(error){
         expect(error).toBeError();
         done();
       });
@@ -1286,7 +1286,7 @@ describe("gemfire.Region", function() {
         region.getAll();
       }
 
-      expect(callWithNoArgs).toThrow("You must pass an array of keys and a callback to getAll().");
+      expect(callWithNoArgs).toThrow(new Error("You must pass an array of keys and a callback to getAll()."));
     });
 
     it("requires a callback", function() {
@@ -1294,7 +1294,7 @@ describe("gemfire.Region", function() {
         region.getAll(['foo']);
       }
 
-      expect(callWithNoCallback).toThrow("You must pass a callback to getAll().");
+      expect(callWithNoCallback).toThrow(new Error("You must pass a callback to getAll()."));
     });
 
     it("requires the callback to be a function", function() {
@@ -1302,7 +1302,7 @@ describe("gemfire.Region", function() {
         region.getAll(['foo'], 'not a function');
       }
 
-      expect(callWithNonFunction).toThrow("You must pass a function as the callback to getAll().");
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to getAll()."));
     });
 
     it("requires the keys argument to be an array", function() {
@@ -1310,7 +1310,7 @@ describe("gemfire.Region", function() {
         region.getAll('not an array', function (){});
       }
 
-      expect(callWithNonArray).toThrow("You must pass an array of keys and a callback to getAll().");
+      expect(callWithNonArray).toThrow(new Error("You must pass an array of keys and a callback to getAll()."));
     });
 
     it("passes an empty object to the callback when provided with no keys", function(done){
@@ -1337,7 +1337,7 @@ describe("gemfire.Region", function() {
         region.getAll([function(){}], function(){});
       }
 
-      expect(callWithFunctionKey).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithFunctionKey).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
   });
 
@@ -1363,7 +1363,7 @@ describe("gemfire.Region", function() {
         region.keys();
       }
 
-      expect(callWithNoArgs).toThrow("You must pass a callback to keys().");
+      expect(callWithNoArgs).toThrow(new Error("You must pass a callback to keys()."));
     });
 
     it("throws an exception when a non-function is passed as the callback", function() {
@@ -1371,7 +1371,7 @@ describe("gemfire.Region", function() {
         region.keys("this is some crazy string");
       }
 
-      expect(callWithNonFunction).toThrow("You must pass a function as the callback to keys().");
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to keys()."));
     });
   });
 
@@ -1631,7 +1631,7 @@ describe("gemfire.Region", function() {
         function(next) { externalPut("foo", "bar", next); },
         function(next) {
           waitUntil(function(){
-            return createCallback.calls.length == 1;
+            return createCallback.calls.count() == 1;
           }, next);
         },
         function(next) {
@@ -1640,7 +1640,7 @@ describe("gemfire.Region", function() {
             oldValue: null,
             newValue: "bar"
           }));
-          createCallback.reset();
+          createCallback.calls.reset();
           next();
         },
         function(next) {

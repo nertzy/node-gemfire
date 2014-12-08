@@ -17,33 +17,40 @@ function isErrorWithMessage(error, expectedMessage) {
   }
 }
 
-exports.toBeError = function toBeError(expectedMessage) {
-  const actual = this.actual;
-  const isNot = this.isNot;
+exports.toBeError = function toBeError(util) {
+  return {
+    compare: function compare(actual, expectedMessage) {
+      const isNot = this.isNot;
 
-  if(isNot && expectedMessage) {
-    throw("not.toBeError() matcher received unexpected argument");
-  }
-
-  this.message = function message() {
-    if(isNot) {
-      return "Expected " + inspect(actual) + " not to be an error";
-    }
-
-    if(expectedMessage) {
-      if(expectedMessage.constructor === RegExp) {
-        return "Expected " + inspect(actual) + " to be an error with message matching " + inspect(expectedMessage);
-      } else {
-        return "Expected " + inspect(actual) + " to be an error with message " + inspect(expectedMessage);
+      if(isNot && expectedMessage) {
+        throw("not.toBeError() matcher received unexpected argument");
       }
-    } else {
-      return "Expected " + inspect(actual) + " to be an error";
+
+      this.message = function message() {
+        if(isNot) {
+          return "Expected " + inspect(actual) + " not to be an error";
+        }
+
+        if(expectedMessage) {
+          if(expectedMessage.constructor === RegExp) {
+            return "Expected " + inspect(actual) + " to be an error with message matching " + inspect(expectedMessage);
+          } else {
+            return "Expected " + inspect(actual) + " to be an error with message " + inspect(expectedMessage);
+          }
+        } else {
+          return "Expected " + inspect(actual) + " to be an error";
+        }
+      };
+
+      var result = {};
+
+      if(expectedMessage) {
+        result.pass = isErrorWithMessage(actual, expectedMessage);
+      } else {
+        result.pass = isError(actual);
+      }
+
+      return result;
     }
   };
-
-  if(expectedMessage) {
-    return isErrorWithMessage(actual, expectedMessage);
-  } else {
-    return isError(actual);
-  }
 };

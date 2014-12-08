@@ -6,7 +6,7 @@ const region = cache.getRegion("exampleRegion");
 
 describe("Interoperability", function() {
   beforeEach(function() {
-    this.addMatchers(errorMatchers);
+    jasmine.addMatchers(errorMatchers);
   });
 
   function expectFunctionToReturn(functionName, returnValue, done) {
@@ -15,7 +15,7 @@ describe("Interoperability", function() {
       .executeFunction(functionName)
       .on("data", dataCallback)
       .on("end", function(){
-        expect(dataCallback.callCount).toEqual(1);
+        expect(dataCallback.calls.count()).toEqual(1);
         expect(dataCallback).toHaveBeenCalledWith(returnValue);
         done();
       });
@@ -57,9 +57,10 @@ describe("Interoperability", function() {
       .executeFunction("io.pivotal.node_gemfire.ReturnSet")
       .on("data", dataCallback)
       .on("end", function(){
-        expect(dataCallback.callCount).toEqual(1);
+        expect(dataCallback.calls.count()).toEqual(1);
 
-        const array = dataCallback.calls[0].args[0];
+        const args = dataCallback.calls.argsFor(0);
+        const array = args[0];
         expect(array.length).toEqual(2);
         expect(array).toContain("foo");
         expect(array).toContain("bar");

@@ -33,13 +33,15 @@ module.exports = function itDestroysTheRegion(methodName) {
       region[methodName]("this is not a function");
     }
 
-    expect(callWithNonFunction).toThrow("You must pass a function as the callback to " + methodName + "().");
+    expect(callWithNonFunction).toThrow(
+      new Error("You must pass a function as the callback to " + methodName + "().")
+    );
   });
 
   it("emits an event when an error occurs and there is no callback", function(done) {
     region[methodName]();
 
-    const errorHandler = jasmine.createSpy("errorHandler").andCallFake(function(error){
+    const errorHandler = jasmine.createSpy("errorHandler").and.callFake(function(error){
       expect(error).toBeError();
       done();
     });
@@ -71,7 +73,11 @@ module.exports = function itDestroysTheRegion(methodName) {
 
       expect(function(){
         region.put("foo", "bar");
-      }).toThrow("gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed");
+      }).toThrow(
+        new Error(
+          "gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed"
+        )
+      );
 
       done();
     });
@@ -83,7 +89,11 @@ module.exports = function itDestroysTheRegion(methodName) {
 
       expect(function(){
         otherCopyOfRegion.put("foo", "bar");
-      }).toThrow("gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed");
+      }).toThrow(
+        new Error(
+          "gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed"
+        )
+      );
 
       done();
     });

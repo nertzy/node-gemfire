@@ -14,7 +14,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
         .executeFunction(testFunctionName)
         .on("data", dataCallback)
         .on("end", function(){
-          expect(dataCallback.callCount).toEqual(1);
+          expect(dataCallback.calls.count()).toEqual(1);
           expect(dataCallback).toHaveBeenCalledWith("TestFunction succeeded.");
           done();
         });
@@ -25,7 +25,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       subject.executeFunction("io.pivotal.node_gemfire.Sum", [1, 2, 3])
         .on("data", dataCallback)
         .on("end", function(){
-          expect(dataCallback.callCount).toEqual(1);
+          expect(dataCallback.calls.count()).toEqual(1);
           expect(dataCallback).toHaveBeenCalledWith(6);
           done();
         });
@@ -36,7 +36,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       subject.executeFunction("io.pivotal.node_gemfire.Sum", {arguments: [1, 2, 3]})
         .on("data", dataCallback)
         .on("end", function(){
-          expect(dataCallback.callCount).toEqual(1);
+          expect(dataCallback.calls.count()).toEqual(1);
           expect(dataCallback).toHaveBeenCalledWith(6);
           done();
         });
@@ -46,7 +46,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       function callWithoutArgs() {
         subject.executeFunction();
       }
-      expect(callWithoutArgs).toThrow("You must provide the name of a function to execute.");
+      expect(callWithoutArgs).toThrow(new Error("You must provide the name of a function to execute."));
     });
 
     it("throws an error when no function name is passed in, but a non-name is", function() {
@@ -54,7 +54,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
         subject.executeFunction(function(){});
       }
 
-      expect(callWithoutName).toThrow("You must provide the name of a function to execute.");
+      expect(callWithoutName).toThrow(new Error("You must provide the name of a function to execute."));
     });
 
     it("throws an error when a function is passed in as an argument", function() {
@@ -62,7 +62,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
         subject.executeFunction(testFunctionName, [function(){}]);
       }
 
-      expect(callWithBadArgs).toThrow("Unable to serialize to GemFire; functions are not supported.");
+      expect(callWithBadArgs).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
     });
 
     it("emits an error when the function is not found", function(done){
@@ -99,7 +99,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
           expect(error).toBeError(/java.lang.Exception: Test exception message sent by server./);
         })
         .on('end', function() {
-          expect(dataCallback.callCount).toEqual(1);
+          expect(dataCallback.calls.count()).toEqual(1);
           expect(dataCallback).toHaveBeenCalledWith("First result");
           done();
         });
@@ -114,7 +114,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       }
 
       expect(passNonObjectAsOptions).toThrow(
-        "You must pass either an Array of arguments or an options Object to executeFunction()."
+        new Error("You must pass either an Array of arguments or an options Object to executeFunction().")
       );
     });
 
@@ -123,7 +123,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       subject.executeFunction("io.pivotal.node_gemfire.Passthrough", { arguments: { foo: 'bar' } })
         .on('data', dataCallback)
         .on('end', function(){
-          expect(dataCallback.callCount).toEqual(1);
+          expect(dataCallback.calls.count()).toEqual(1);
           expect(dataCallback).toHaveBeenCalledWith({ foo: 'bar' });
           done();
         });
