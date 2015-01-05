@@ -91,7 +91,7 @@ module.exports = function(grunt) {
           }
         },
         jasmine: {
-          command: "./node_modules/.bin/jasmine"
+          command: "./node_modules/jasmine/bin/jasmine.js"
         },
         release: {
           command: "./node_modules/.bin/node-pre-gyp rebuild package testpackage publish"
