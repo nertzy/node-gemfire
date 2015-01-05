@@ -1684,7 +1684,7 @@ describe("gemfire.Region", function() {
   describe(".localDestroyRegion", function() {
     itDestroysTheRegion('localDestroyRegion');
 
-    it(" destroys a CACHING_PROXY region that is not backed by a server region", function(done) {
+    it("destroys a CACHING_PROXY region that is not backed by a server region", function(done) {
       const regionName = "localDestroyCachingProxyRegionWithoutServerRegion";
       const region = cache.createRegion(regionName, {type: "CACHING_PROXY"});
 
