@@ -177,17 +177,28 @@ NAN_METHOD(Cache::ExecuteQuery) {
 
   std::string queryString(*NanUtf8String(args[0]));
 
-  if (poolNameValue->IsUndefined()) {
-    queryServicePtr = cachePtr->getQueryService();
-  } else {
-    std::string poolName(*NanUtf8String(poolNameValue));
 
-    try {
+
+  try {
+    if (poolNameValue->IsUndefined()) {
+      queryServicePtr = cachePtr->getQueryService();
+    } else {
+      std::string poolName(*NanUtf8String(poolNameValue));
+      PoolPtr poolPtr(getPool(poolNameValue));
+
+      if (poolPtr == NULLPTR) {
+        std::string poolName(*NanUtf8String(poolNameValue));
+        std::stringstream errorMessageStream;
+        errorMessageStream << "executeQuery: `" << poolName << "` is not a valid pool name";
+        NanThrowError(errorMessageStream.str().c_str());
+        NanReturnUndefined();
+      }
+
       queryServicePtr = cachePtr->getQueryService(poolName.c_str());
-    } catch (const gemfire::Exception & exception) {
-      NanThrowError(gemfireExceptionMessage(exception).c_str());
-      NanReturnUndefined();
     }
+  } catch (const gemfire::Exception & exception) {
+    NanThrowError(gemfireExceptionMessage(exception).c_str());
+    NanReturnUndefined();
   }
 
   QueryPtr queryPtr(queryServicePtr->newQuery(queryString.c_str()));
@@ -315,33 +326,15 @@ NAN_METHOD(Cache::ExecuteFunction) {
     poolNameValue = optionsObject->Get(NanNew("pool"));
   }
 
-  PoolPtr poolPtr;
   try {
-    if (!poolNameValue->IsUndefined()) {
-      std::string poolName(*NanUtf8String(poolNameValue));
+    PoolPtr poolPtr(getPool(poolNameValue));
 
-      poolPtr = PoolManager::find(poolName.c_str());
-      if (poolPtr == NULLPTR) {
-        std::stringstream errorMessageStream;
-        errorMessageStream << "executeFunction: `" << poolName << "` is not a valid pool name";
-        NanThrowError(errorMessageStream.str().c_str());
-        NanReturnUndefined();
-      }
-    } else {
-      // FIXME: Workaround for the situation where there are no regions yet.
-      //
-      // As of GemFire Native Client 8.0.0.0, if no regions have ever been present, it's possible that
-      // the cachePtr has no default pool set. Attempting to execute a function on this cachePtr will
-      // throw a NullPointerException.
-      //
-      // To avoid this problem, we grab the first pool we can find and execute the function on that
-      // pool's poolPtr instead of on the cachePtr. Note that this might not be the best choice of
-      // poolPtr at the moment.
-      //
-      // See https://www.pivotaltracker.com/story/show/82079194 for the original bug.
-      HashMapOfPools hashMapOfPools(PoolManager::getAll());
-      HashMapOfPools::Iterator iterator(hashMapOfPools.begin());
-      poolPtr = iterator.second();
+    if (poolPtr == NULLPTR) {
+      std::string poolName(*NanUtf8String(poolNameValue));
+      std::stringstream errorMessageStream;
+      errorMessageStream << "executeFunction: `" << poolName << "` is not a valid pool name";
+      NanThrowError(errorMessageStream.str().c_str());
+      NanReturnUndefined();
     }
 
     ExecutionPtr executionPtr(FunctionService::onServer(poolPtr));
@@ -349,6 +342,28 @@ NAN_METHOD(Cache::ExecuteFunction) {
   } catch (const gemfire::Exception & exception) {
     ThrowGemfireException(exception);
     NanReturnUndefined();
+  }
+}
+
+PoolPtr Cache::getPool(const Handle<Value> & poolNameValue) {
+  if (!poolNameValue->IsUndefined()) {
+    std::string poolName(*NanUtf8String(poolNameValue));
+    return PoolManager::find(poolName.c_str());
+  } else {
+    // FIXME: Workaround for the situation where there are no regions yet.
+    //
+    // As of GemFire Native Client 8.0.0.0, if no regions have ever been present, it's possible that
+    // the cachePtr has no default pool set. Attempting to execute a function on this cachePtr will
+    // throw a NullPointerException.
+    //
+    // To avoid this problem, we grab the first pool we can find and execute the function on that
+    // pool's poolPtr instead of on the cachePtr. Note that this might not be the best choice of
+    // poolPtr at the moment.
+    //
+    // See https://www.pivotaltracker.com/story/show/82079194 for the original bug.
+    HashMapOfPools hashMapOfPools(PoolManager::getAll());
+    HashMapOfPools::Iterator iterator(hashMapOfPools.begin());
+    return iterator.second();
   }
 }
 
