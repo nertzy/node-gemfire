@@ -134,37 +134,65 @@ class ExecuteQueryWorker : public GemfireWorker {
   SelectResultsPtr selectResultsPtr;
 };
 
-QueryPtr Cache::newQuery(char * queryString) {
-  return cachePtr->getQueryService()->newQuery(queryString);
-}
-
 NAN_METHOD(Cache::ExecuteQuery) {
   NanScope();
 
-  if (args.Length() == 0 || !args[0]->IsString()) {
+  int argsLength = args.Length();
+
+  if (argsLength == 0 || !args[0]->IsString()) {
     NanThrowError("You must pass a query string and callback to executeQuery().");
     NanReturnUndefined();
   }
 
-  if (args.Length() < 2) {
+  if (argsLength < 2) {
     NanThrowError("You must pass a callback to executeQuery().");
     NanReturnUndefined();
   }
 
-  if (!args[1]->IsFunction()) {
+  Local<Function> callbackFunction;
+  Local<Value> poolNameValue(NanUndefined());
+  if (args[1]->IsFunction()) {
+    callbackFunction = args[1].As<Function>();
+  } else if (argsLength > 2 && args[2]->IsFunction()) {
+    callbackFunction = args[2].As<Function>();
+
+    if (args[1]->IsObject() && !args[1]->IsFunction()) {
+      Local<Object> optionsObject = args[1]->ToObject();
+      poolNameValue = optionsObject->Get(NanNew("pool"));
+    }
+  } else {
     NanThrowError("You must pass a function as the callback to executeQuery().");
     NanReturnUndefined();
   }
 
   Cache * cache = ObjectWrap::Unwrap<Cache>(args.This());
+  CachePtr cachePtr(cache->cachePtr);
+
   if (cache->cachePtr->isClosed()) {
     NanThrowError("Cannot execute query; cache is closed.");
     NanReturnUndefined();
   }
 
-  QueryPtr queryPtr(cache->newQuery(*NanUtf8String(args[0])));
+  QueryServicePtr queryServicePtr;
 
-  NanCallback * callback = new NanCallback(args[1].As<Function>());
+  std::string queryString(*NanUtf8String(args[0]));
+
+  if (poolNameValue->IsUndefined()) {
+    queryServicePtr = cachePtr->getQueryService();
+  } else {
+    std::string poolName(*NanUtf8String(poolNameValue));
+
+    try {
+      queryServicePtr = cachePtr->getQueryService(poolName.c_str());
+    } catch (const gemfire::Exception & exception) {
+      NanThrowError(gemfireExceptionMessage(exception).c_str());
+      NanReturnUndefined();
+    }
+  }
+
+  QueryPtr queryPtr(queryServicePtr->newQuery(queryString.c_str()));
+
+  NanCallback * callback = new NanCallback(callbackFunction);
 
   ExecuteQueryWorker * worker = new ExecuteQueryWorker(queryPtr, callback);
   NanAsyncQueueWorker(worker);

@@ -379,6 +379,38 @@ describe("gemfire.Cache", function() {
         done();
       });
     });
+
+    fdescribe("when a valid pool is given", function() {
+      it("executes the query on that pool", function(done) {
+        const query = "SELECT DISTINCT * FROM /exampleRegion;";
+
+        async.series([
+          function(next) { region.clear(next); },
+          function(next) { region.put("foo", "bar", next); },
+          function(next) {
+            cache.executeQuery(query, {pool: "myPool"}, function(error, results) {
+              expect(error).not.toBeError();
+              expect(results.toArray()).toEqual(["bar"]);
+              next();
+            });
+          }
+        ], done);
+      });
+    });
+
+    describe("when an invalid pool is given", function() {
+      it("throws an error", function() {
+        const query = "SELECT DISTINCT * FROM /exampleRegion;";
+
+        function executeQueryWithInvalidPool() {
+          cache.executeQuery(query, {pool: "invalidPool"}, function(){});
+        }
+
+        expect(executeQueryWithInvalidPool).toThrow(
+          new Error("gemfire::IllegalArgumentException: Pool not found..")
+        );
+      });
+    });
   });
 
   describe(".inspect", function() {
