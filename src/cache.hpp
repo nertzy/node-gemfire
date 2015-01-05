@@ -34,8 +34,6 @@ class Cache : public node::ObjectWrap {
   static NAN_METHOD(RootRegions);
   static NAN_METHOD(Inspect);
 
-  gemfire::QueryPtr newQuery(char * queryString);
-
  private:
   v8::Local<v8::Function> exitCallback();
 };
