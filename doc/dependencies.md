@@ -1,6 +1,6 @@
 # Node Gemfire
 
-As of December  8, 2014  4:30pm. 11 total
+As of January  5, 2015 10:55pm. 11 total
 
 ## Summary
 * 9 MIT
@@ -21,7 +21,7 @@ As of December  8, 2014  4:30pm. 11 total
 Higher-order functions and common patterns for asynchronous code
 
 <a name="aws-sdk"></a>
-### <a href="https://github.com/aws/aws-sdk-js">aws-sdk</a> v2.0.30
+### <a href="https://github.com/aws/aws-sdk-js">aws-sdk</a> v2.1.4
 #### 
 
 <a href="http://www.apache.org/licenses/LICENSE-2.0.txt">Apache 2.0</a> whitelisted
@@ -93,7 +93,7 @@ Native Abstractions for Node.js: C++ header for Node 0.8->0.12 compatibility
 Node.js native addon binary install tool
 
 <a name="random-string"></a>
-### <a href="https://github.com/valiton/node-random-string">random-string</a> v0.1.1
+### <a href="https://github.com/valiton/node-random-string">random-string</a> v0.1.2
 #### 
 
 <a href="http://opensource.org/licenses/mit-license">MIT</a> whitelisted
