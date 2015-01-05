@@ -755,8 +755,8 @@ class DestroyRegionWorker : public GemfireEventedWorker {
     NanCallback * callback,
     bool local = true) :
       GemfireEventedWorker(regionObject, callback),
-      local(local),
-      region(region) {}
+      region(region),
+      local(local) {}
 
   void ExecuteGemfireWork() {
     if (local) {
