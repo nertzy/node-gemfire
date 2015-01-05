@@ -143,16 +143,23 @@ Shorthand for `executeFunction` with an array of arguments. Equivalent to:
 cache.executeFunction(functionName, { arguments: arguments })
 ```
 
-### cache.executeQuery(query, callback)
+### cache.executeQuery(query, [options], callback)
 
-Executes an OQL query on the cluster. The callback will be called with an `error` argument and a `response` argument. The `response` argument is an object responding to `toArray` and `each`.
+Executes an OQL query on the cluster. The callback will be called with an `error` argument and a `response` argument.
 
- * `results.toArray()`: Return the entire result set as an Array.
- * `results.each(callback)`: Call the callback with a `result` argument, once for each result.
+ * `query`: a string representing a GemFire OQL query
+ * `options.pool`: the name of the GemFire pool where the query should be executed
+
+The `response` argument is an object responding to `toArray` and `each`.
+
+ * `response.toArray()`: Return the entire result set as an Array.
+ * `response.each(callback)`: Call the callback with a `result` argument, once for each result.
+
+> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.pool` is not specified, functions executed by cache.executeQuery() will be executed on exactly one server in the first pool defined in the XML configuration file.
 
 Example:
 ```javascript
-cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", function(error, response) {
+cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", {pool: "myPool"}, function(error, response) {
   if(error) { throw error; }
   
   var results = response.toArray();
