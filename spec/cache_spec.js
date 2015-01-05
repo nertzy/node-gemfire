@@ -380,7 +380,7 @@ describe("gemfire.Cache", function() {
       });
     });
 
-    fdescribe("when a valid pool is given", function() {
+    describe("when a valid pool is given", function() {
       it("executes the query on that pool", function(done) {
         const query = "SELECT DISTINCT * FROM /exampleRegion;";
 
@@ -407,7 +407,7 @@ describe("gemfire.Cache", function() {
         }
 
         expect(executeQueryWithInvalidPool).toThrow(
-          new Error("gemfire::IllegalArgumentException: Pool not found..")
+          new Error("executeQuery: `invalidPool` is not a valid pool name")
         );
       });
     });

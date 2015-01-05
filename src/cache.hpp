@@ -35,6 +35,7 @@ class Cache : public node::ObjectWrap {
   static NAN_METHOD(Inspect);
 
  private:
+  static gemfire::PoolPtr getPool(const v8::Handle<v8::Value> & poolNameValue);
   v8::Local<v8::Function> exitCallback();
 };
 
