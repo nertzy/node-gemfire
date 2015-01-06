@@ -625,5 +625,21 @@ describe("gemfire.Cache", function() {
         expect(region.attributes.scope).toEqual("LOCAL");
       });
     });
+
+    describe("when the pool is not set", function() {
+      it("creates a region with the default pool", function() {
+        const cache = factories.getCache();
+        const region = cache.createRegion("createRegionPoolNameUnsetTest", { type: "PROXY" });
+        expect(region.attributes.poolName).toEqual("default_gemfireClientPool");
+      });
+    });
+
+    describe("when the pool is set", function() {
+      it("creates a region for that pool", function() {
+        const cache = factories.getCache();
+        const region = cache.createRegion("createRegionPoolNameSetTest", { type: "PROXY", poolName: "myPool" });
+        expect(region.attributes.poolName).toEqual("myPool");
+      });
+    });
   });
 });

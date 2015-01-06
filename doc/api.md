@@ -91,14 +91,17 @@ The GemFire cache is an in-memory data store singleton object composed of many R
 
 Adds a region to the GemFire cache. Once the region is created, it will remain in the client for the lifetime of the process. The `regionName` should be a string and the `options` object has a required type property. 
 
- * `options.type`: the type of GemFire region to create. The value should be the string name of one of the GemFire region shortcuts, such as "LOCAL", "PROXY", or "CACHING_PROXY". See the GemFire documentation for [Region Shortcuts](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/client-cache/region-shortcuts.html) and the [gemfire::RegionShortcut C++ enumeration](http://gemfire.docs.pivotal.io/latest/cpp_api/cppdocs/namespacegemfire.html#596bc5edab9d1e7c232e53286b338183) for more details.  
+ * `options.type`: the type of GemFire region to create. The value should be the string name of one of the GemFire region shortcuts, such as "LOCAL", "PROXY", or "CACHING_PROXY". See the GemFire documentation for [Region Shortcuts](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/client-cache/region-shortcuts.html) and the [gemfire::RegionShortcut C++ enumeration](http://gemfire.docs.pivotal.io/latest/cpp_api/cppdocs/namespacegemfire.html#596bc5edab9d1e7c232e53286b338183) for more details.
+ * `options.poolName`: the name of the GemFire pool the region is in. If not specified, a default pool will be used.
+
+> **Warning:** If options.poolName is not specified, the default pool will be used. The default pool usually expects a GemFire server to be running on localhost on port 40404. If you are trying to connect to a GemFire cluster with a different configuration then you must specify options.poolName.
 
 Example:
 
 ```javascript
 cache.getRegion("myRegion") // returns undefined
 
-var myRegion = cache.createRegion("myRegion", {type: "LOCAL"});
+var myRegion = cache.createRegion("myRegion", {type: "PROXY", poolName: "myPool"});
 
 cache.getRegion("myRegion") // returns the same region as myRegion
 ```
