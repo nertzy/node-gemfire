@@ -1,3 +1,4 @@
 start locator \
-  --name=locator \
-  --log-level=warning
+  --bind-address=10.0.2.15 \
+  --port=10334 \
+  --name=locator

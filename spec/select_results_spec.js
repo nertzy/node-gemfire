@@ -19,7 +19,7 @@ describe("SelectResults", function() {
         }, next);
       },
       function(next) {
-        cache.executeQuery("SELECT * FROM /exampleRegion", function(error, response){
+        cache.executeQuery("SELECT * FROM /exampleRegion", {pool: "myPool"}, function(error, response){
           expect(error).not.toBeError();
           selectResults = response;
           next();

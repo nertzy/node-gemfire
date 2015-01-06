@@ -1,2 +1,2 @@
-connect
+connect --locator=10.0.2.15[10334]
 stop locator --name=locator

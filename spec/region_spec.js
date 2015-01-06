@@ -820,7 +820,7 @@ describe("gemfire.Region", function() {
     });
 
     it("has a poolName property", function() {
-      expect(region.attributes.poolName).toEqual("default_gemfireClientPool");
+      expect(region.attributes.poolName).toEqual("myPool");
     });
 
     it("has a regionIdleTimeout property", function() {
@@ -1395,7 +1395,8 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is created on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionCreateEventTest", {type: "CACHING_PROXY"});
+        const region = cache.createRegion("createRegionCreateEventTest",
+                                          {type: "CACHING_PROXY", poolName: "myPool"});
 
         async.series([
           function(next) { region.clear(next); },
@@ -1472,7 +1473,8 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is updated on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionUpdateEventTest", {type: "CACHING_PROXY"});
+        const region = cache.createRegion("createRegionUpdateEventTest",
+                                          {type: "CACHING_PROXY", poolName: "myPool"});
 
         async.series([
           function(next) { region.clear(next); },
@@ -1551,7 +1553,8 @@ describe("gemfire.Region", function() {
       });
 
       it("is emitted when an entry is destroyed on a region from createRegion", function(done) {
-        const region = cache.createRegion("createRegionDestroyEventTest", {type: "CACHING_PROXY"});
+        const region = cache.createRegion("createRegionDestroyEventTest",
+                                          {type: "CACHING_PROXY", poolName: "myPool"});
 
         async.series([
           function(next) { region.clear(next); },
@@ -1669,7 +1672,7 @@ describe("gemfire.Region", function() {
     //   http://gemfire.docs.pivotal.io/latest/cpp_api/cppdocs/classgemfire_1_1Region.html#2b07a940ee17e375c45421e85b27a8ff
     it("fails to destroy a CACHING_PROXY region that is not backed by a server region", function(done) {
       const regionName = "destroyCachingProxyRegionWithoutServerRegion";
-      const region = cache.createRegion(regionName, {type: "CACHING_PROXY"});
+      const region = cache.createRegion(regionName, {type: "CACHING_PROXY", poolName: "myPool"});
 
       expect(cache.getRegion(regionName)).toBeDefined();
 
@@ -1686,7 +1689,7 @@ describe("gemfire.Region", function() {
 
     it("destroys a CACHING_PROXY region that is not backed by a server region", function(done) {
       const regionName = "localDestroyCachingProxyRegionWithoutServerRegion";
-      const region = cache.createRegion(regionName, {type: "CACHING_PROXY"});
+      const region = cache.createRegion(regionName, {type: "CACHING_PROXY", poolName: "myPool"});
 
       expect(cache.getRegion(regionName)).toBeDefined();
 
