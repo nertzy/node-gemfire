@@ -9,6 +9,7 @@ The `gemfire` object is returned by `require("gemfire")` and is the global entry
 Returns true if the GemFire client is connected to a GemFire distributed system, and false if not.
 
 Example:
+
 ```javascript
 var gemfire = require('gemfire');
 gemfire.connected(); // returns false
@@ -33,6 +34,7 @@ Tells gemfire which cache configuration file to use. `xmlFilePath` can be either
 For more information on cache configuration files, see [the documentation](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/cache-init-file/chapter-overview.html#chapter-overview).
 
 Example:
+
 ```javascript
 var gemfire = require('gemfire');
 
@@ -45,6 +47,7 @@ gemfire.configure("config/anotherGemfireConfiguration.xml"); // throws an error
 Returns the version of the GemFire C++ Native Client that has been compiled into node-gemfire.
 
 Example:
+
 ```javascript
 var gemfire = require('gemfire');
 gemfire.gemfireVersion // returns "8.0.0.1"
@@ -57,6 +60,7 @@ Returns the cache singleton object. `gemfire.configure()` must have been called 
 > **Warning:** Due to a limitation of the GemFire C++ Native Client library that backs the Cache, there can only be one Cache instance in the lifetime of a Node process. If you want to construct a new cache instance, you must restart your application.
 
 Example:
+
 ```javascript
 var gemfire = require('gemfire');
 
@@ -73,6 +77,7 @@ gemfire.getCache(); // returns the same cache singleton object on subsequent cal
 Returns the version of node-gemfire.
 
 Example:
+
 ```javascript
 var gemfire = require('gemfire');
 gemfire.gemfireVersion // returns "0.0.10"
@@ -89,6 +94,7 @@ Adds a region to the GemFire cache. Once the region is created, it will remain i
  * `options.type`: the type of GemFire region to create. The value should be the string name of one of the GemFire region shortcuts, such as "LOCAL", "PROXY", or "CACHING_PROXY". See the GemFire documentation for [Region Shortcuts](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/client-cache/region-shortcuts.html) and the [gemfire::RegionShortcut C++ enumeration](http://gemfire.docs.pivotal.io/latest/cpp_api/cppdocs/namespacegemfire.html#596bc5edab9d1e7c232e53286b338183) for more details.  
 
 Example:
+
 ```javascript
 cache.getRegion("myRegion") // returns undefined
 
@@ -117,6 +123,7 @@ cache.executeFunction returns an EventEmitter which emits the following events:
 > **Warning:** As of GemFire 8.0.0.0, there are some situations where the Java function can throw an uncaught Exception, but the node `error` callback never gets called. This is due to a known bug in how the GemFire 8.0.0.0 Native Client handles exceptions. This bug is only present for cache.executeFunction. region.executeFunction works as expected.
 
 Example:
+
 ```javascript
 cache.executeFunction("com.example.FunctionName", 
     {
@@ -158,6 +165,7 @@ The `response` argument is an object responding to `toArray` and `each`.
 > **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.pool` is not specified, functions executed by cache.executeQuery() will be executed on exactly one server in the first pool defined in the XML configuration file.
 
 Example:
+
 ```javascript
 cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", {pool: "myPool"}, function(error, response) {
   if(error) { throw error; }
@@ -180,6 +188,7 @@ For more information on OQL, see [the documentation](http://gemfire.docs.pivotal
 Retrieves a Region from the Cache. An error will be thrown if the region is not present.
 
 Example:
+
 ```javascript
 var region = cache.getRegion('exampleRegion');
 ```
@@ -189,6 +198,7 @@ var region = cache.getRegion('exampleRegion');
 Retrieves an array of all root Regions from the Cache. 
 
 Example:
+
 ```javascript
 var regions = cache.rootRegions();
 // if there are three Regions defined in your cache, regions could now be:
@@ -206,6 +216,7 @@ Returns an object describing the attributes of the GemFire region. This can be u
 Several of these values are described in the [GemFire documentation for region attributes](http://gemfire.docs.pivotal.io/latest/userguide/gemfire_nativeclient/client-cache/region-attributes.html).
 
 Example output of `region.attributes`:
+
 ```javascript
 {
   cachingEnabled: true,
@@ -231,6 +242,7 @@ Example output of `region.attributes`:
 Removes all entries from the region. The callback will be called with an `error` argument. If the callback is not supplied, and an error occurs, the region will emit an `error` event.
 
 Example:
+
 ```javascript
 region.clear(function(error){
   if(error) { throw error; }
@@ -245,6 +257,7 @@ Destroys the region, deleting all entries. The callback will be called with an `
 > **Warning:** Destroying a `PROXY` or `CACHING_PROXY` region via `destroyRegion` also destroys the corresponding region on the GemFire cluster. If you don't want this behavior, call `region.localDestroyRegion()` instead.
 
 Example:
+
 ```javascript
 region.destroyRegion(function(error){
   if(error) { throw error; }
@@ -269,6 +282,7 @@ region.executeFunction returns an EventEmitter which emits the following events:
  * `end`: Called after the Java function has finally returned.
 
 Example:
+
 ```javascript
 region.executeFunction("com.example.FunctionName", 
     { arguments: [1, 2, 3], filters: ["key1", "key2"] }
@@ -299,6 +313,7 @@ Indicates whether or not a value matching the OQL predicate `predicate` is prese
 In the predicate, you can use `this` to refer to the entire value. If you use any other expression, it will be treated as a field name on object values.
 
 Example:
+
 ```javascript
 region.existsValue("this = 'value1'", function(error, response) {
   if(error) { throw error; }
@@ -319,6 +334,7 @@ See also `region.query` and `region.selectValue`.
 Retrieves the value of an entry in the Region. The callback will be called with an `error` and the `value`. If the key is not present in the Region, an error will be passed to the callback.
 
 Example:
+
 ```javascript
 region.get("key", function(error, value){
   if(error) { throw error; }
@@ -331,6 +347,7 @@ region.get("key", function(error, value){
 Retrieves the values of multiple keys in the Region. The keys should be passed in as an `Array`. The callback will be called with an `error` and a `values` object. If one or more keys are not present in the region, their values will be returned as null.
 
 Example:
+
 ```javascript
 region.getAll(["key1", "key2", "unknownKey"], function(error, values){
   if(error) { throw error; }
@@ -345,6 +362,7 @@ region.getAll(["key1", "key2", "unknownKey"], function(error, values){
 Retrieves all keys in the Region. The callback will be called with an `error` argument, and an Array of keys.
 
 Example:
+
 ```javascript
 region.keys(function(error, keys) {
   if(error) { throw error; }
@@ -360,6 +378,7 @@ Destroys the local region, deleting all entries. The callback will be called wit
 > **Note:** Destroying a `PROXY` or `CACHING_PROXY` region via `localDestoryRegion` does not destroy the corresponding region on the GemFire cluster. If you want this behavior, call `region.destroyRegion()` instead.
 
 Example:
+
 ```javascript
 region.localDestroyRegion(function(error){
   if(error) { throw error; }
@@ -383,6 +402,7 @@ GemFire supports most JavaScript types for the value. Some types, such as `Funct
 GemFire supports several JavaScript types for the key, but the safest choice is to always use a `String`.
 
 Example:
+
 ```javascript
 region.put('key', { foo: 'bar' }, function(error) {
   if(error) { throw error; }
@@ -397,6 +417,7 @@ Stores multiple entries in the region. The callback will be called with an `erro
 **NOTE**: Keys on a JavaScript object are always strings. Thus, all entries will have string keys.
 
 Example:
+
 ```javascript
 region.putAll(
   {
@@ -419,6 +440,7 @@ region.putAll(
 Retrieves all values from the Region matching the OQL `predicate`. The callback will be called with an `error` argument, and a `response` object. For more information on `response` objects, please see `cache.executeQuery`.
 
 Example:
+
 ```javascript
 region.query("this like '% Smith'", function(error, response) {
   if(error) { throw error; }
@@ -439,6 +461,7 @@ See also `region.selectValue` and `region.existsValue`.
 Tells the GemFire server to trigger events for entry operations that were triggered by other clients in the system. By default, region entry operations (`region.put`, `region.remove`, etc.) that happen within a single Node process trigger events *only* within that same process. After calling `region.registerAllKeys`, all entry operations on the region will trigger events. In other words, the GemFire server will push notifications back to the Node process.
 
 Example:
+
 ```javascript
 region.on("create", function(event) {
   // handle event
@@ -458,6 +481,7 @@ See also Events and `region.unregisterAllKeys`.
 Removes the entry specified by the indicated key from the Region, or, if no such entry is present, passes an `error` to the callback. If the argument is not supplied, and an error occurs, the Region will emit an `error` event.
 
 Example:
+
 ```javascript
 region.remove('key1', function(error) {
   if(error) { throw error; }
@@ -472,6 +496,7 @@ Retrieves exactly one entry from the Region matching the OQL `predicate`. The ca
 If more than one result matches the predicate, an error will be passed to the callback. If you want to select multiple results for a predicate, see `region.query`.
 
 Example:
+
 ```javascript
 region.selectValue("this = 'value1'", function(error, result) {
   if(error) { throw error; }
@@ -487,6 +512,7 @@ See also `region.query` and `region.existsValue`.
 Tells the GemFire server *not* to trigger events for entry operations that were triggered by other clients in the system. 
 
 Example:
+
 ```javascript
 region.registerAllKeys();
 
@@ -510,6 +536,7 @@ See also Events and `region.registerAllKeys`.
 Emitted when an error occurs and no callback was passed to the method that caused the error.
 
 Example:
+
 ```javascript
 region.on("error", function(error) {
   // handle errors
@@ -532,6 +559,7 @@ region.put("foo", null, function(error) {});
 Emitted when an entry is added to the region. Not emitted when an existing entry's value is updated.
 
 Example:
+
 ```javascript
 region.on("create", function(event) {
   // process event
@@ -556,6 +584,7 @@ See also `region.registerAllKeys`.
 Emitted when an existing entry is destroyed.
 
 Example:
+
 ```javascript
 region.on("destroy", function(event) {
   // process event
@@ -576,6 +605,7 @@ See also `region.registerAllKeys`.
 Emitted when an existing entry's value is updated. Not emitted when an entry is added to the region.
 
 Example:
+
 ```javascript
 region.on("update", function(event) {
   // process event
