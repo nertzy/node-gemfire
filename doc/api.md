@@ -111,11 +111,11 @@ cache.getRegion("myRegion") // returns the same region as myRegion
 Executes a Java function on a server in the cluster containing the cache. `functionName` is the full Java class name of the function that will be called. Options may be either an array of arguments, or an options object.
 
  * `options.arguments`: the arguments to be passed to the Java function
- * `options.pool`: the name of the GemFire pool where the function should be run
+ * `options.poolName`: the name of the GemFire pool where the function should be run
 
 > **Note**: Unlike region.executeFunction(), `options.filter` is not allowed.
 
-> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.pool` is not specified, functions executed by cache.executeFunction() will be executed on exactly one server in the first pool defined in the XML configuration file.
+> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.poolName` is not specified, functions executed by cache.executeFunction() will be executed on exactly one server in the first pool defined in the XML configuration file.
 
 cache.executeFunction returns an EventEmitter which emits the following events:
 
@@ -131,7 +131,7 @@ Example:
 cache.executeFunction("com.example.FunctionName", 
     {
       arguments: [1, 2, 3],
-      pool: "myPool"
+      poolName: "myPool"
     }
   )
   .on("error", function(error) { throw error; })
@@ -158,19 +158,19 @@ cache.executeFunction(functionName, { arguments: arguments })
 Executes an OQL query on the cluster. The callback will be called with an `error` argument and a `response` argument.
 
  * `query`: a string representing a GemFire OQL query
- * `options.pool`: the name of the GemFire pool where the query should be executed
+ * `options.poolName`: the name of the GemFire pool where the query should be executed
 
 The `response` argument is an object responding to `toArray` and `each`.
 
  * `response.toArray()`: Return the entire result set as an Array.
  * `response.each(callback)`: Call the callback with a `result` argument, once for each result.
 
-> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.pool` is not specified, functions executed by cache.executeQuery() will be executed on exactly one server in the first pool defined in the XML configuration file.
+> **Warning:** Due to a workaround for a bug in Gemfire 8.0.0.0, when `options.poolName` is not specified, functions executed by cache.executeQuery() will be executed on exactly one server in the first pool defined in the XML configuration file.
 
 Example:
 
 ```javascript
-cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", {pool: "myPool"}, function(error, response) {
+cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", {poolName: "myPool"}, function(error, response) {
   if(error) { throw error; }
   
   var results = response.toArray();

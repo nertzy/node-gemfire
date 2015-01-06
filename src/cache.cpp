@@ -158,7 +158,7 @@ NAN_METHOD(Cache::ExecuteQuery) {
 
     if (args[1]->IsObject() && !args[1]->IsFunction()) {
       Local<Object> optionsObject = args[1]->ToObject();
-      poolNameValue = optionsObject->Get(NanNew("pool"));
+      poolNameValue = optionsObject->Get(NanNew("poolName"));
     }
   } else {
     NanThrowError("You must pass a function as the callback to executeQuery().");
@@ -330,7 +330,7 @@ NAN_METHOD(Cache::ExecuteFunction) {
       NanReturnUndefined();
     }
 
-    poolNameValue = optionsObject->Get(NanNew("pool"));
+    poolNameValue = optionsObject->Get(NanNew("poolName"));
   }
 
   try {
