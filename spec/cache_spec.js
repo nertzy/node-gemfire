@@ -147,7 +147,7 @@ describe("gemfire.Cache", function() {
         function(){
           const query = "SELECT DISTINCT * FROM /exampleRegion";
 
-          cache.executeQuery(query, function(error, response) {
+          cache.executeQuery(query, {pool: "myPool"}, function(error, response) {
             expect(error).not.toBeError();
             if(error) { return; }
 
@@ -172,7 +172,7 @@ describe("gemfire.Cache", function() {
         function() {
           const query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.key = 'string2'";
 
-          cache.executeQuery(query, function(error, response) {
+          cache.executeQuery(query, {pool: "myPool"}, function(error, response) {
             expect(error).not.toBeError();
             if(error) { return; }
 
@@ -199,7 +199,7 @@ describe("gemfire.Cache", function() {
         function() {
           const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar'";
 
-          cache.executeQuery(query, function(error, response) {
+          cache.executeQuery(query, {pool: "myPool"}, function(error, response) {
             expect(error).not.toBeError();
             if(error) { return; }
 
@@ -225,7 +225,7 @@ describe("gemfire.Cache", function() {
         function(){
           const query = "SELECT record FROM /exampleRegion AS record, record.foo AS foo WHERE foo.bar = 'baz'";
 
-          cache.executeQuery(query, function(error,response) {
+          cache.executeQuery(query, {pool: "myPool"}, function(error,response) {
             expect(error).not.toBeError();
             if(error) { return; }
 
@@ -247,7 +247,7 @@ describe("gemfire.Cache", function() {
 
         const query = "SELECT foo, bar FROM /exampleRegion";
 
-        cache.executeQuery(query, function(error, response){
+        cache.executeQuery(query, {pool: "myPool"}, function(error, response){
           expect(error).not.toBeError();
           if(error) { return; }
 
@@ -270,7 +270,7 @@ describe("gemfire.Cache", function() {
         function(){
           const query = "SELECT DISTINCT * FROM /exampleRegion";
 
-          cache.executeQuery(query, function(error, response) {
+          cache.executeQuery(query, {pool: "myPool"}, function(error, response) {
             expect(error).not.toBeError();
             if(error) { return; }
 
@@ -293,7 +293,7 @@ describe("gemfire.Cache", function() {
           function(callback) { region.put("wide string", "日本", callback); },
           function(callback) {
             const narrowQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = 'Japan';";
-            cache.executeQuery(narrowQuery, function(error, response){
+            cache.executeQuery(narrowQuery, {pool: "myPool"}, function(error, response){
               expect(error).not.toBeError();
               if(error) { return; }
 
@@ -304,7 +304,7 @@ describe("gemfire.Cache", function() {
           },
           function(callback) {
             const wideQuery = "SELECT key FROM /exampleRegion.entrySet WHERE value = '日本';";
-            cache.executeQuery(wideQuery, function(error, response){
+            cache.executeQuery(wideQuery, {pool: "myPool"}, function(error, response){
               expect(error).not.toBeError();
               if(error) { return; }
 
@@ -323,7 +323,7 @@ describe("gemfire.Cache", function() {
         function(next) { region.put("foo", {}, next); },
         function(next) { region.put("bar", { my_field_name: 'baz' }, next); },
         function(next) {
-          cache.executeQuery("SELECT my_field_name FROM /exampleRegion", function(error, response) {
+          cache.executeQuery("SELECT my_field_name FROM /exampleRegion", {pool: "myPool"}, function(error, response) {
             expect(error).not.toBeError();
             if(error) { return; }
 
@@ -364,7 +364,7 @@ describe("gemfire.Cache", function() {
 
     it("returns the cache for chaining", function(done) {
       var query = "SELECT DISTINCT * FROM /exampleRegion;";
-      var returnValue = cache.executeQuery(query, function(error, results) {
+      var returnValue = cache.executeQuery(query, {pool: "myPool"}, function(error, results) {
         done();
       });
       expect(returnValue).toEqual(cache);
@@ -373,7 +373,7 @@ describe("gemfire.Cache", function() {
     it("passes an error to the callback for invalid queries", function(done) {
       var exception;
 
-      cache.executeQuery("INVALID;", function(error, results) {
+      cache.executeQuery("INVALID;", {pool: "myPool"}, function(error, results) {
         expect(error).toBeError(/gemfire::QueryException/);
         expect(results).toBeUndefined();
         done();
@@ -525,7 +525,7 @@ describe("gemfire.Cache", function() {
       const cache = factories.getCache();
 
       function createExistingRegion(){
-        cache.createRegion("exampleRegion", {type: "CACHING_PROXY"});
+        cache.createRegion("exampleRegion", {type: "CACHING_PROXY", poolName: "myPool"});
       }
 
       expect(createExistingRegion).toThrow(
@@ -600,7 +600,7 @@ describe("gemfire.Cache", function() {
     describe("when the client type is set to PROXY", function() {
       it("creates a PROXY region", function() {
         const cache = factories.getCache();
-        const region = cache.createRegion("createRegionCachingProxyTest", { type: "PROXY" });
+        const region = cache.createRegion("createRegionCachingProxyTest", { type: "PROXY", poolName: "myPool" });
 
         expect(region.attributes.cachingEnabled).toBeFalsy();
         expect(region.attributes.scope).toEqual("DISTRIBUTED_NO_ACK");
@@ -610,7 +610,7 @@ describe("gemfire.Cache", function() {
     describe("when the client type is set to CACHING_PROXY", function() {
       it("creates a CACHING_PROXY region", function() {
         const cache = factories.getCache();
-        const region = cache.createRegion("createRegionProxyTest", { type: "CACHING_PROXY" });
+        const region = cache.createRegion("createRegionProxyTest", { type: "CACHING_PROXY", poolName: "myPool" });
 
         expect(region.attributes.cachingEnabled).toBeTruthy();
         expect(region.attributes.scope).toEqual("DISTRIBUTED_NO_ACK");
@@ -623,14 +623,6 @@ describe("gemfire.Cache", function() {
         const region = cache.createRegion("createRegionLocalTest", { type: "LOCAL" });
         expect(region.attributes.cachingEnabled).toBeTruthy();
         expect(region.attributes.scope).toEqual("LOCAL");
-      });
-    });
-
-    describe("when the pool is not set", function() {
-      it("creates a region with the default pool", function() {
-        const cache = factories.getCache();
-        const region = cache.createRegion("createRegionPoolNameUnsetTest", { type: "PROXY" });
-        expect(region.attributes.poolName).toEqual("default_gemfireClientPool");
       });
     });
 

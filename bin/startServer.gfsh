@@ -1,8 +1,8 @@
-connect
+connect --locator=10.0.2.15[10334]
 start server \
   --dir=server \
-  --log-level=warning \
   --cache-xml-file=/vagrant/xml/ExampleServer.xml \
   --name=server \
+  --bind-address=10.0.2.15 \
   --J=-Dgemfire.start-dev-rest-api=true \
   --J=-Dgemfire.http-service-port=8080
