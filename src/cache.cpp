@@ -232,12 +232,14 @@ NAN_METHOD(Cache::CreateRegion) {
   }
 
   Local<Object> regionConfiguration(args[1]->ToObject());
-  Local<Value> regionType(regionConfiguration->Get(NanNew("type")));
 
+  Local<Value> regionType(regionConfiguration->Get(NanNew("type")));
   if (regionType->IsUndefined()) {
     NanThrowError("createRegion: The region configuration object must have a type property.");
     NanReturnUndefined();
   }
+
+  Local<Value> regionPoolName(regionConfiguration->Get(NanNew("poolName")));
 
   RegionShortcut regionShortcut(getRegionShortcut(*NanUtf8String(regionType)));
   if (regionShortcut == invalidRegionShortcut) {
@@ -251,6 +253,11 @@ NAN_METHOD(Cache::CreateRegion) {
   RegionPtr regionPtr;
   try {
     RegionFactoryPtr regionFactoryPtr(cachePtr->createRegionFactory(regionShortcut));
+
+    if (!regionPoolName->IsUndefined()) {
+      regionFactoryPtr->setPoolName(*NanUtf8String(regionPoolName));
+    }
+
     regionPtr = regionFactoryPtr->create(*NanUtf8String(args[0]));
   } catch (const gemfire::Exception & exception) {
     NanThrowError(gemfireExceptionMessage(exception).c_str());
