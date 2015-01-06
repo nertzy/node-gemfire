@@ -80,7 +80,7 @@ Example:
 
 ```javascript
 var gemfire = require('gemfire');
-gemfire.gemfireVersion // returns "0.0.10"
+gemfire.gemfireVersion // returns "0.0.11"
 ```
 
 ## Cache

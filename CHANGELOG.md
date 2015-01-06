@@ -1,3 +1,6 @@
+# v0.0.11
+- Add `poolName` option to cache.createRegion()
+
 # v0.0.10
 - Add ability to target a particular GemFire pool when executing a function using `cache.executeQuery`
 
