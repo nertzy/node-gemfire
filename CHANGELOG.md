@@ -1,5 +1,6 @@
 # v0.0.11
 - Add `poolName` option to cache.createRegion()
+- **Breaking Change**: cache.executeFunction and cache.executeQuery renamed their options from `pool` to `poolName` to be consistent with the rest of the API.
 
 # v0.0.10
 - Add ability to target a particular GemFire pool when executing a function using `cache.executeQuery`
