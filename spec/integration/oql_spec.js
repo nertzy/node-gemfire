@@ -22,7 +22,7 @@ describe("OQL integration", function() {
 
       function(next) {
         const query = "SELECT * FROM /exampleRegion WHERE foo = null;";
-        cache.executeQuery(query, {pool: "myPool"}, function(error, response){
+        cache.executeQuery(query, {poolName: "myPool"}, function(error, response){
           expect(error).not.toBeError();
           const results = response.toArray();
           expect(results).toEqual([ {foo: null} ]);
@@ -32,7 +32,7 @@ describe("OQL integration", function() {
 
       function(next) {
         const query = "SELECT * FROM /exampleRegion WHERE foo != null;";
-        cache.executeQuery(query, {pool: "myPool"}, function(error, response){
+        cache.executeQuery(query, {poolName: "myPool"}, function(error, response){
           expect(error).not.toBeError();
           const results = response.toArray();
           expect(results.length).toEqual(2);
