@@ -1,3 +1,6 @@
+# v0.0.12
+- Improve error objects. GemFire errors now have a `name` property describing the type of error and a `message` property with the original message. We no longer interpolate the name into the error message.
+
 # v0.0.11
 - Add `poolName` option to cache.createRegion()
 - **Breaking Change**: cache.executeFunction and cache.executeQuery renamed their options from `pool` to `poolName` to be consistent with the rest of the API.
