@@ -1,8 +1,5 @@
 #include "exceptions.hpp"
 #include <nan.h>
-#include <gfcpp/GemfireCppCache.hpp>
-#include <string>
-#include <sstream>
 
 using namespace v8;
 using namespace gemfire;
