@@ -374,7 +374,7 @@ describe("gemfire.Cache", function() {
       var exception;
 
       cache.executeQuery("INVALID;", {poolName: "myPool"}, function(error, results) {
-        expect(error).toBeError(/gemfire::QueryException/);
+        expect(error).toBeError('gemfire::QueryException');
         expect(results).toBeUndefined();
         done();
       });

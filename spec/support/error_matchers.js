@@ -5,8 +5,12 @@ function isError(error) {
   return !!error;
 }
 
-function isErrorWithMessage(error, expectedMessage) {
-  if (!isError(error)) {
+function isErrorWithName(error, expectedName) {
+  return isError(error) && (expectedName === error.name);
+}
+
+function isErrorWithNameAndMessage(error, expectedName, expectedMessage) {
+  if (!isErrorWithName(error, expectedName)) {
     return false;
   }
 
@@ -19,33 +23,43 @@ function isErrorWithMessage(error, expectedMessage) {
 
 exports.toBeError = function toBeError(util) {
   return {
-    compare: function compare(actual, expectedMessage) {
+    compare: function compare(actual, expectedName, expectedMessage) {
       const isNot = this.isNot;
 
-      if(isNot && expectedMessage) {
+      if(isNot && (expectedName || expectedMessage)) {
         throw("not.toBeError() matcher received unexpected argument");
       }
 
-      this.message = function message() {
+      var result = {};
+
+      result.message = function message() {
         if(isNot) {
           return "Expected " + inspect(actual) + " not to be an error";
         }
 
+        var messageString = "Expected " + inspect(actual) + " to be an error";
+
+        if(expectedName) {
+          messageString = messageString + " with name " + inspect(expectedName);
+        }
+
         if(expectedMessage) {
           if(expectedMessage.constructor === RegExp) {
-            return "Expected " + inspect(actual) + " to be an error with message matching " + inspect(expectedMessage);
+            return messageString + " with message matching " + inspect(expectedMessage);
           } else {
-            return "Expected " + inspect(actual) + " to be an error with message " + inspect(expectedMessage);
+            return messageString + " with message " + inspect(expectedMessage);
           }
         } else {
-          return "Expected " + inspect(actual) + " to be an error";
+          return messageString;
         }
       };
 
-      var result = {};
-
-      if(expectedMessage) {
-        result.pass = isErrorWithMessage(actual, expectedMessage);
+      if(expectedName) {
+        if(expectedMessage) {
+          result.pass = isErrorWithNameAndMessage(actual, expectedName, expectedMessage);
+        } else {
+          result.pass = isErrorWithName(actual, expectedName);
+        }
       } else {
         result.pass = isError(actual);
       }

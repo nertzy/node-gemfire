@@ -109,7 +109,8 @@ module.exports = function itDestroysTheRegion(methodName) {
       // destroying an already destroyed region causes an error
       region[methodName](function (error) {
         expect(error).toBeError(
-          "gemfire::RegionDestroyedException: Region::" + methodName + ": Named Region Destroyed"
+          "gemfire::RegionDestroyedException",
+          "Region::" + methodName + ": Named Region Destroyed"
         );
 
         next();

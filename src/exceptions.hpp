@@ -7,10 +7,9 @@
 
 namespace node_gemfire {
 
-v8::Handle<v8::Value> v8Error(const gemfire::Exception & exception);
-v8::Handle<v8::Value> v8Error(const gemfire::UserFunctionExecutionExceptionPtr & exceptionPtr);
+v8::Local<v8::Value> v8Error(const gemfire::Exception & exception);
+v8::Local<v8::Value> v8Error(const gemfire::UserFunctionExecutionExceptionPtr & exceptionPtr);
 
-std::string gemfireExceptionMessage(const gemfire::Exception & exception);
 void ThrowGemfireException(const gemfire::Exception & e);
 
 }  // namespace node_gemfire

@@ -57,7 +57,7 @@ describe("gemfire.Region", function() {
 
     it("passes an error to the callback when called for a nonexistent key", function(done) {
       region.get("baz", function(error, value) {
-        expect(error).toBeError("Key not found in region.");
+        expect(error).toBeError("KeyNotFoundError", "Key not found in region.");
         expect(value).toBeUndefined();
         done();
       });
@@ -66,7 +66,7 @@ describe("gemfire.Region", function() {
     _.each(invalidKeys, function(invalidKey) {
       it("passes an error to the callback when passed the invalid key " + util.inspect(invalidKey), function(done) {
         region.get(invalidKey, function(error, value) {
-          expect(error).toBeError("Invalid GemFire key.");
+          expect(error).toBeError("InvalidKeyError", "Invalid GemFire key.");
           expect(value).toBeUndefined();
           done();
         });
@@ -137,7 +137,7 @@ describe("gemfire.Region", function() {
     _.each(invalidValues, function(invalidValue) {
       it("passes an error to the callback when passed invalid value " + util.inspect(invalidValue), function(done) {
         region.put("foo", invalidValue, function(error) {
-          expect(error).toBeError("Invalid GemFire value.");
+          expect(error).toBeError("InvalidValueError", "Invalid GemFire value.");
           done();
         });
       });
@@ -154,7 +154,7 @@ describe("gemfire.Region", function() {
     _.each(invalidKeys, function(invalidKey) {
       it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
         region.put(invalidKey, "foo", function(error) {
-          expect(error).toBeError("Invalid GemFire key.");
+          expect(error).toBeError("InvalidKeyError", "Invalid GemFire key.");
           done();
         });
       });
@@ -732,7 +732,8 @@ describe("gemfire.Region", function() {
     it("does not pass a filter if none is provided", function(done) {
       region.executeFunction("io.pivotal.node_gemfire.ReturnFilter", { arguments: { foo: 'bar' } })
         .on("error", function(error) {
-          expect(error).toBeError(/Expected filter; no filter received/);
+          expect(error).toBeError("UserFunctionExecutionException",
+                                  /Expected filter; no filter received/);
           done();
         });
     });
@@ -885,7 +886,7 @@ describe("gemfire.Region", function() {
 
     it("passes an error to the callback if the entry is not present", function(done) {
       region.remove("foo", function(error, result) {
-        expect(error).toBeError("Key not found in region.");
+        expect(error).toBeError("KeyNotFoundError", "Key not found in region.");
         expect(result).toBeUndefined();
         done();
       });
@@ -894,7 +895,7 @@ describe("gemfire.Region", function() {
     _.each(invalidKeys, function(invalidKey) {
       it("passes an error to the callback when passed invalid key " + util.inspect(invalidKey), function(done) {
         region.remove(invalidKey, function(error, value) {
-          expect(error).toBeError("Invalid GemFire key.");
+          expect(error).toBeError("InvalidKeyError", "Invalid GemFire key.");
           expect(value).toBeUndefined();
           done();
         });
@@ -995,7 +996,7 @@ describe("gemfire.Region", function() {
 
     it("passes along errors from an invalid query", function(done) {
       region.query("Invalid query", function(error, response) {
-        expect(error).toBeError(/gemfire::QueryException/);
+        expect(error).toBeError("gemfire::QueryException", /Syntax error in query/);
         done();
       });
     });
@@ -1033,7 +1034,7 @@ describe("gemfire.Region", function() {
 
         function (next) {
           region.selectValue("foo = 'bar'", function(error, response) {
-            expect(error).toBeError("gemfire::QueryException: selectValue has more than one result");
+            expect(error).toBeError("gemfire::QueryException", "selectValue has more than one result");
             next();
           });
         }
@@ -1066,7 +1067,7 @@ describe("gemfire.Region", function() {
 
     it("passes along errors from an invalid query", function(done) {
       region.selectValue("Invalid query", function(error, response) {
-        expect(error).toBeError(/gemfire::QueryException/);
+        expect(error).toBeError("gemfire::QueryException", /Syntax error in query/);
         done();
       });
     });
@@ -1125,7 +1126,7 @@ describe("gemfire.Region", function() {
 
     it("passes along errors from an invalid query", function(done) {
       region.existsValue("Invalid query", function(error, response) {
-        expect(error).toBeError(/gemfire::QueryException/);
+        expect(error).toBeError('gemfire::QueryException', /Syntax error in query/);
         done();
       });
     });
@@ -1171,7 +1172,7 @@ describe("gemfire.Region", function() {
     _.each(invalidValues, function(invalidValue) {
       it("passes an error to the callback when passed invalid value " + util.inspect(invalidValue), function(done) {
         region.putAll({"foo": "bar", "baz": invalidValue}, function(error) {
-          expect(error).toBeError("Invalid GemFire value.");
+          expect(error).toBeError("InvalidValueError", "Invalid GemFire value.");
           done();
         });
       });
@@ -1325,7 +1326,7 @@ describe("gemfire.Region", function() {
     _.each(invalidKeys, function(invalidKey) {
       it("passes an error to the callback when passed the invalid key " + util.inspect(invalidKey), function(done) {
         region.getAll(["foo", invalidKey], function(error, value) {
-          expect(error).toBeError("Invalid GemFire key.");
+          expect(error).toBeError("InvalidKeyError", "Invalid GemFire key.");
           expect(value).toBeUndefined();
           done();
         });
