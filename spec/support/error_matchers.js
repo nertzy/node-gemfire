@@ -54,3 +54,47 @@ exports.toBeError = function toBeError(util) {
     }
   };
 };
+
+exports.toThrowNamedError = function toThrowNamedError(util) {
+  return {
+    compare: function(actual, expectedName, expectedMessage) {
+      var result = { pass: false },
+        threw = false,
+        thrown;
+
+      if (typeof actual != 'function') {
+        throw new Error('Actual is not a Function');
+      }
+
+      try {
+        actual();
+      } catch (e) {
+        threw = true;
+        thrown = e;
+      }
+
+      if (!threw) {
+        result.message = 'Expected function to throw an exception.';
+        return result;
+      }
+
+      const expectedError = new Error(expectedMessage);
+      expectedError.name = expectedName;
+
+      if (thrown.message == expectedMessage && thrown.name == expectedName) {
+        result.pass = true;
+        result.message = function() {
+          return 'Expected function not to throw ' + inspect(expectedError);
+        };
+      } else {
+        result.message = function() {
+          return 'Expected function to throw ' + inspect(expectedError) +
+            ', but it threw ' +  inspect(thrown) + '.';
+        };
+      }
+
+      return result;
+    }
+  };
+
+};
