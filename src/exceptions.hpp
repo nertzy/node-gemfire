@@ -3,7 +3,6 @@
 
 #include <gfcpp/GemfireCppCache.hpp>
 #include <v8.h>
-#include <string>
 
 namespace node_gemfire {
 
