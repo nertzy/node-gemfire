@@ -77,14 +77,14 @@ class ExecuteFunctionWorker {
 
       executionPtr->execute(functionName.c_str());
     } catch (const gemfire::Exception & exception) {
-      errorMessage = gemfireExceptionMessage(exception);
+      exceptionPtr = exception.clone();
     }
   }
 
   void ExecuteComplete() {
-    if (!errorMessage.empty()) {
+    if (exceptionPtr != NULLPTR) {
       NanScope();
-      emitError(NanNew(emitter), NanError(errorMessage.c_str()));
+      emitError(NanNew(emitter), v8Error(*exceptionPtr));
       ended = true;
     }
 
@@ -138,7 +138,7 @@ class ExecuteFunctionWorker {
   CacheablePtr functionArguments;
   CacheableVectorPtr functionFilter;
   Persistent<Object> emitter;
-  std::string errorMessage;
+  gemfire::ExceptionPtr exceptionPtr;
 
   bool ended;
   bool executeCompleted;

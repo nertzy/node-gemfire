@@ -69,7 +69,8 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       subject.executeFunction("com.example.Nonexistent")
         .on('error', function(error) {
           expect(error).toBeError(
-            "gemfire::MessageException: Execute::GET_FUNCTION_ATTRIBUTES: message from server could not be handled"
+            "gemfire::MessageException",
+            "Execute::GET_FUNCTION_ATTRIBUTES: message from server could not be handled"
           );
           done();
         });
@@ -80,6 +81,7 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
         subject.executeFunction("io.pivotal.node_gemfire.TestFunctionException")
           .on('error', function(error) {
             expect(error).toBeError(
+              'gemfire::CacheServerException',
               /com.gemstone.gemfire.cache.execute.FunctionException: Test exception message thrown by server./
             );
             done();
@@ -96,7 +98,8 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
       subject.executeFunction("io.pivotal.node_gemfire.TestFunctionExceptionResult")
         .on('data', dataCallback)
         .on('error', function(error) {
-          expect(error).toBeError(/java.lang.Exception: Test exception message sent by server./);
+          expect(error).toBeError('UserFunctionExecutionException',
+                                  /java.lang.Exception: Test exception message sent by server./);
         })
         .on('end', function() {
           expect(dataCallback.calls.count()).toEqual(1);
@@ -132,7 +135,8 @@ module.exports = function itExecutesFunctions(subjectSource, expectFunctionsToTh
     it("treats undefined arguments as missing", function(done) {
       subject.executeFunction("io.pivotal.node_gemfire.Passthrough", {})
         .on('error', function(error) {
-          expect(error).toBeError(/Expected arguments; no arguments received/);
+          expect(error).toBeError('UserFunctionExecutionException',
+                                  /Expected arguments; no arguments received/);
           done();
         });
     });

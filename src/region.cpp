@@ -65,14 +65,12 @@ class GemfireEventedWorker : public GemfireWorker {
   virtual void HandleErrorCallback() {
     NanScope();
 
-    Local<Value> error(NanError(ErrorMessage()));
-
     if (callback) {
       static const int argc = 1;
-      v8::Local<v8::Value> argv[argc] = { error };
+      Local<Value> argv[argc] = { errorObject() };
       callback->Call(argc, argv);
     } else {
-      emitError(GetFromPersistent("v8Object"), error);
+      emitError(GetFromPersistent("v8Object"), errorObject());
     }
   }
 };
@@ -146,12 +144,12 @@ class PutWorker : public GemfireEventedWorker {
 
   void ExecuteGemfireWork() {
     if (keyPtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire key.");
+      SetError("InvalidKeyError", "Invalid GemFire key.");
       return;
     }
 
     if (valuePtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire value.");
+      SetError("InvalidValueError", "Invalid GemFire value.");
       return;
     }
 
@@ -203,14 +201,14 @@ class GetWorker : public GemfireWorker {
 
   void ExecuteGemfireWork() {
     if (keyPtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire key.");
+      SetError("InvalidKeyError", "Invalid GemFire key.");
       return;
     }
 
     valuePtr = regionPtr->get(keyPtr);
 
     if (valuePtr == NULLPTR) {
-      SetErrorMessage("Key not found in region.");
+      SetError("KeyNotFoundError", "Key not found in region.");
     }
   }
 
@@ -278,7 +276,7 @@ class GetAllWorker : public GemfireWorker {
     resultsPtr = new HashMapOfCacheable();
 
     if (gemfireKeysPtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire key.");
+      SetError("InvalidKeyError", "Invalid GemFire key.");
       return;
     }
 
@@ -352,7 +350,7 @@ class PutAllWorker : public GemfireEventedWorker {
 
   void ExecuteGemfireWork() {
     if (hashMapPtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire value.");
+      SetError("InvalidValueError", "Invalid GemFire value.");
       return;
     }
 
@@ -406,14 +404,14 @@ class RemoveWorker : public GemfireEventedWorker {
 
   void ExecuteGemfireWork() {
     if (keyPtr == NULLPTR) {
-      SetErrorMessage("Invalid GemFire key.");
+      SetError("InvalidKeyError", "Invalid GemFire key.");
       return;
     }
 
     try {
       regionPtr->destroy(keyPtr);
     } catch (const EntryNotFoundException & exception) {
-      SetErrorMessage("Key not found in region.");
+      SetError("KeyNotFoundError", "Key not found in region.");
     }
   }
 
