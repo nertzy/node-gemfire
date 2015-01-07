@@ -30,8 +30,8 @@ std::string getClassName(const Local<Object> & v8Object) {
 
     std::stringstream fullFieldName;
 
-    for (unsigned int i = 0; i < size - 1; i++) {
-      char fieldNameChar = fieldName[i];
+    for (unsigned int j = 0; j < size - 1; j++) {
+      char fieldNameChar = fieldName[j];
       switch (fieldNameChar) {
         case ',':
         case '[':
