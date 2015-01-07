@@ -528,10 +528,9 @@ describe("gemfire.Cache", function() {
         cache.createRegion("exampleRegion", {type: "CACHING_PROXY", poolName: "myPool"});
       }
 
-      expect(createExistingRegion).toThrow(
-        new Error(
-          'gemfire::RegionExistsException: Cache::createRegion: "exampleRegion" region exists in local cache'
-        )
+      expect(createExistingRegion).toThrowNamedError(
+        'gemfire::RegionExistsException',
+        'Cache::createRegion: "exampleRegion" region exists in local cache'
       );
     });
 

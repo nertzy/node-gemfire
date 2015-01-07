@@ -18,7 +18,7 @@ Handle<Value> v8Error(const gemfire::Exception & exception) {
 }
 
 void ThrowGemfireException(const gemfire::Exception & e) {
-  NanThrowError(gemfireExceptionMessage(e).c_str());
+  NanThrowError(v8Error(e));
 }
 
 std::string gemfireExceptionMessage(const gemfire::Exception & exception) {
