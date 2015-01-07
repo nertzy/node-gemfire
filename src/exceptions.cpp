@@ -8,6 +8,15 @@ using namespace v8;
 
 namespace node_gemfire {
 
+Handle<Value> v8Error(const gemfire::Exception & exception) {
+  NanEscapableScope();
+
+  Handle<Object> error(NanError(exception.getMessage())->ToObject());
+  error->Set(NanNew("name"), NanNew(exception.getName()));
+
+  return NanEscapeScope(error);
+}
+
 void ThrowGemfireException(const gemfire::Exception & e) {
   NanThrowError(gemfireExceptionMessage(e).c_str());
 }
