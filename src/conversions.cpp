@@ -306,7 +306,7 @@ Local<Value> v8Value(const CacheablePtr & valuePtr) {
         UserFunctionExecutionExceptionPtr functionExceptionPtr =
           static_cast<UserFunctionExecutionExceptionPtr>(valuePtr);
 
-        return NanEscapeScope(NanError(gemfireExceptionMessage(functionExceptionPtr).c_str()));
+        return NanEscapeScope(v8Error(functionExceptionPtr));
       } catch (ClassCastException & exception) {
         // fall through to default error case
       }
