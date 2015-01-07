@@ -71,12 +71,9 @@ module.exports = function itDestroysTheRegion(methodName) {
     region[methodName](function (error) {
       expect(error).not.toBeError();
 
-      expect(function(){
-        region.put("foo", "bar");
-      }).toThrow(
-        new Error(
-          "gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed"
-        )
+      expect(function(){ region.put("foo", "bar"); }).toThrowNamedError(
+        "gemfire::RegionDestroyedException",
+        "LocalRegion::getCache: region /" + regionName + " destroyed"
       );
 
       done();
@@ -89,10 +86,9 @@ module.exports = function itDestroysTheRegion(methodName) {
 
       expect(function(){
         otherCopyOfRegion.put("foo", "bar");
-      }).toThrow(
-        new Error(
-          "gemfire::RegionDestroyedException: LocalRegion::getCache: region /" + regionName + " destroyed"
-        )
+      }).toThrowNamedError(
+        "gemfire::RegionDestroyedException",
+        "LocalRegion::getCache: region /" + regionName + " destroyed"
       );
 
       done();

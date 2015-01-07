@@ -177,8 +177,6 @@ NAN_METHOD(Cache::ExecuteQuery) {
 
   std::string queryString(*NanUtf8String(args[0]));
 
-
-
   try {
     if (poolNameValue->IsUndefined()) {
       queryServicePtr = cachePtr->getQueryService();
@@ -197,7 +195,7 @@ NAN_METHOD(Cache::ExecuteQuery) {
       queryServicePtr = cachePtr->getQueryService(poolName.c_str());
     }
   } catch (const gemfire::Exception & exception) {
-    NanThrowError(gemfireExceptionMessage(exception).c_str());
+    ThrowGemfireException(exception);
     NanReturnUndefined();
   }
 
@@ -260,7 +258,7 @@ NAN_METHOD(Cache::CreateRegion) {
 
     regionPtr = regionFactoryPtr->create(*NanUtf8String(args[0]));
   } catch (const gemfire::Exception & exception) {
-    NanThrowError(gemfireExceptionMessage(exception).c_str());
+    ThrowGemfireException(exception);
     NanReturnUndefined();
   }
 

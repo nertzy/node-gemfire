@@ -96,5 +96,4 @@ exports.toThrowNamedError = function toThrowNamedError(util) {
       return result;
     }
   };
-
 };
