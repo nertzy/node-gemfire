@@ -1,3 +1,6 @@
+# v0.0.13
+- Performance optimization for region.put() with objects, and v8-to-gemfire string conversion.
+
 # v0.0.12
 - Improve error objects. GemFire errors now have a `name` property describing the type of error and a `message` property with the original message. We no longer interpolate the name into the error message.
 
