@@ -18,17 +18,19 @@ namespace node_gemfire {
 std::string getClassName(const Local<Object> & v8Object) {
   NanScope();
 
-  Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
-
   std::set<std::string> fieldNames;
-  unsigned int length = v8Keys->Length();
-  for (unsigned int i = 0; i < length; i++) {
+  uint totalSize = 0;
+
+  Local<Array> v8Keys(v8Object->GetOwnPropertyNames());
+  unsigned int numKeys = v8Keys->Length();
+  for (unsigned int i = 0; i < numKeys; i++) {
     Local<Value> v8Key(v8Keys->Get(i));
     NanUtf8String utf8FieldName(v8Key);
     char * fieldName = *utf8FieldName;
-    unsigned int size = utf8FieldName.Size();
 
-    std::stringstream fullFieldName;
+    unsigned int size = utf8FieldName.Size();
+    std::string fullFieldName;
+    fullFieldName.reserve((size * 2) + 3);  // escape every character, plus '[],'
 
     for (unsigned int j = 0; j < size - 1; j++) {
       char fieldNameChar = fieldName[j];
@@ -37,28 +39,30 @@ std::string getClassName(const Local<Object> & v8Object) {
         case '[':
         case ']':
         case '\\':
-          fullFieldName << '\\';
+          fullFieldName += '\\';
       }
-      fullFieldName << fieldNameChar;
+      fullFieldName += fieldNameChar;
     }
 
     Local<Value> v8Value(v8Object->Get(v8Key));
     if (v8Value->IsArray() && !v8Value->IsString()) {
-      fullFieldName << "[]";
+      fullFieldName += "[]";
     }
-    fullFieldName << ',';
+    fullFieldName += ',';
 
-    fieldNames.insert(fullFieldName.str());
+    fieldNames.insert(fullFieldName);
+    totalSize += fullFieldName.length();
   }
 
-  std::stringstream className;
-  className << "JSON: ";
+  std::string className;
+  className.reserve(totalSize + 7);
+  className += "JSON: ";
 
   for (std::set<std::string>::iterator i(fieldNames.begin()); i != fieldNames.end(); ++i) {
-    className << *i;
+    className += *i;
   }
 
-  return className.str();
+  return className;
 }
 
 std::wstring wstringFromV8String(const Local<String> & v8String) {
