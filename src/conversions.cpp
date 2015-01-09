@@ -64,16 +64,16 @@ std::string getClassName(const Local<Object> & v8Object) {
 std::wstring wstringFromV8String(const Local<String> & v8String) {
   NanScope();
 
-  unsigned int length = v8String->Length();
-  wchar_t * buffer = new wchar_t[length + 1];
-  NanUcs2String v8Data(v8String);
-  for (unsigned int i = 0; i < length; i++) {
-    buffer[i] = (*v8Data)[i];
-  }
-  buffer[length] = 0;
+  String::Value v8StringValue(v8String);
+  uint16_t * v8StringData(*v8StringValue);
 
-  std::wstring wstring(buffer);
-  delete [] buffer;
+  unsigned int length = v8String->Length();
+  std::wstring wstring;
+  wstring.reserve(length + 1);
+  for (unsigned int i = 0; i < length; i++) {
+    wstring += v8StringData[i];
+  }
+  wstring += (wchar_t) '\0';
 
   return wstring;
 }
