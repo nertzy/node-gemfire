@@ -364,6 +364,8 @@ region.getAll(["key1", "key2", "unknownKey"], function(error, values){
 
 Retrieves all keys in the Region. The callback will be called with an `error` argument, and an Array of keys.
 
+**NOTE:** The set of keys available on the GemFire server will be returned, not the local in-process cache. This operation is not supported on a `LOCAL` region.
+
 Example:
 
 ```javascript
