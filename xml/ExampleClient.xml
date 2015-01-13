@@ -17,6 +17,8 @@
     <region-attributes pool-name="myPool"/>
   </region>
 
+  <region name="exampleLocalRegion" refid="LOCAL" />
+
   <region name="anotherRegion" refid="CACHING_PROXY">
     <region-attributes pool-name="myPool"/>
   </region>
