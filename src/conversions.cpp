@@ -413,8 +413,36 @@ Local<Object> v8Value(const HashMapOfCacheablePtr & hashMapPtr) {
   return v8Object(hashMapPtr);
 }
 
+Local<Array> v8Value(const VectorOfCacheablePtr & vectorPtr) {
+  return v8Array(vectorPtr);
+}
+
 Local<Array> v8Value(const VectorOfCacheableKeyPtr & vectorPtr) {
   return v8Array(vectorPtr);
+}
+
+Local<Object> v8Value(const RegionEntryPtr & regionEntryPtr) {
+  NanEscapableScope();
+
+  Local<Object> v8Object(NanNew<Object>());
+
+  v8Object->Set(NanNew<String>("key"), v8Value(regionEntryPtr->getKey()));
+  v8Object->Set(NanNew<String>("value"), v8Value(regionEntryPtr->getValue()));
+
+  return NanEscapeScope(v8Object);
+}
+
+Local<Array> v8Value(const VectorOfRegionEntry & vectorOfRegionEntries) {
+  NanEscapableScope();
+
+  Local<Array> v8Array(NanNew<Array>());
+
+  unsigned int length = vectorOfRegionEntries.length();
+  for (unsigned int i = 0; i < length; i++) {
+    v8Array->Set(i, v8Value(vectorOfRegionEntries[i]));
+  }
+
+  return NanEscapeScope(v8Array);
 }
 
 Local<Object> v8Value(const SelectResultsPtr & selectResultsPtr) {

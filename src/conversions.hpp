@@ -35,7 +35,10 @@ v8::Local<v8::Value> v8Value(const gemfire::PdxInstancePtr & pdxInstancePtr);
 v8::Local<v8::Object> v8Value(const gemfire::SelectResultsPtr & selectResultsPtr);
 v8::Local<v8::Object> v8Value(const gemfire::CacheableHashMapPtr & hashMapPtr);
 v8::Local<v8::Object> v8Value(const gemfire::HashMapOfCacheablePtr & hashMapPtr);
+v8::Local<v8::Object> v8Value(const gemfire::RegionEntryPtr & regionEntryPtr);
+v8::Local<v8::Array> v8Value(const gemfire::VectorOfCacheablePtr & vectorPtr);
 v8::Local<v8::Array> v8Value(const gemfire::VectorOfCacheableKeyPtr & vectorPtr);
+v8::Local<v8::Array> v8Value(const gemfire::VectorOfRegionEntry & vectorPtr);
 v8::Local<v8::Date> v8Value(const gemfire::CacheableDatePtr & datePtr);
 v8::Local<v8::Boolean> v8Value(bool value);
 
