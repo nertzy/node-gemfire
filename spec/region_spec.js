@@ -1342,10 +1342,44 @@ describe("gemfire.Region", function() {
     });
   });
 
+  describe(".serverKeys", function() {
+    it("passes an array of key names in the region on the server to the callback", function(done) {
+      async.series([
+        function(next) { region.putAll({"foo": 1, "bar": 2, "baz": 3}, next); },
+        function(next) {
+          region.serverKeys(function(error, serverKeys) {
+            expect(error).not.toBeError();
+            expect(serverKeys.length).toEqual(3);
+            expect(serverKeys).toContain("foo");
+            expect(serverKeys).toContain("bar");
+            expect(serverKeys).toContain("baz");
+            next();
+          });
+        },
+      ], done);
+    });
+
+    it("throws an exception when no callback is passed", function() {
+      function callWithNoArgs() {
+        region.serverKeys();
+      }
+
+      expect(callWithNoArgs).toThrow(new Error("You must pass a callback to serverKeys()."));
+    });
+
+    it("throws an exception when a non-function is passed as the callback", function() {
+      function callWithNonFunction() {
+        region.serverKeys("this is some crazy string");
+      }
+
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to serverKeys()."));
+    });
+  });
+
   describe(".keys", function() {
     it("passes an array of key names in the region to the callback", function(done) {
       async.series([
-        function(next) { region.putAll({"foo": 1, "bar": 2, "baz": 3}, next); },
+        function(next) { region.putAll({"foo": 4, "bar": 5, "baz": 6}, next); },
         function(next) {
           region.keys(function(error, keys) {
             expect(error).not.toBeError();
@@ -1373,6 +1407,74 @@ describe("gemfire.Region", function() {
       }
 
       expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to keys()."));
+    });
+  });
+
+  describe(".values", function() {
+    it("passes an array of values in the region to the callback", function(done) {
+      async.series([
+        function(next) { region.putAll({"foo": 7, "bar": "quz", "baz": 9}, next); },
+        function(next) {
+          region.values(function(error, values) {
+            expect(error).not.toBeError();
+            expect(values.length).toEqual(3);
+            expect(values).toContain(7);
+            expect(values).toContain("quz");
+            expect(values).toContain(9);
+            next();
+          });
+        },
+      ], done);
+    });
+
+    it("throws an exception when no callback is passed", function() {
+      function callWithNoArgs() {
+        region.values();
+      }
+
+      expect(callWithNoArgs).toThrow(new Error("You must pass a callback to values()."));
+    });
+
+    it("throws an exception when a non-function is passed as the callback", function() {
+      function callWithNonFunction() {
+        region.values("this is some crazy string");
+      }
+
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to values()."));
+    });
+  });
+
+  describe(".entries", function() {
+    it("passes an array of key-value pairs in the region to the callback", function(done) {
+      async.series([
+        function(next) { region.putAll({"foo": 10, "bar": "quz", "baz": 12}, next); },
+        function(next) {
+          region.entries(function(error, pairs) {
+            expect(error).not.toBeError();
+            expect(pairs.length).toEqual(3);
+            expect(pairs).toContain({ "key" : "foo", "value" : 10});
+            expect(pairs).toContain({ "key" : "bar", "value" : "quz"});
+            expect(pairs).toContain({ "key" : "baz", "value" : 12});
+            next();
+          });
+        },
+      ], done);
+    });
+
+    it("throws an exception when no callback is passed", function() {
+      function callWithNoArgs() {
+        region.entries();
+      }
+
+      expect(callWithNoArgs).toThrow(new Error("You must pass a callback to entries()."));
+    });
+
+    it("throws an exception when a non-function is passed as the callback", function() {
+      function callWithNonFunction() {
+        region.entries("this is some crazy string");
+      }
+
+      expect(callWithNonFunction).toThrow(new Error("You must pass a function as the callback to entries()."));
     });
   });
 

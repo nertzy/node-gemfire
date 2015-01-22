@@ -362,9 +362,7 @@ region.getAll(["key1", "key2", "unknownKey"], function(error, values){
 
 ### region.keys(callback)
 
-Retrieves all keys in the Region. The callback will be called with an `error` argument, and an Array of keys.
-
-**NOTE:** The set of keys available on the GemFire server will be returned, not the local in-process cache. This operation is not supported on a `LOCAL` region.
+Retrieves all keys in the local cache of the Region. The callback will be called with an `error` argument, and an Array of keys.
 
 Example:
 
@@ -373,6 +371,48 @@ region.keys(function(error, keys) {
   if(error) { throw error; }
   // keys is now an array of all keys in the region, for example:
   //   [ 'key1', 'key2', 'key3' ]
+});
+```
+
+### region.keys(callback)
+
+Retrieves all keys on the Gemfire server for the Region. The callback will be called with an `error` argument, and an Array of keys.
+
+Example:
+
+```javascript
+region.serverKeys(function(error, keys) {
+  if(error) { throw error; }
+  // keys is now an array of all keys in the region, for example:
+  //   [ 'key1', 'key2', 'key3' ]
+});
+```
+
+### values(callback)
+
+Retrieves all values on the local cache of the Region. The callback will be called with an `error` argument, and an Array of values.
+
+Example:
+
+```javascript
+region.values(function(error, keys) {
+  if(error) { throw error; }
+  // values is now an array of all values in the region, for example:
+  //   [ 'value1', 'value2', 'value3' ]
+});
+```
+
+### entries(callback)
+
+Retrieves all key-value pairs on the local cache of the Region. The callback will be called with an `error` argument, and an Array of values.
+
+Example:
+
+```javascript
+region.entries(function(error, keys) {
+  if(error) { throw error; }
+  // values is now an array of all values in the region, for example:
+  //   [ { 'key': 'key1', 'value' : 'value1', { 'key' : 'key2', 'value' : 'value2' } ]
 });
 ```
 
