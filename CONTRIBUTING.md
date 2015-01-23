@@ -4,8 +4,7 @@
 
 Follow these steps to make a contribution to any of our open source repositories:
 
-1. Ensure that you have completed our CLA Agreement (coming soon).
-1. Set your name and email. These should match the information on your submitted CLA.
+1. Set your name and email.
 
         git config --global user.name "Firstname Lastname"
         git config --global user.email "your_email@example.com"
