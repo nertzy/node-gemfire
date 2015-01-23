@@ -1,3 +1,9 @@
+# v0.0.14
+- **Breaking Change**: `region.keys()` now hits the local cache. Use `region.serverKeys()` for previous behavior.
+- Added `region.serverKeys()` to obtain the list of keys on the server
+- Added `region.values()` to obtain the list of values in local cache
+- Added `region.entries()` to obtain the list of key-value pairs in local cache
+
 # v0.0.13
 - Performance optimization for region.put() with objects, and v8-to-gemfire string conversion.
 
