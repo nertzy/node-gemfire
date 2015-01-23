@@ -101,6 +101,6 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to submit a
 
 ## License
 
-Apache 2.0, see [LICENSE](LICENSE) for details
+BSD, see [LICENSE](LICENSE) for details
 
 For dependency licenses, see [doc/dependencies.md](doc/dependencies.md)
