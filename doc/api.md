@@ -153,7 +153,7 @@ Shorthand for `executeFunction` with an array of arguments. Equivalent to:
 cache.executeFunction(functionName, { arguments: arguments })
 ```
 
-### cache.executeQuery(query, [parameters] [options], callback)
+### cache.executeQuery(query, [parameters], [options], callback)
 
 Executes an OQL query on the cluster. The callback will be called with an `error` argument and a `response` argument.
 
