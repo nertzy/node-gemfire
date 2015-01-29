@@ -1,4 +1,4 @@
-# v0.0.14
+# v0.0.15
 - `cache.executeQuery()` now takes parameters as an optional second argument. See api.md for usage. 
 
 # v0.0.14
