@@ -128,7 +128,7 @@ describe("gemfire.Cache", function() {
 
   });
 
-  describe("executeQuery", function () {
+  describe(".executeQuery", function () {
     var cache, region;
 
     beforeEach(function(done) {
