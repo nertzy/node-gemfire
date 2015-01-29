@@ -214,6 +214,87 @@ describe("gemfire.Cache", function() {
       );
     });
 
+    it("executes a query with parameterized values", function(done){
+      const object = { foo: 'bar' };
+
+      async.parallel(
+        [
+          function(callback) { region.put("object", object, callback); },
+          function(callback) { region.put("other object", { foo: 'qux' }, callback); },
+          function(callback) { region.put("empty", {}, callback); },
+        ],
+        function() {
+          const query = "SELECT * FROM /exampleRegion WHERE foo = $1 OR foo = $2";
+
+          cache.executeQuery(query, ['bar', 'baz'], {poolName: "myPool"}, function(error, response) {
+            expect(error).not.toBeError();
+            if(error) { return; }
+
+            const results = response.toArray();
+
+            expect(results.length).toEqual(1);
+            expect(results).toContain(object);
+
+            done();
+          });
+        }
+      );
+    });
+
+    it("executes a query with empty parameters", function(done){
+      const object = { foo: 'bar' };
+
+      async.parallel(
+        [
+          function(callback) { region.put("object", object, callback); },
+          function(callback) { region.put("other object", { foo: 'qux' }, callback); },
+          function(callback) { region.put("empty", {}, callback); },
+        ],
+        function() {
+          const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar' OR foo = 'baz'";
+
+          cache.executeQuery(query, [], {poolName: "myPool"}, function(error, response) {
+            expect(error).not.toBeError();
+            if(error) { return; }
+
+            const results = response.toArray();
+
+            expect(results.length).toEqual(1);
+            expect(results).toContain(object);
+
+            done();
+          });
+        }
+      );
+    });
+
+    it("executes a query with null parameters", function(done){
+      const object = { foo: 'bar' };
+
+      async.parallel(
+        [
+          function(callback) { region.put("object", object, callback); },
+          function(callback) { region.put("other object", { foo: 'qux' }, callback); },
+          function(callback) { region.put("empty", {}, callback); },
+        ],
+        function() {
+          const query = "SELECT * FROM /exampleRegion WHERE foo = 'bar' OR foo = 'baz'";
+
+          cache.executeQuery(query, null, {poolName: "myPool"}, function(error, response) {
+            expect(error).not.toBeError();
+            if(error) { return; }
+
+            const results = response.toArray();
+
+            expect(results.length).toEqual(1);
+            expect(results).toContain(object);
+
+            done();
+          });
+        }
+      );
+    });
+
     it("executes a query with a nested object", function(done) {
       const object1 = { foo: [{ bar: 'baz' }] };
 
