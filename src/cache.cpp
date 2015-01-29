@@ -114,12 +114,14 @@ void Cache::close() {
 class ExecuteQueryWorker : public GemfireWorker {
  public:
   ExecuteQueryWorker(QueryPtr queryPtr,
+                     CacheableVectorPtr queryParamsPtr,
                      NanCallback * callback) :
       GemfireWorker(callback),
-      queryPtr(queryPtr) {}
+      queryPtr(queryPtr),
+      queryParamsPtr(queryParamsPtr) {}
 
   void ExecuteGemfireWork() {
-    selectResultsPtr = queryPtr->execute();
+    selectResultsPtr = queryPtr->execute(queryParamsPtr);
   }
 
   void HandleOKCallback() {
@@ -131,6 +133,7 @@ class ExecuteQueryWorker : public GemfireWorker {
   }
 
   QueryPtr queryPtr;
+  CacheableVectorPtr queryParamsPtr;
   SelectResultsPtr selectResultsPtr;
 };
 
@@ -151,13 +154,29 @@ NAN_METHOD(Cache::ExecuteQuery) {
 
   Local<Function> callbackFunction;
   Local<Value> poolNameValue(NanUndefined());
+  Local<Value> queryParams;
+
+  // .executeQuery(query, function)
   if (args[1]->IsFunction()) {
     callbackFunction = args[1].As<Function>();
+    // .executeQuery(query, optionsHash, function)
   } else if (argsLength > 2 && args[2]->IsFunction()) {
     callbackFunction = args[2].As<Function>();
 
     if (args[1]->IsObject() && !args[1]->IsFunction()) {
       Local<Object> optionsObject = args[1]->ToObject();
+      poolNameValue = optionsObject->Get(NanNew("poolName"));
+    }
+    // .executeQuery(query, paramsArray, optionsHash, function)
+  } else if (argsLength > 3 && args[3]->IsFunction()) {
+    callbackFunction = args[3].As<Function>();
+
+    if (args[1]->IsArray() && !args[1]->IsFunction()) {
+      queryParams = args[1];
+    }
+
+    if (args[2]->IsObject() && !args[2]->IsFunction()) {
+      Local<Object> optionsObject = args[2]->ToObject();
       poolNameValue = optionsObject->Get(NanNew("poolName"));
     }
   } else {
@@ -174,6 +193,7 @@ NAN_METHOD(Cache::ExecuteQuery) {
   }
 
   QueryServicePtr queryServicePtr;
+  CacheableVectorPtr queryParamsPtr = NULLPTR;
 
   std::string queryString(*NanUtf8String(args[0]));
 
@@ -198,12 +218,15 @@ NAN_METHOD(Cache::ExecuteQuery) {
     ThrowGemfireException(exception);
     NanReturnUndefined();
   }
+  if (!(queryParams.IsEmpty() || queryParams->IsUndefined())) {
+    queryParamsPtr = gemfireVector(queryParams.As<Array>(), cachePtr);
+  }
 
   QueryPtr queryPtr(queryServicePtr->newQuery(queryString.c_str()));
 
   NanCallback * callback = new NanCallback(callbackFunction);
 
-  ExecuteQueryWorker * worker = new ExecuteQueryWorker(queryPtr, callback);
+  ExecuteQueryWorker * worker = new ExecuteQueryWorker(queryPtr, queryParamsPtr, callback);
   NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.This());
