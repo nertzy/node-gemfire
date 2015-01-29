@@ -1,4 +1,7 @@
 # v0.0.14
+- `cache.executeQuery()` now takes parameters as an optional second argument. See api.md for usage. 
+
+# v0.0.14
 - **Breaking Change**: `region.keys()` now hits the local cache. Use `region.serverKeys()` for previous behavior.
 - Added `region.serverKeys()` to obtain the list of keys on the server
 - Added `region.values()` to obtain the list of values in local cache

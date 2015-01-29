@@ -80,7 +80,7 @@ Example:
 
 ```javascript
 var gemfire = require('gemfire');
-gemfire.gemfireVersion // returns "0.0.14"
+gemfire.gemfireVersion // returns "0.0.15"
 ```
 
 ## Cache
@@ -153,11 +153,12 @@ Shorthand for `executeFunction` with an array of arguments. Equivalent to:
 cache.executeFunction(functionName, { arguments: arguments })
 ```
 
-### cache.executeQuery(query, [options], callback)
+### cache.executeQuery(query, [parameters] [options], callback)
 
 Executes an OQL query on the cluster. The callback will be called with an `error` argument and a `response` argument.
 
  * `query`: a string representing a GemFire OQL query
+ * `parameters`: an array of parameters for the query string
  * `options.poolName`: the name of the GemFire pool where the query should be executed
 
 The `response` argument is an object responding to `toArray` and `each`.
@@ -170,16 +171,16 @@ The `response` argument is an object responding to `toArray` and `each`.
 Example:
 
 ```javascript
-cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion", {poolName: "myPool"}, function(error, response) {
+cache.executeQuery("SELECT DISTINCT * FROM /exampleRegion WHERE foo = $1 OR foo = $2", ['bar', 'baz'], {poolName: "myPool"}, function(error, response) {
   if(error) { throw error; }
   
   var results = response.toArray();
   // allResults could now be this:
-  //   [ 'value1', 'value2', { foo: 'bar' } ]
+  //   [ { foo: 'bar' }, { foo: 'baz' } ]
   
   // alternately, you could use the `each` iterator:
   response.each(function(result) {
-  	// this callback will be called with 'value1', then 'value2', then { foo: 'bar' }
+  	// this callback will be called with { foo: 'bar' } then { foo: 'baz' }
   });
 }
 ```
