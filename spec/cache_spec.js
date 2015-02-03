@@ -214,6 +214,66 @@ describe("gemfire.Cache", function() {
       );
     });
 
+    it("executes a query with case insensitive matching on a field", function(done){
+      const value = 'fooBaRbaz';
+      const otherValue = 'foobarbaz';
+
+      async.parallel(
+        [
+          function(callback) { region.put("value", value, callback); },
+          function(callback) { region.put("other value", otherValue, callback); },
+          function(callback) { region.put("no match value", 'foobazbaz', callback); },
+          function(callback) { region.put("empty", '', callback); },
+        ],
+        function() {
+          const query = "SELECT entry.value FROM /exampleRegion.entries entry WHERE entry.value.toUpperCase LIKE '%BAR%'";
+
+          cache.executeQuery(query, {poolName: "myPool"}, function(error, response) {
+            expect(error).not.toBeError();
+            if(error) { return; }
+
+            const results = response.toArray();
+
+            expect(results.length).toEqual(2);
+            expect(results).toContain(value);
+            expect(results).toContain(otherValue);
+
+            done();
+          });
+        }
+      );
+    });
+
+    it("executes a query with case insensitive matching on a JSON field", function(done){
+      const object = { foo: 'fooBaRbaz' };
+      const otherObject = { foo: 'foobarbaz' };
+
+      async.parallel(
+        [
+          function(callback) { region.put("object", object, callback); },
+          function(callback) { region.put("other object", otherObject, callback); },
+          function(callback) { region.put("no match object", { foo: 'foobazbaz' }, callback); },
+          function(callback) { region.put("empty", {}, callback); },
+        ],
+        function() {
+          const query = "SELECT * FROM /exampleRegion WHERE foo.toLowerCase LIKE '%bar%'";
+
+          cache.executeQuery(query, {poolName: "myPool"}, function(error, response) {
+            expect(error).not.toBeError();
+            if(error) { return; }
+
+            const results = response.toArray();
+
+            expect(results.length).toEqual(2);
+            expect(results).toContain(object);
+            expect(results).toContain(otherObject);
+
+            done();
+          });
+        }
+      );
+    });
+
     it("executes a query with parameterized values", function(done){
       const object = { foo: 'bar' };
 
