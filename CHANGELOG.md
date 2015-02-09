@@ -1,3 +1,6 @@
+# v0.0.16
+- `cache.executeFunction()` and `region.executeFunction()` now take a synchronous flag option.
+
 # v0.0.15
 - `cache.executeQuery()` now takes parameters as an optional second argument. See api.md for usage. 
 
