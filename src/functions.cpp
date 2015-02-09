@@ -3,6 +3,7 @@
 #include <nan.h>
 #include <v8.h>
 #include <string>
+#include <iostream>
 #include "conversions.hpp"
 #include "dependencies.hpp"
 #include "exceptions.hpp"
@@ -156,6 +157,8 @@ Local<Value> executeFunction(_NAN_METHOD_ARGS,
 
   Local<Value> v8FunctionArguments;
   Local<Value> v8FunctionFilter;
+  Local<Value> v8SynchronousFlag;
+  bool synchronousFlag = false;
 
   if (args[1]->IsArray()) {
     v8FunctionArguments = args[1];
@@ -167,6 +170,14 @@ Local<Value> executeFunction(_NAN_METHOD_ARGS,
     if (!v8FunctionFilter->IsArray() && !v8FunctionFilter->IsUndefined()) {
       NanThrowError("You must pass an Array of keys as the filter for executeFunction().");
       return NanEscapeScope(NanUndefined());
+    }
+
+    v8SynchronousFlag = optionsObject->Get(NanNew("synchronous"));
+    if (!v8SynchronousFlag->IsBoolean() && !v8SynchronousFlag->IsUndefined()) {
+      NanThrowError("You must pass true or false for the synchronous option for executeFunction().");
+      return NanEscapeScope(NanUndefined());
+    } else if (!v8SynchronousFlag->IsUndefined()) {
+      synchronousFlag = v8SynchronousFlag->ToBoolean()->Value();
     }
   } else if (!args[1]->IsUndefined()) {
     NanThrowError("You must pass either an Array of arguments or an options Object to executeFunction().");
@@ -189,19 +200,52 @@ Local<Value> executeFunction(_NAN_METHOD_ARGS,
     functionFilter = gemfireVector(v8FunctionFilter.As<Array>(), cachePtr);
   }
 
-  Local<Function> eventEmitterConstructor(NanNew(dependencies)->Get(NanNew("EventEmitter")).As<Function>());
-  Local<Object> eventEmitter(eventEmitterConstructor->NewInstance());
+  if (synchronousFlag) {
+    CacheableVectorPtr returnValue = CacheableVector::create();
+    gemfire::ExceptionPtr exceptionPtr;
+    ExecutionPtr synchronousExecutionPtr;
 
-  ExecuteFunctionWorker * worker =
-    new ExecuteFunctionWorker(executionPtr, functionName, functionArguments, functionFilter, eventEmitter);
+    try {
+      if (functionArguments != NULLPTR) {
+        synchronousExecutionPtr = executionPtr->withArgs(functionArguments);
+      }
 
-  uv_queue_work(
-      uv_default_loop(),
-      &worker->request,
-      ExecuteFunctionWorker::Execute,
-      ExecuteFunctionWorker::ExecuteComplete);
+      if (functionFilter != NULLPTR) {
+        synchronousExecutionPtr = synchronousExecutionPtr->withFilter(functionFilter);
+      }
 
-  return NanEscapeScope(eventEmitter);
+      ResultCollectorPtr resultCollectorPtr;
+      resultCollectorPtr = synchronousExecutionPtr->execute(functionName.c_str());
+
+      CacheableVectorPtr resultsPtr(resultCollectorPtr->getResult());
+      for (CacheableVector::Iterator iterator(resultsPtr->begin());
+           iterator != resultsPtr->end();
+           ++iterator) {
+        returnValue->push_back(*iterator);
+      }
+    } catch (const gemfire::Exception & exception) {
+      exceptionPtr = exception.clone();
+    }
+    if (returnValue->length() == 1) {
+      return NanEscapeScope(v8Array(returnValue)->Get(0));
+    } else {
+      return NanEscapeScope(v8Array(returnValue));
+    }
+  } else {
+    Local<Function> eventEmitterConstructor(NanNew(dependencies)->Get(NanNew("EventEmitter")).As<Function>());
+    Local<Object> eventEmitter(eventEmitterConstructor->NewInstance());
+
+    ExecuteFunctionWorker * worker =
+      new ExecuteFunctionWorker(executionPtr, functionName, functionArguments, functionFilter, eventEmitter);
+
+    uv_queue_work(
+        uv_default_loop(),
+        &worker->request,
+        ExecuteFunctionWorker::Execute,
+        ExecuteFunctionWorker::ExecuteComplete);
+
+    return NanEscapeScope(eventEmitter);
+  }
 }
 
 }  // namespace node_gemfire

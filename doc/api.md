@@ -112,6 +112,7 @@ Executes a Java function on a server in the cluster containing the cache. `funct
 
  * `options.arguments`: the arguments to be passed to the Java function
  * `options.poolName`: the name of the GemFire pool where the function should be run
+ * `options.synchronous`: if true, the function will not run asynchronously.
 
 > **Note**: Unlike region.executeFunction(), `options.filter` is not allowed.
 
