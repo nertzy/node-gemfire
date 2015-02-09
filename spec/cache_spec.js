@@ -648,6 +648,78 @@ describe("gemfire.Cache", function() {
         );
       });
     });
+
+    describe("when the function is executed synchronously", function() {
+      const cache = factories.getCache();
+      const functionName = "io.pivotal.node_gemfire.SynchronousPut";
+
+      beforeEach(function() {
+        originalDefaultTimeoutInterval = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 8000;
+      });
+
+      it("executes function in the same thread and blocks", function() {
+        var region = cache.getRegion("exampleRegion");
+        var returned = region.executeFunction(functionName, { arguments: ["key1", "value1", 3, 4], synchronous: true, poolName: "myPool" });
+
+        expect(returned).toEqual([3,4]);
+
+        region.get("key1", function(error, result) {
+          expect(result).toEqual("value1");
+        });
+      });
+
+      it("executes a function without blocking but will not find the value yet", function(done) {
+        var region = cache.getRegion("exampleRegion");
+
+        async.series([
+          function(next) {
+            region.executeFunction(functionName, { arguments: ["key2", "value2", 5, 6], synchronous: false, poolName: "myPool" })
+              .on("error", function(error) { throw(error); })
+              .on("end", function(data) {
+                expect(result).toEqual([5,6]);
+                // not calling next() here to force the test to move on before it is finished. this can cause spurious test failures
+              })
+              .on("data", function(data) {
+                result = data;
+              });
+            next();
+          },
+          function(next) {
+            region.get("key2", function(error, result) {
+              expect(result).toEqual(undefined);
+              expect(error.name).toEqual("KeyNotFoundError");
+            });
+            next();
+          },
+          function(next) {
+            setTimeout(function() {
+              region.get("key2", function(error, result) {
+                expect(error).not.toBeError();
+                expect(result).toEqual("value2");
+              });
+              next();
+            }, 3000);
+          }
+        ], done);
+      });
+
+      describe("when the synchronous flag is not a boolean", function() {
+        it("throws an error", function() {
+          function executeFunctionWithInvalidFlag() {
+            cache.executeFunction(functionName, { arguments: [], synchronous: 5, poolName: "myPool" });
+          }
+
+          expect(executeFunctionWithInvalidFlag).toThrow(
+            new Error("You must pass true or false for the synchronous option for executeFunction().")
+          );
+        });
+      });
+
+      afterEach(function() {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = originalDefaultTimeoutInterval;
+      });
+    });
   });
 
   describe(".createRegion", function() {
