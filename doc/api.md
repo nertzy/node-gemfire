@@ -334,9 +334,9 @@ region.existsValue("foo > 2", function(error, response) {
 
 See also `region.query` and `region.selectValue`.
 
-### region.get(key, callback)
+### region.get(key, [callback])
 
-Retrieves the value of an entry in the Region. The callback will be called with an `error` and the `value`. If the key is not present in the Region, an error will be passed to the callback.
+Retrieves the value of an entry in the Region. The callback will be called with an `error` and the `value`. If the key is not present in the Region, an error will be passed to the callback. If a callback is not present it will run synchronously.
 
 Example:
 
@@ -442,7 +442,7 @@ Returns the name of the region.
 
 ### region.put(key, value, [callback])
 
-Stores an entry in the region. The callback will be called with an `error` argument. If the callback is not supplied, an an error occurs, the region will emit an `error` event.
+Stores an entry in the region. The callback will be called with an `error` argument. If the callback is not supplied, it will run synchronously.
 
 GemFire supports most JavaScript types for the value. Some types, such as `Function` and `null` cannot be stored. 
 

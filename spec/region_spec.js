@@ -14,7 +14,7 @@ const invalidKeys = [null, undefined, []];
 const invalidValues = [null];
 
 describe("gemfire.Region", function() {
-  var region, cache;
+  var region, proxyRegion, cache;
 
   beforeEach(function(done) {
     jasmine.addMatchers(errorMatchers);
@@ -28,15 +28,48 @@ describe("gemfire.Region", function() {
       function getWithoutKey() {
         region.get();
       }
-      expect(getWithoutKey).toThrow(new Error("You must pass a key and callback to get()."));
+      expect(getWithoutKey).toThrow(new Error("You must pass a key and optionally a callback to get()."));
     });
 
-    it("throws an error if a callback is not passed to .get", function() {
-      function getWithoutCallback() {
-        region.get("foo");
-      }
+    describe("when no callback is provided", function() {
+      it("executes synchronously", function(done) {
+        async.series([
+          function(next) { region.clear(next); },
+          function(next) {
+            region.put('foo', 'bar', function (error) {
+              expect(error).not.toBeError();
+              next();
+            });
+          },
+          function(next) {
+            var returnValue = region.get("foo");
 
-      expect(getWithoutCallback).toThrow(new Error("You must pass a callback to get()."));
+            expect(returnValue).toEqual("bar");
+            next();
+          }
+        ], done);
+      });
+
+      describe("for a caching proxy region", function() {
+        it("executes synchronously", function(done) {
+          proxyRegion = cache.getRegion("exampleProxyRegion");
+          async.series([
+            function(next) { region.clear(next); },
+            function(next) {
+              proxyRegion.put('foo', 'bar', function (error) {
+                expect(error).not.toBeError();
+                next();
+              });
+            },
+            function(next) {
+              var returnValue = proxyRegion.get("foo");
+
+              expect(returnValue).toEqual("bar");
+              next();
+            }
+          ], done);
+        });
+      });
     });
 
     it("throws an error if a non-function is passed as a callback", function() {
@@ -44,7 +77,7 @@ describe("gemfire.Region", function() {
         region.get("foo", "bar");
       }
 
-      expect(getWithNonFunctionCallback).toThrow(new Error("The second argument to get() must be a callback."));
+      expect(getWithNonFunctionCallback).toThrow(new Error("You must pass a function as the callback to get()."));
     });
 
     it("returns the region object to support chaining", function(done) {
@@ -61,6 +94,13 @@ describe("gemfire.Region", function() {
         expect(value).toBeUndefined();
         done();
       });
+    });
+
+    it("throws an error when called for a nonexistent key when executing synchronously", function() {
+      function SynchronousGetInvalidKey() {
+        region.get("baz");
+      }
+      expect(SynchronousGetInvalidKey).toThrow(new Error("Key not found in region."));
     });
 
     _.each(invalidKeys, function(invalidKey) {
@@ -134,6 +174,30 @@ describe("gemfire.Region", function() {
       });
     });
 
+    describe("when no callback is passed in", function() {
+      it("executes synchronously returning the region object to support chaining", function() {
+        var returnValue = region.put("foo", "bar");
+        expect(returnValue).toEqual(region);
+      });
+
+      it("throws an error if the key is invalid", function() {
+        function putWithInvalidKey() {
+          region.put(null, 'bar');
+        }
+
+        expect(putWithInvalidKey).toThrow(new Error("Invalid GemFire key."));
+      });
+
+      it("throws an error if the value is invalid", function() {
+        function putWithInvalidValue() {
+          region.put('foo', null);
+        }
+
+        expect(putWithInvalidValue).toThrow(new Error("Invalid GemFire value."));
+      });
+
+    });
+
     _.each(invalidValues, function(invalidValue) {
       it("passes an error to the callback when passed invalid value " + util.inspect(invalidValue), function(done) {
         region.put("foo", invalidValue, function(error) {
@@ -166,21 +230,6 @@ describe("gemfire.Region", function() {
       }
 
       expect(callWithFunctionKey).toThrow(new Error("Unable to serialize to GemFire; functions are not supported."));
-    });
-
-    it("emits an event when an error occurs and there is no callback", function(done) {
-      const errorHandler = jasmine.createSpy("errorHandler").and.callFake(function(error){
-        expect(error).toBeError();
-        done();
-      });
-
-      region.on("error", errorHandler);
-      region.put("foo", null);
-
-      _.delay(function(){
-        expect(errorHandler).toHaveBeenCalled();
-        done();
-      }, 1000);
     });
 
     it("does not emit an event when an error occurs and there is a callback", function(done) {
