@@ -164,14 +164,19 @@ class PutWorker : public GemfireEventedWorker {
 NAN_METHOD(Region::Put) {
   NanScope();
 
-  if (args.Length() < 2) {
+  unsigned int argsLength = args.Length();
+  bool synchronous = true;
+
+  if (argsLength < 2) {
     NanThrowError("You must pass a key and value to put().");
     NanReturnUndefined();
   }
-
-  if (!isFunctionOrUndefined(args[2])) {
-    NanThrowError("You must pass a function as the callback to put().");
-    NanReturnUndefined();
+  if (argsLength == 3) {
+    if (!args[2]->IsFunction()) {
+      NanThrowError("You must pass a function as the callback to put().");
+      NanReturnUndefined();
+    }
+    synchronous = false;
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
@@ -183,10 +188,23 @@ NAN_METHOD(Region::Put) {
 
   CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
   CacheablePtr valuePtr(gemfireValue(args[1], cachePtr));
-  NanCallback * callback = getCallback(args[2]);
-  PutWorker * putWorker = new PutWorker(args.This(), region, keyPtr, valuePtr, callback);
-  NanAsyncQueueWorker(putWorker);
 
+  if (synchronous) {
+    if (keyPtr == NULLPTR) {
+      NanThrowError("Invalid GemFire key.");
+      NanReturnUndefined();
+    }
+
+    if (valuePtr == NULLPTR) {
+      NanThrowError("Invalid GemFire value.");
+      NanReturnUndefined();
+    }
+    region->regionPtr->put(keyPtr, valuePtr);
+  } else {
+    NanCallback * callback = getCallback(args[2]);
+    PutWorker * putWorker = new PutWorker(args.This(), region, keyPtr, valuePtr, callback);
+    NanAsyncQueueWorker(putWorker);
+  }
   NanReturnValue(args.This());
 }
 
@@ -229,20 +247,19 @@ NAN_METHOD(Region::Get) {
   NanScope();
 
   unsigned int argsLength = args.Length();
+  bool synchronous = true;
 
   if (argsLength == 0) {
-    NanThrowError("You must pass a key and callback to get().");
+    NanThrowError("You must pass a key and optionally a callback to get().");
     NanReturnUndefined();
   }
 
-  if (argsLength == 1) {
-    NanThrowError("You must pass a callback to get().");
-    NanReturnUndefined();
-  }
-
-  if (!args[1]->IsFunction()) {
-    NanThrowError("The second argument to get() must be a callback.");
-    NanReturnUndefined();
+  if (argsLength == 2) {
+    if (!args[1]->IsFunction()) {
+      NanThrowError("You must pass a function as the callback to get().");
+      NanReturnUndefined();
+    }
+    synchronous = false;
   }
 
   Region * region = ObjectWrap::Unwrap<Region>(args.This());
@@ -255,11 +272,21 @@ NAN_METHOD(Region::Get) {
 
   CacheableKeyPtr keyPtr(gemfireKey(args[0], cachePtr));
 
-  NanCallback * callback = new NanCallback(args[1].As<Function>());
-  GetWorker * getWorker = new GetWorker(callback, regionPtr, keyPtr);
-  NanAsyncQueueWorker(getWorker);
+  if (synchronous) {
+    CacheablePtr valuePtr = regionPtr->get(keyPtr);
 
-  NanReturnValue(args.This());
+    if (valuePtr == NULLPTR) {
+      NanThrowError("Key not found in region.");
+    }
+
+    NanReturnValue(v8Value(valuePtr));
+  } else {
+    NanCallback * callback = new NanCallback(args[1].As<Function>());
+    GetWorker * getWorker = new GetWorker(callback, regionPtr, keyPtr);
+    NanAsyncQueueWorker(getWorker);
+
+    NanReturnValue(args.This());
+  }
 }
 
 class GetAllWorker : public GemfireWorker {
