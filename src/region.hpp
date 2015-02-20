@@ -29,7 +29,9 @@ class Region : public node::ObjectWrap {
                                   gemfire::RegionPtr regionPtr);
   static NAN_METHOD(Clear);
   static NAN_METHOD(Put);
+  static NAN_METHOD(PutSync);
   static NAN_METHOD(Get);
+  static NAN_METHOD(GetSync);
   static NAN_METHOD(GetAll);
   static NAN_METHOD(Entries);
   static NAN_METHOD(PutAll);

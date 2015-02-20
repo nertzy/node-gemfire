@@ -334,9 +334,9 @@ region.existsValue("foo > 2", function(error, response) {
 
 See also `region.query` and `region.selectValue`.
 
-### region.get(key, [callback])
+### region.get(key, callback)
 
-Retrieves the value of an entry in the Region. The callback will be called with an `error` and the `value`. If the key is not present in the Region, an error will be passed to the callback. If a callback is not present it will run synchronously.
+Retrieves the value of an entry in the Region. The callback will be called with an `error` and the `value`. If the key is not present in the Region, an error will be passed to the callback.
 
 Example:
 
@@ -344,6 +344,17 @@ Example:
 region.get("key", function(error, value){
   if(error) { throw error; }
   // an entry was found and its value is now accessible
+});
+```
+
+### region.getSync(key)
+
+Retrieves the value of an entry in the Region synchronously.
+
+Example:
+
+```javascript
+  var value = region.getSync("key");
 });
 ```
 
@@ -440,9 +451,9 @@ See also `region.destroyRegion`.
 
 Returns the name of the region.
 
-### region.put(key, value, [callback])
+### region.put(key, value, callback)
 
-Stores an entry in the region. The callback will be called with an `error` argument. If the callback is not supplied, it will run synchronously.
+Stores an entry in the region. The callback will be called with an `error` argument.
 
 GemFire supports most JavaScript types for the value. Some types, such as `Function` and `null` cannot be stored. 
 
@@ -454,6 +465,18 @@ Example:
 region.put('key', { foo: 'bar' }, function(error) {
   if(error) { throw error; }
   // the entry at key "key" now has value { foo: 'bar' }
+});
+```
+
+### region.putSync(key, value)
+
+Stores an entry in the region. Works the same way as `put` but does not take a callback or emit events.
+
+Example:
+
+```javascript
+region.putSync('key', { foo: 'bar' });
+// the entry at key "key" now has value { foo: 'bar' }
 });
 ```
 
