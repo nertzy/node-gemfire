@@ -1316,6 +1316,84 @@ describe("gemfire.Region", function() {
     });
   });
 
+  describe(".putAllSync", function() {
+    it("sets multiple values at once", function(done) {
+      async.series([
+        function(next) {
+          region.putAllSync({ key1: 'foo', key2: 'bar', "1": "one"});
+          next();
+        },
+        function(next) {
+          region.get('key1', function(error, value) {
+            expect(error).not.toBeError();
+            expect(value).toEqual('foo');
+
+            next();
+          });
+        },
+        function(next) {
+          region.get('key2', function(error, value) {
+            expect(error).not.toBeError();
+            expect(value).toEqual('bar');
+
+            next();
+          });
+        },
+        function(next) {
+          region.get("1", function(error, value) {
+            expect(error).not.toBeError();
+            expect(value).toEqual('one');
+
+            next();
+          });
+        },
+      ], done);
+    });
+
+    _.each(invalidValues, function(invalidValue) {
+      it("returns an error when passed invalid value " + util.inspect(invalidValue), function() {
+        function invalidKey() {
+          region.putAllSync({"foo": "bar", "baz": invalidValue});
+        }
+        expect(invalidKey).toThrow(new Error("Invalid GemFire value."));
+      });
+    });
+
+    it("throws an error when passed a function as a value", function() {
+      function callWithFunctionValue() {
+        region.putAllSync({"foo": "bar", "baz": function(){}}, function(){});
+      }
+
+      expect(callWithFunctionValue).toThrow(new Error("You must pass an object to putAllSync()."));
+    });
+
+    it("returns the region for chaining", function() {
+      expect(region.putAllSync({ key: 'value' })).toEqual(region);
+    });
+
+    it("requires a map argument", function() {
+      function callWithNoArgs() {
+        region.putAllSync();
+      }
+
+      expect(callWithNoArgs).toThrow(new Error("You must pass an object to putAllSync()."));
+    });
+
+    it("requires the object argument to be an object", function() {
+      function callWithNull() {
+        region.putAllSync(null);
+      }
+
+      function callWithString() {
+        region.putAllSync('foobar');
+      }
+
+      errorMessage = "You must pass an object to putAllSync().";
+      expect(callWithNull).toThrow(new Error(errorMessage));
+      expect(callWithString).toThrow(new Error(errorMessage));
+    });
+  });
+
   describe(".getAll", function() {
     it("passes the results as an array to the callback", function(done) {
       async.series([

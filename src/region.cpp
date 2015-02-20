@@ -481,6 +481,32 @@ NAN_METHOD(Region::PutAll) {
   NanReturnValue(args.This());
 }
 
+NAN_METHOD(Region::PutAllSync) {
+  NanScope();
+
+  if (args.Length() != 1 || !args[0]->IsObject()) {
+    NanThrowError("You must pass an object to putAllSync().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  HashMapOfCacheablePtr hashMapPtr(gemfireHashMap(args[0]->ToObject(), cachePtr));
+  if (hashMapPtr == NULLPTR) {
+    NanThrowError("Invalid GemFire value.");
+    NanReturnUndefined();
+  }
+  regionPtr->putAll(*hashMapPtr);
+
+  NanReturnValue(args.This());
+}
+
 class RemoveWorker : public GemfireEventedWorker {
  public:
   RemoveWorker(
@@ -1061,6 +1087,8 @@ void Region::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Region::Entries)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "putAll",
       NanNew<FunctionTemplate>(Region::PutAll)->GetFunction());
+  NanSetPrototypeTemplate(constructorTemplate, "putAllSync",
+      NanNew<FunctionTemplate>(Region::PutAllSync)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "remove",
       NanNew<FunctionTemplate>(Region::Remove)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "query",

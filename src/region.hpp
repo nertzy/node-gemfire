@@ -36,6 +36,7 @@ class Region : public node::ObjectWrap {
   static NAN_METHOD(GetAllSync);
   static NAN_METHOD(Entries);
   static NAN_METHOD(PutAll);
+  static NAN_METHOD(PutAllSync);
   static NAN_METHOD(Remove);
   static NAN_METHOD(ServerKeys);
   static NAN_METHOD(Keys);

@@ -505,6 +505,22 @@ region.putAll(
 );
 ```
 
+### region.putAllSync(entries)
+
+Stores multiple entries in the region. Executes synchronously.
+
+Example:
+
+```javascript
+region.putAllSync(
+  {
+    key1: 'value1',
+    key2: { foo: 'bar' }
+    3: "three"
+  }
+);
+```
+
 ### region.query(predicate, callback)
 
 Retrieves all values from the Region matching the OQL `predicate`. The callback will be called with an `error` argument, and a `response` object. For more information on `response` objects, please see `cache.executeQuery`.
