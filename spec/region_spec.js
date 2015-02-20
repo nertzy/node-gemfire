@@ -1400,6 +1400,62 @@ describe("gemfire.Region", function() {
     });
   });
 
+  describe(".getAllSync", function() {
+    it("returns the results as an array", function(done) {
+      async.series([
+        function(next) { region.put('key1', 'value1', next); },
+        function(next) { region.put('key2', 'value2', next); },
+        function(next) { region.put('key3', 'value3', next); },
+        function(next) {
+          var results = region.getAllSync(['key1', 'key3']);
+          expect(results.key1).toEqual('value1');
+          expect(results.key3).toEqual('value3');
+          expect(results.key2).toBeUndefined();
+          next();
+        }
+      ], done);
+    });
+
+    it("requires a keys argument", function() {
+      function callWithNoArgs() {
+        region.getAllSync();
+      }
+
+      expect(callWithNoArgs).toThrow(new Error("You must pass an array of keys to getAllSync()."));
+    });
+
+    it("requires the keys argument to be an array", function() {
+      function callWithNonArray() {
+        region.getAllSync('not an array');
+      }
+
+      expect(callWithNonArray).toThrow(new Error("You must pass an array of keys to getAllSync()."));
+    });
+
+    it("returns an empty object when provided with no keys", function(){
+      var results = region.getAllSync([]);
+      expect(results).toEqual({});
+    });
+
+    _.each(invalidKeys, function(invalidKey) {
+      it("returns an error when passed the invalid key " + util.inspect(invalidKey), function() {
+        function callWithInvalidKeys() {
+          var results = region.getAllSync(["foo", invalidKey]);
+        }
+
+        expect(callWithInvalidKeys).toThrow(new Error("Invalid GemFire key."));
+      });
+    });
+
+    it("throws an error when passed a function as a key", function() {
+      function callWithFunctionKey() {
+        region.getAllSync([function(){}]);
+      }
+
+      expect(callWithFunctionKey).toThrow(new Error("Invalid GemFire key."));
+    });
+  });
+
   describe(".serverKeys", function() {
     it("passes an array of key names in the region on the server to the callback", function(done) {
       async.series([

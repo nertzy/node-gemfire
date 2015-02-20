@@ -395,6 +395,38 @@ NAN_METHOD(Region::GetAll) {
   NanReturnValue(args.This());
 }
 
+NAN_METHOD(Region::GetAllSync) {
+  NanScope();
+
+  if (args.Length() != 1 || !args[0]->IsArray()) {
+    NanThrowError("You must pass an array of keys to getAllSync().");
+    NanReturnUndefined();
+  }
+
+  Region * region = ObjectWrap::Unwrap<Region>(args.This());
+  RegionPtr regionPtr(region->regionPtr);
+
+  CachePtr cachePtr(getCacheFromRegion(region->regionPtr));
+  if (cachePtr == NULLPTR) {
+    NanReturnUndefined();
+  }
+
+  VectorOfCacheableKeyPtr gemfireKeysPtr(gemfireKeys(Local<Array>::Cast(args[0]), cachePtr));
+
+  if (gemfireKeysPtr == NULLPTR) {
+    NanThrowError("Invalid GemFire key.");
+    NanReturnUndefined();
+  }
+
+  HashMapOfCacheablePtr resultsPtr(new HashMapOfCacheable());
+  if (gemfireKeysPtr->size() == 0) {
+    NanReturnValue(v8Object(resultsPtr));
+  }
+
+  regionPtr->getAll(*gemfireKeysPtr, resultsPtr, NULLPTR);
+  NanReturnValue(v8Value(resultsPtr));
+}
+
 class PutAllWorker : public GemfireEventedWorker {
  public:
   PutAllWorker(
@@ -1023,6 +1055,8 @@ void Region::Init(Local<Object> exports) {
       NanNew<FunctionTemplate>(Region::GetSync)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "getAll",
       NanNew<FunctionTemplate>(Region::GetAll)->GetFunction());
+  NanSetPrototypeTemplate(constructorTemplate, "getAllSync",
+      NanNew<FunctionTemplate>(Region::GetAllSync)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "entries",
       NanNew<FunctionTemplate>(Region::Entries)->GetFunction());
   NanSetPrototypeTemplate(constructorTemplate, "putAll",
