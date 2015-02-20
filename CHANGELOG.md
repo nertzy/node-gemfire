@@ -1,3 +1,7 @@
+# v0.0.18
+- **Breaking Change**: `region.get` and `region.put` now work as before. `region.getSync` and `region.putSync` replace previous synchronous behavior.
+- Added `region.getAllSync` and `region.putAllSync`
+
 # v0.0.17
 - **Breaking Change**: `region.get` and `region.put` now work synchronously when not given a callback. `region.put` will no longer emit an event given an invalid value and no callback. If RangeErrors or stack overflows occur with usage you may need to utilize `process.nextTick(callback)` or `setImmediate(callback)`;
 
