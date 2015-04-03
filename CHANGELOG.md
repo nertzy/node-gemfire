@@ -1,3 +1,6 @@
+# v0.1.18
+- Tested with 8.1.0.0 and consider that the new default.
+
 # v0.0.18
 - **Breaking Change**: `region.get` and `region.put` now work as before. `region.getSync` and `region.putSync` replace previous synchronous behavior.
 - Added `region.getAllSync` and `region.putAllSync`
