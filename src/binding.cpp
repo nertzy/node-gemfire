@@ -24,15 +24,15 @@ NAN_METHOD(Initialize) {
 
   Local<Object> gemfire(NanNew<Object>());
 
-  gemfire->Set(NanNew("version"),
+  gemfire->ForceSet(NanNew("version"),
       NanNew(NODE_GEMFIRE_VERSION),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  gemfire->Set(NanNew("gemfireVersion"),
+  gemfire->ForceSet(NanNew("gemfireVersion"),
       NanNew(gemfire::CacheFactory::getVersion()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  gemfire->Set(NanNew("connected"),
+  gemfire->ForceSet(NanNew("connected"),
       NanNew<FunctionTemplate>(Connected)->GetFunction(),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 

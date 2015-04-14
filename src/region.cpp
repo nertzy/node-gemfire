@@ -617,70 +617,70 @@ NAN_GETTER(Region::Attributes) {
 
   Local<Object> returnValue(NanNew<Object>());
 
-  returnValue->Set(NanNew("cachingEnabled"),
+  returnValue->ForceSet(NanNew("cachingEnabled"),
       NanNew(regionAttributesPtr->getCachingEnabled()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("clientNotificationEnabled"),
+  returnValue->ForceSet(NanNew("clientNotificationEnabled"),
       NanNew(regionAttributesPtr->getClientNotificationEnabled()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("concurrencyChecksEnabled"),
+  returnValue->ForceSet(NanNew("concurrencyChecksEnabled"),
       NanNew(regionAttributesPtr->getConcurrencyChecksEnabled()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("concurrencyLevel"),
+  returnValue->ForceSet(NanNew("concurrencyLevel"),
       NanNew(regionAttributesPtr->getConcurrencyLevel()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("diskPolicy"),
+  returnValue->ForceSet(NanNew("diskPolicy"),
       NanNew(DiskPolicyType::fromOrdinal(regionAttributesPtr->getDiskPolicy())),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("entryIdleTimeout"),
+  returnValue->ForceSet(NanNew("entryIdleTimeout"),
       NanNew(regionAttributesPtr->getEntryIdleTimeout()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("entryTimeToLive"),
+  returnValue->ForceSet(NanNew("entryTimeToLive"),
       NanNew(regionAttributesPtr->getEntryTimeToLive()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("initialCapacity"),
+  returnValue->ForceSet(NanNew("initialCapacity"),
       NanNew(regionAttributesPtr->getInitialCapacity()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("loadFactor"),
+  returnValue->ForceSet(NanNew("loadFactor"),
       NanNew(regionAttributesPtr->getLoadFactor()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("lruEntriesLimit"),
+  returnValue->ForceSet(NanNew("lruEntriesLimit"),
       NanNew(regionAttributesPtr->getLruEntriesLimit()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("lruEvicationAction"),
+  returnValue->ForceSet(NanNew("lruEvicationAction"),
       NanNew(ExpirationAction::fromOrdinal(regionAttributesPtr->getLruEvictionAction())),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
   const char * poolName = regionAttributesPtr->getPoolName();
   if (poolName == NULL) {
-    returnValue->Set(NanNew("poolName"),
+    returnValue->ForceSet(NanNew("poolName"),
         NanNull(),
         static_cast<PropertyAttribute>(ReadOnly | DontDelete));
   } else {
-    returnValue->Set(NanNew("poolName"),
+    returnValue->ForceSet(NanNew("poolName"),
         NanNew(poolName),
         static_cast<PropertyAttribute>(ReadOnly | DontDelete));
   }
 
-  returnValue->Set(NanNew("regionIdleTimeout"),
+  returnValue->ForceSet(NanNew("regionIdleTimeout"),
       NanNew(regionAttributesPtr->getRegionIdleTimeout()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("regionTimeToLive"),
+  returnValue->ForceSet(NanNew("regionTimeToLive"),
       NanNew(regionAttributesPtr->getRegionTimeToLive()),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
-  returnValue->Set(NanNew("scope"),
+  returnValue->ForceSet(NanNew("scope"),
       NanNew(ScopeType::fromOrdinal(regionAttributesPtr->getScope())),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
