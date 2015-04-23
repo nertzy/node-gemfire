@@ -1,4 +1,4 @@
-#define NODE_GEMFIRE_VERSION "0.1.18"
+#define NODE_GEMFIRE_VERSION "0.1.19"
 
 #include <v8.h>
 #include <nan.h>

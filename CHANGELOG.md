@@ -1,3 +1,6 @@
+# v0.1.19
+- Use ForceSet instead of Set to allow for node 0.11.x+ compatibility
+
 # v0.1.18
 - Tested with 8.1.0.0 and consider that the new default.
 
